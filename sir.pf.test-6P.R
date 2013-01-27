@@ -189,12 +189,12 @@ rprior_kd = function() rprior(FALSE)
 out3 = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n,
  	   method="stratified",nonuniformity="ess",threshold=0.8,log=F)
 
+#load("../Data/sir.pf.test-6P.rdata")
+
 # Comparison
 # Plot % infected
+require(Hmisc)
 tt = nt + 1
-windows()
-plot(sim$x[1,],type="l",ylim=c(0,.28),xlab="Time (days)",ylab="% Population",
-	main="95% Credible Intervals of %Pop Infected")
 bf.i = apply(out$state[1,,]*out$weight,2,sum)
 apf.i = apply(out2$state[1,,]*out2$weight,2,sum)
 kd.i = apply(out3$state[1,,]*out3$weight,2,sum)
@@ -207,6 +207,9 @@ for(i in 1:tt){
 	kd.li[i] = wtd.quantile(out3$state[1,,i], out3$weight[,i], normwt=T, probs=.025)
 	kd.ui[i] = wtd.quantile(out3$state[1,,i], out3$weight[,i], normwt=T, probs=.975)
 }
+pdf(paste("../Graphs/PF/PF-quant-6P-",n,".pdf",sep=""))
+plot(sim$x[1,],type="l",ylim=c(0,.28),xlab="Time (days)",ylab="% Population",
+	main="95% Credible Intervals of %Pop Infected")
 lines(bf.i,col=2)
 lines(bf.li,col=2,lty=2)
 lines(bf.ui,col=2,lty=2)
@@ -216,73 +219,98 @@ lines(apf.ui,col=4,lty=2)
 lines(kd.i,col=3)
 lines(kd.li,col=3,lty=2)
 lines(kd.ui,col=3,lty=2)
-legend("topright",c("Truth","BF","AFP","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2))
+legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2))
+dev.off()
 
 # Histograms of unknown parameters
 # bootstrap filter
 require(plotrix)
 cutoff = nt + 1
-windows(width=10,height=8)
+msize = labsize = 1.5
+pdf(paste("../Graphs/PF/Hist-BF-6P-",n,"-day",cutoff-1,".pdf",sep=""),width=10,height=8)
 par(mfrow=c(2,3))
 weighted.hist(out$state[3,,cutoff],out$weight[,cutoff],
-	xlab=expression(beta),main="Histogram of Contact Rate")
-mtext(expression(paste(beta," = ",0.2399,sep="")),side=3,cex=.8)
+	xlab=expression(beta),main="Histogram of Contact Rate",
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(beta," = ",aa,sep=""),list(aa=beta)),side=3)
 weighted.hist(out$state[4,,cutoff],out$weight[,cutoff],
-	xlab=expression(gamma),main="Histogram of Recovery Time")
-mtext(expression(paste(gamma," = ",0.1066,sep="")),side=3)
+	xlab=expression(gamma),main="Histogram of Recovery Time",
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(gamma," = ",aa,sep=""),list(aa=gamma)),side=3)
 weighted.hist(out$state[5,,cutoff],out$weight[,cutoff],
-	xlab=expression(nu),main="Histogram of Mixing Intensity")
-mtext(expression(paste(nu," = ",1.2042,sep="")),side=3)
+	xlab=expression(nu),main="Histogram of Mixing Intensity",
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(nu," = ",aa,sep=""),list(aa=nu)),side=3)
 weighted.hist(out$state[6,,cutoff],out$weight[,cutoff],
-	xlab=expression(b),main=expression(paste("Histogram of ",b,sep="")))
-mtext(expression(paste(b," = ",0.25,sep="")),side=3,cex=.8)
+	xlab="b",main=expression(paste("Histogram of ",b,sep="")),
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste("b"," = ",aa,sep=""),list(aa=b)),side=3)
 weighted.hist(out$state[7,,cutoff],out$weight[,cutoff],
-	xlab=expression(varsigma),main=expression(paste("Histogram of ",varsigma,sep="")))
-mtext(expression(paste(varsigma," = ",1.07,sep="")),side=3)
+	xlab=expression(varsigma),main=expression(paste("Histogram of ",varsigma,sep="")),
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(varsigma," = ",aa,sep=""),list(aa=varsigma)),side=3)
 weighted.hist(out$state[8,,cutoff],out$weight[,cutoff],
-	xlab=expression(sigma),main=expression(paste("Histogram of ",sigma,sep="")))
-mtext(expression(paste(sigma," = ",0.0012,sep="")),side=3)
+	xlab=expression(sigma),main=expression(paste("Histogram of ",sigma,sep="")),
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(sigma," = ",aa,sep=""),list(aa=sigma)),side=3)
+dev.off()
 
 # auxillary particle filter
-windows(width=10,height=8)
+pdf(paste("../Graphs/PF/Hist-APF-6P-",n,"-day",cutoff-1,".pdf",sep=""),width=10,height=8)
 par(mfrow=c(2,3))
 weighted.hist(out2$state[3,,cutoff],out2$weight[,cutoff],
-	xlab=expression(beta),main="Histogram of Contact Rate")
-mtext(expression(paste(beta," = ",0.2399,sep="")),side=3,cex=.8)
+	xlab=expression(beta),main="Histogram of Contact Rate",
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(beta," = ",aa,sep=""),list(aa=beta)),side=3)
 weighted.hist(out2$state[4,,cutoff],out2$weight[,cutoff],
-	xlab=expression(gamma),main="Histogram of Recovery Time")
-mtext(expression(paste(gamma," = ",0.1066,sep="")),side=3)
+	xlab=expression(gamma),main="Histogram of Recovery Time",
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(gamma," = ",aa,sep=""),list(aa=gamma)),side=3)
 weighted.hist(out2$state[5,,cutoff],out2$weight[,cutoff],
-	xlab=expression(nu),main="Histogram of Mixing Intensity")
-mtext(expression(paste(nu," = ",1.2042,sep="")),side=3)
+	xlab=expression(nu),main="Histogram of Mixing Intensity",
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(nu," = ",aa,sep=""),list(aa=nu)),side=3)
 weighted.hist(out2$state[6,,cutoff],out2$weight[,cutoff],
-	xlab=expression(b),main=expression(paste("Histogram of ",b,sep="")))
-mtext(expression(paste(b," = ",0.25,sep="")),side=3,cex=.8)
+	xlab="b",main=expression(paste("Histogram of ",b,sep="")),
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste("b"," = ",aa,sep=""),list(aa=b)),side=3)
 weighted.hist(out2$state[7,,cutoff],out2$weight[,cutoff],
-	xlab=expression(varsigma),main=expression(paste("Histogram of ",varsigma,sep="")))
-mtext(expression(paste(varsigma," = ",1.07,sep="")),side=3)
+	xlab=expression(varsigma),main=expression(paste("Histogram of ",varsigma,sep="")),
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(varsigma," = ",aa,sep=""),list(aa=varsigma)),side=3)
 weighted.hist(out2$state[8,,cutoff],out2$weight[,cutoff],
-	xlab=expression(sigma),main=expression(paste("Histogram of ",sigma,sep="")))
-mtext(expression(paste(sigma," = ",0.0012,sep="")),side=3)
+	xlab=expression(sigma),main=expression(paste("Histogram of ",sigma,sep="")),
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(sigma," = ",aa,sep=""),list(aa=sigma)),side=3)
+dev.off()
 
 # kernel density particle filter
-windows(width=10,height=8)
+pdf(paste("../Graphs/PF/Hist-KD-6P-",n,"-day",cutoff-1,".pdf",sep=""),width=10,height=8)
 par(mfrow=c(2,3))
 weighted.hist(theta2u(out3$theta[1,,cutoff],betal,betau),out3$weight[,cutoff],
-	xlab=expression(beta),main="Histogram of Contact Rate")
-mtext(expression(paste(beta," = ",0.2399,sep="")),side=3,cex=.8)
+	xlab=expression(beta),main="Histogram of Contact Rate",
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(beta," = ",aa,sep=""),list(aa=beta)),side=3)
 weighted.hist(theta2u(out3$theta[2,,cutoff],gammal,gammau),out3$weight[,cutoff],
-	xlab=expression(gamma),main="Histogram of Recovery Time")
-mtext(expression(paste(gamma," = ",0.1066,sep="")),side=3)
+	xlab=expression(gamma),main="Histogram of Recovery Time",
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(gamma," = ",aa,sep=""),list(aa=gamma)),side=3)
 weighted.hist(theta2u(out3$theta[3,,cutoff],nul,nuu),out3$weight[,cutoff],
-	xlab=expression(nu),main="Histogram of Mixing Intensity")
-mtext(expression(paste(nu," = ",1.2042,sep="")),side=3)
+	xlab=expression(nu),main="Histogram of Mixing Intensity",
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(nu," = ",aa,sep=""),list(aa=nu)),side=3)
 weighted.hist(theta2u(out3$theta[4,,cutoff],bl,bu),out3$weight[,cutoff],
-	xlab=expression(b),main=expression(paste("Histogram of ",b,sep="")))
-mtext(expression(paste(b," = ",0.25,sep="")),side=3,cex=.8)
+	xlab="b",main=expression(paste("Histogram of ",b,sep="")),
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste("b"," = ",aa,sep=""),list(aa=b)),side=3)
 weighted.hist(theta2u(out3$theta[5,,cutoff],varsigmal,varsigmau),out3$weight[,cutoff],
-	xlab=expression(varsigma),main=expression(paste("Histogram of ",varsigma,sep="")))
-mtext(expression(paste(varsigma," = ",1.07,sep="")),side=3)
+	xlab=expression(varsigma),main=expression(paste("Histogram of ",varsigma,sep="")),
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(varsigma," = ",aa,sep=""),list(aa=varsigma)),side=3)
 weighted.hist(theta2u(out3$theta[6,,cutoff],sigmal,sigmau),out3$weight[,cutoff],
-	xlab=expression(sigma),main=expression(paste("Histogram of ",sigma,sep="")))
-mtext(expression(paste(sigma," = ",0.0012,sep="")),side=3)
+	xlab=expression(sigma),main=expression(paste("Histogram of ",sigma,sep="")),
+	cex.main=msize,cex.lab=labsize)
+mtext(substitute(paste(sigma," = ",aa,sep=""),list(aa=sigma)),side=3)
+dev.off()
+
+#save.image("../Data/sir.pf.test-6P.rdata")
