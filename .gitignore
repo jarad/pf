@@ -4,3 +4,9 @@
 
 # Example code in package build process
 *-Ex.R
+
+
+# LaTeX files
+.aux
+.log
+.synctex.gz
