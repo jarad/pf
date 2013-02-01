@@ -20,7 +20,6 @@
 kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, ...)
 {
   require(smcUtils)
-  require(Hmisc)
 
   if (!is.matrix(y)) y = matrix(y, 1)
   no = nrow(y) # not currently used
