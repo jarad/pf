@@ -1,0 +1,230 @@
+\documentclass{article}
+
+\usepackage{amsmath,natbib,verbatim,color,graphicx,caption}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[font={small,it}]{caption}
+
+\begin{document}
+
+\section{Introduction}
+
+\section{Methodology}
+
+\subsection{Disease Dynamics}
+
+As in \citet{skvortsov}, we consider the modified SIR model with stochastic fluctuations to describe the dynamics of the disease outbreak.  According to this model, we keep track of the number of susceptible, infected, and recovered individuals - denoted by $S$, $I$, and $R$, respectively - over the course of the epidemic.  We require $S + I + R = P$ where $P$ represents the total population size, and we define $s = S/P$, $i = I/P$, and $r = R/P$ so that $s + i + r = 1$.  The dynamics of the epidemic with respect to time, $t$, are then described by the following differential equations:
+
+\begin{align}
+\frac{ds}{dt} &= -\beta is^\nu + \epsilon_\beta \label{eqn:dsdt} \\
+\frac{di}{dt} &= \beta is^\nu - \gamma i - \epsilon_\beta + \epsilon_\gamma \label{eqn:didt}
+\end{align}
+
+\noindent Here, $\beta$ represents the contact rate of spread of the disease, $\gamma$ is the recovery time, and $\nu \ge 0$ is the mixing intensity of the population.  $\epsilon_\beta$ and $\epsilon_\gamma$ are uncorrelated, Gaussian random variables with zero mean and standard deviations $\sigma_\beta$ and $\sigma_\gamma$, respectively.  Note that, by definition, $r$ is completely specified once $s$ and $i$ are known.
+
+As in \citet{skvortsov} once again, we will approximate the standard deviation of the noise terms $\sigma_\beta$ and $\sigma_\gamma$ by the scaling rule \[\sigma_\beta \approx \frac{\sqrt{\beta}}{P} \mbox{, } \sigma_\gamma \approx \frac{\sqrt{\gamma}}{P}\] and use Euler's method to approximate the solution of the differential equations given in \eqref{eqn:dsdt} and \eqref{eqn:didt}.  Letting $s_t$ and $i_t$ be the proportion of the population susceptible to disease and infected by disease at time $t$, respectively, the evolution of the epidemic from time $t$ to time $t + \tau$, $\tau > 0$, is approximated by
+
+\begin{align}
+s_{t+\tau} &= s_t - \tau\beta i_ts^\nu_t + \xi_s \label{eqn:s} \\
+i_{t+\tau} &= i_t + \tau i_t(\beta s^\nu_t - \gamma) + \xi_i \label{eqn:i}
+\end{align}
+
+\noindent where $\xi_s$ and $\xi_i$ are independent, Gaussian random variables with zero mean and variances $(\beta + \gamma)\tau^2/P^2$ and $\beta\tau^2/P^2$, respectively.  Note that this approximation is more accurate for small $\tau$.
+
+\subsection{Model}
+
+When monitoring the epidemic, the true $s$, $i$ and $r$ are unknown and regarded as hidden states of the model.  We instead observe measurements consisting of public health data, medical data such as hospital visits, and non-medical data such as absenteeism from work or school.  Thus, we characterize a state-space model of the epidemic by two equations: the observation equation and the state equation.  The observation equation specifies how the observed data depend on the state of the epidemic and other parameters.  We can observe data from multiple syndromes that arrive asynchronously in time.  Let $z_{j,k}$ represent data coming from syndrome $j$ at discrete-time index $k$ (i.e. at time $t_k$), with $k = 1,2,\ldots,T$ and $j = 1,2,\ldots,J$.  Since the $z_{j,k}$'s are constrained to be positive, let $y_{j,k} = \log z_{j,k}$ and we assume a power law relationship between the log of the observations and the proportion of the population infected by disease:
+
+\begin{equation}
+y_{j,k} = b_ji^{\varsigma_j}_{t_k} + \tau_j \label{eqn:obs}
+\end{equation}
+
+\noindent Here, the $b_j$'s and $\varsigma_j$'s are non-negative constants and $\tau_j$ is a normally distributed random variable with zero mean and standard deviation $\sigma_j$.
+
+Next, we specify the state equation.  The state equation explains how the unobserved states of the epidemic evolve over time.  Let $x_t = (i_t,s_t)'$ represent the state of the epidemic at time $t$, and let $\theta$ represent any unknown, fixed parameters in the model.  For the time being, we let $\theta = (\beta, \gamma, \nu)'$ and regard the $b_j$'s, $\varsigma_j$'s, and $\sigma_j$'s as known.  Letting $\tau > 0$ be small, the state equation is given by
+
+\begin{equation}
+x_{t+\tau} = f_\tau(x_t,\theta) + w_{\tau}(\theta) \label{eqn:state}
+\end{equation}
+
+\noindent where
+
+\begin{equation}
+f_\tau(x_t,\theta) = \left(
+\begin{array}{c}
+i_t + \tau i_t(\beta s^{\nu}_t - \gamma) \\
+s_t - \tau\beta i_ts^{\nu}_t
+\end{array}
+\right) \label{eqn:f}
+\end{equation}
+
+\noindent and $w_\tau$ is a Gaussian random variable with zero mean and covariance matrix
+
+\begin{equation}
+Q = \left(
+\begin{array}{ccccc}
+(\beta + \gamma)\tau^2/P^2 & 0 \\
+0 & \beta\tau^2/P^2
+\end{array}
+\right) \label{eqn:q}
+\end{equation}
+
+\noindent Having formulated the observation and state equations, we can now express the likelihood of an observation $y_{j,k}$ given the state of the epidemic at time $t_k$, $x_{t_k}$, and the unknown parameters $\theta$ by \[p(y_{j,k}|x_{t_k},\theta) = N(y_{j,k};b_ji^{\varsigma_j}_{t_k},\sigma^2_j)\] where $N(.;\mu,\sigma^2)$ represents the pdf of the normal distribution with mean $\mu$ and variance $\sigma^2$.
+
+We are interested now in how to update the posterior distribution of the states and unknown parameters given new data.  That is, given the posterior distribution at time $t_k$, denoted by $p(x_{t_k},\theta|y_{1:k})$, how do we obtain $p(x_{t_{k+1}},\theta|y_{1:k+1})$?  Theoretically, this is obtained by Bayes rule:
+
+\begin{equation}
+p(x_{t_{k+1}},\theta|y_{1:k+1}) = \frac{p(y_{j,k}|x_{t_k},\theta)p(x_{t_k},\theta|y_{1:k})}{\int p(y_{j,k}|x_{t_k},\theta)p(x_{t_k},\theta|y_{1:k}) \mathrm{d} x_{t_k}} \label{eqn:bayes}
+\end{equation}
+
+\noindent However, because the densities in the numerator are nonlinear functions of $x_t$ and $\theta$, a closed-form solution to equation \eqref{eqn:bayes} cannot be obtained.  Instead, we use a numerical simulation approach called sequential monte carlo or particle filtering, discussed in the next section.
+
+\subsection{Particle Filters}
+
+\subsubsection{Bootstrap Filter}
+
+Assume for the moment that $\theta$ is known.  Then we can omit $\theta$ from all terms in equation \eqref{eqn:bayes} and deal only with the posterior density of the states at time $t_k$, $p(x_{t_k}|y_{1:k})$.  In the absence of an explicit form of this density, the particle filtering approach instead approximates the density using a weighted random sample.  Let $\{x_{t_k}^1,\ldots,x_{t_k}^n\}$ represent $n$ samples or particles of the current state with associated weights $\{\omega_k^1,\ldots,\omega_k^n\}$.  The version of the particle filter known as the bootstrap filter, explained in \citet{gordon}, prescribes updating our weighted random sample to an approximation of $p(x_{t_{k+1}}|y_{1:k+1})$ given a new observation $y_k$ in the following manner:
+
+\begin{enumerate}
+\item Prediction - For each particle $i = {1,\ldots,n}$, sample a new particle $x_{t_{k+1}}^i$ from the transition density $p(x_{t_{k+1}}|x_{t_k}^i$).
+\item Update - Calculate new weights of the particles by $\tilde{\omega}_{k+1}^i = \omega_{k+1}^i p(y_{k+1}|x_{t_{k+1}}^i)$
+\item Normalize - Normalize the weights of the particles so they sum to 1: \[\omega_{k+1}^i = \frac{\tilde{\omega}_{k+1}^i}{\sum_{l=1}^n \tilde{\omega}_{k+1}^l}\]
+\item Resample - Sample with replacement from the particles so that all weights become equal.
+\end{enumerate}
+
+\noindent The last step, resampling, is optional and intended to adjust the distribution of weights and eliminate weights close to 0.  The bootstrap filter is initiated by sampling $n$ times from the prior distribution $p(x_0)$ and setting the initial weights of the sample to $\omega_0^i = 1/n$ for all $i$.  Then, the above steps are run until the last observation, $y_T$, is processed.
+
+Notice from equation \eqref{eqn:state} that the transition density needed for prediction in our model is a multivariate normal density with mean $f_\tau(x_{t_k},\theta)$ and covariance matrix $Q$.  A few notes on how to carry out the prediction step for this density are necessary. First, recall that that the mean function approximates the disease dynamics better for small $\tau$.  Thus, if the time between observations, $t_{k+1} - t_k$, is large, we can still set $\tau$ to be small and carry out the prediction step $(t_{k+1} - t_k) / \tau$ times to generate $x_{t_{k+1}}^i$.  Second, $i$ and $s$ are proportions and thus constrained to be in $[0,1]$.  However, the stochastic nature of the state equation makes it possible to generate states that do not satisfy this constraint.  In our implementation of the particle filter, we throw away samples in which $i$ or $s$ fall outside of $[0,1]$ and resample.
+
+So how do we reintroduce unknown parameters $\theta$ into the particle filtering framework?  The approach taken by \citet{skvortsov} is to extend the state vector, $x_t$, to include the unknown the parameters and constrain them to remain constant over time in the state equation.  That is, let $x_t = (i_t,s_t,\beta,\gamma,\nu)'$ and redefine $f_\tau$ and $Q$ as
+\[
+f_\tau(x_t) = \left(
+\begin{array}{c}
+i_t + \tau i_t(\beta s^{\nu}_t - \gamma) \\
+s_t - \tau\beta i_ts^{\nu}_t \\
+\beta \\
+\gamma \\
+\nu
+\end{array}
+\right)
+\mbox{, }
+Q = \left(
+\begin{array}{ccccc}
+(\beta + \gamma)\tau^2/P^2 & 0 & 0 & 0 & 0 \\
+0 & \beta\tau^2/P^2 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0
+\end{array}
+\right)
+ \]
+
+\noindent The main shortcoming of implementing the bootstrap filter in this manner, however, is that particles generated that are less likely given the data will have small weights and get eliminated in the resampling step.  This leads to what is known as particle degeneracy, or a degeneracy of the distribution of the unknown parameters toward one value.  This poses a problem in the context of Bayesian inference where we would like the posterior distribution to incorporate proper uncertainty about $\theta$.
+
+\subsubsection{Auxiliary Particle Filter}
+
+One way to fight particle degeneracy is to increase the number of particles, $n$, used in the filter.  A more efficient method, however, has been developed by \citet{pitt} called the auxiliary particle filter.  The idea behind the auxiliary particle filter is to generate particles with higher likelihood given the data by "looking ahead" at the predictive distribution of each particle prior to sampling.  Given a weighted random sample of particles at time $t_k$, the auxiliary particle filter approximates $p(x_{t_{k+1}}|y_{1:k+1})$ by the following:
+
+\begin{enumerate}
+\item Estimate - For each particle $i$, calculate a point estimate of $x_{t_{k+1}}^i$ called $\mu_{k+1}^i$.  This is typically taken to be the mean of $p(x_{t_{k+1}}|x_{t_k}^i)$.
+\item Auxiliary weights - Calculate auxiliary weights $\tilde{g}_{k+1}^i$ for each particle by $\tilde{g}_{k+1}^i = \omega_k^i p(y_{k+1}|\mu_{k+1}^i)$ and normalize the auxiliary weights by \[g_{k+1}^i = \frac{\tilde{g}_{k+1}^i}{\sum_{l=1}^n \tilde{g}_{k+1}^l}\]
+\item Resample - Sample with replacement from the particles according to the normalized auxiliary weights $g_{k+1}^i$.
+\item Prediction - For each particle $i = {1,\ldots,n}$, sample a new particle $x_{t_{k+1}}^i$ from the transition density $p(x_{t_{k+1}}|x_{t_k}^i$).
+\item Update - Calculate new weights of the particles by \[\tilde{\omega}_{k+1}^i = \frac{p(y_{k+1}|x_{t_{k+1}}^i)}{p(y_{k+1}|\mu_{k+1}^i)}\]
+\item Normalize - Normalize the weights of the particles so they sum to 1: \[\omega_{k+1}^i = \frac{\tilde{\omega}_{k+1}^i}{\sum_{l=1}^n \tilde{\omega}_{k+1}^l}\]
+\end{enumerate}
+
+\noindent Like the bootstrap filter, the auxiliary particle filter is initiated by taking $n$ samples from the prior distribution $p(x_0)$ and setting the initial weights $\omega_0^i = 1/n$.  Optionally, one can alternate between the bootstrap filter and the auxiliary particle filter as new observations are processed.  For instance, in cases where the distribution of the weights is adequate, we can avoid the estimation step of calculating auxiliary weights so that the algorithm runs more efficiently.
+
+\subsubsection{Kernel Density Particle Filter}
+
+Both the bootstrap filter and the auxiliary particle filter as described in the previous two sections do not consider additional unknown parameters $\theta$, but rather require any additional parameters to be concatenated to the state vector $x_t$.  Thus, the values sampled from the prior distribution at time $t_0$ are carried through the entire particle filter.  This makes degeneracy of the unknown parameters difficult to avoid unless a large number of particles is used.  \citet{liu} devised a modification to the auxiliary particle filter that takes into account additional unknown parameters $\theta$ in a flexible way.  They introduce a kernel density estimate of the distribution of $\theta$ for each particle so that new values of the unknown parameters can be sampled at each time step.  This enables us to refresh the distribution of $\theta$ to avoid degeneracy and require a lower number of particles for the filter.
+
+Define $x_t = (i_t,s_t)'$ and $\theta = (\beta,\gamma,\nu)'$ and let $f_\tau$ and $Q$ be as they were in equations \eqref{eqn:f} and \eqref{eqn:q}.  Let $\{x_{t_k}^1,\ldots,x_{t_k}^n\}$ and $\{\theta_k^1,\ldots,\theta_k^n\}$ with associated weights $\{\omega_k^1,\ldots,\omega_k^n\}$ be an approximation to the distribution $p(x_{t_k},\theta|y_{1:k})$.  Note that the subscript $k$ for $\theta$ does not imply that $\theta$ changes with time, but rather indicates current knowledge of the distribution of $\theta$ at time $t_k$.  In addition, let $\bar{\theta}_k$ and $V_k$ be the weighted sample mean and weighted sample covariance matrix of the posterior sample ${\theta_k^1,\ldots,\theta_k^n}$.  According to the kernel density particle filter, we move to an approximation of $p(x_{t_{k+1}},\theta|y_{1:{k+1}})$ by the following steps:
+
+\begin{enumerate}
+\item Estimate - For each particle $i$, calculate a point estimate of $(x_{t_{k+1}}^i,\theta)$ given by $(\mu_{k+1}^i,m_k^i)$ where
+    \begin{align*}
+    \mu_{k+1}^i &= E(x_{t_{k+1}}|x_{t_k}^i,\theta_k^i) \\
+    m_k^i &= a\theta_k^i + (1-a)\bar{\theta}_k
+    \end{align*}
+\item Auxiliary weights - Calculate auxiliary weights $\tilde{g}_{k+1}^i$ for each particle by $\tilde{g}_{k+1}^i = \omega_k^i p(y_{k+1}|\mu_{t_{k+1}}^i,m_k^i)$ and normalize the auxiliary weights by \[g_{k+1}^i = \frac{\tilde{g}_{k+1}^i}{\sum_{l=1}^n \tilde{g}_{k+1}^l}\]
+\item Resample - Sample with replacement from the particles according to the normalized auxiliary weights $g_{k+1}^i$.
+\item Prediction - For each particle $i = {1,\ldots,n}$, sample $\theta_{k+1}^i$ from a normal density with mean $m_k^i$ and covariance matrix $h^2V_k$.  Then, sample $x_{t_{k+1}}^i$ from the transition density $p(x_{t_{k+1}}|x_{t_k}^i,\theta_{k+1}^i$).
+\item Update - Calculate new weights of the particles by \[\tilde{\omega}_{k+1}^i = \frac{p(y_{k+1}|x_{t_{k+1}}^i,\theta_{k+1}^i)}{p(y_{k+1}|\mu_{t_{k+1}}^i,m_k^i)}\]
+\item Normalize - Normalize the weights of the particles so they sum to 1: \[\omega_{k+1}^i = \frac{\tilde{\omega}_{k+1}^i}{\sum_{l=1}^n \tilde{\omega}_{k+1}^l}\]
+\end{enumerate}
+
+Notice above that the mean and variance of the kernel density estimate of $\theta_k^i$ depend also on scalars $a$ and $h$.  $a$ specifies the weight given to each particle versus the overall mean in calculating the mean of the kernel density, and $h$ is the bandwidth of the kernel. We have the relationship $a^2 = 1 - h^2$ and let $h^2 = 1 - ((3\delta - 1)/2\delta)^2$.  $\delta$ called the discount factor and is usually taken to be between 0.95 and 0.99.
+
+\section{Comparison of Particle Filters}
+
+An epidemic was simulated from our model for $T = 154$ days for a population of size $P = 5000$.  True values of unknown parameters were set to $\beta = 0.2399$, $\gamma = 0.1066$, and $\nu = 1.2042$.  Values of known constants for $J = 4$ syndromes are given in table \ref{tab:true}.  Infection was introduced in 10 people in the population at day 0 (i.e. $i_0 = 10/5000$ and $s_0 = 4990/5000$).  Observations arrived daily from the different syndromes asynchronously, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
+
+\begin{table}[ht]
+\begin{center}
+\caption{Values of known constants in model.} \label{tab:true}
+\begin{tabular}{|cccc|}
+\hline
+$j$ & $b_j$ & $\varsigma_j$ & $\sigma_j$ \\
+\hline
+1 & 0.25 & 1.07 & 0.0012 \\
+2 & 0.27 & 1.05 & 0.0008 \\
+3 & 0.23 & 1.01 & 0.0010 \\
+4 & 0.29 & 0.98 & 0.0011 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+The bootstrap filter (BF), auxilliary particle filter (APF), and kernel density particle filter (KD) were each run using $n = 1000$ particles to obtain weighted samples from $p(x_{t_k},\theta|y_{1:k})$ for $k = 1,\ldots,T$.  Recall that for BF and APF, $\theta$ is included in $x_{t_k}$.  In any case, $x_{t_0}$ and $\theta_{0}$ were sampled from the prior density given by
+
+\[p(x_{t_0},\theta) = p(i_{t_0})p(s_{t_0})p(\beta)p(\gamma)p(\nu)\] where
+\begin{align*}
+p(i_{t_0}) &= N_{[0,1]}(i_{t_0};y_{j,1}/b_j,\sigma^2_j) \\
+p(s_{t_0}) &= N_{[0,1]}(s_{t_0};1 - y_{j,1}/b_j,\sigma^2_j) \\
+p(\beta) &= U_{[0.14,0.5]}(\beta) \\
+p(\gamma) &= U_{[0.09,.143]}(\gamma) \\
+p(\nu) &= U_{[0.95,1.3]}(\nu)
+\end{align*}
+
+\noindent Here, $N_{[a,b]}(.;\mu,\sigma^2)$ is the pdf of a normal distribution with mean $\mu$ and variance $\sigma^2$ truncated onto the interval $[a,b]$, and $U_{[a,b]}(.)$ is the pdf of a uniform distribution on the interval $[a,b]$.
+
+Figure \ref{fig:quant} shows the mean and 95\% credible intervals of the proportion of infected individuals in the population over time using the quantiles of the weighted particle sample at each time point, and figure \ref{fig:hist} shows histograms of the unknown parameters after running the particle filters for $k = 25, 154$ days.  Notice in figure \ref{fig:quant} how the bootstrap and auxiliary particle filters degenerate early on in the epidemic because of particle deficiency, while the kernel density particle filter keeps a balanced distribution centered around the true proportion of the population infected.  In addition, it is possible to learn about the distribution of the unknown parameters over the course of the epidemic as is indicated in figure \ref{fig:hist}.  At day 25, the marginal posterior distribution of the contact rate parameter $\beta$ appears normal centered around the true value, and the marginal posterior distributions of $\gamma$ and $\nu$ appear more or less uniform, indicating that a lack of knowledge about these parameters within the first 25 days of the epidemic.  By the end of the epidemic, however, the distributions of all three parameters have shifted left.
+
+It is possible to forecast the epidemic curve after observing measurements up until time $t_k$ by propagating particles through the state equation \eqref{eqn:state} and setting $w_\tau = 0$.  This enables us to predict the timing and intensity of the peak of the epidemic early on.  Figure \ref{fig:pred} generates 95\% credible intervals of the predictive distribution $p(i_{t_m}|y_{1:k})$ for $m > k$ after running the kernel density particle filter for $k = 10, 15, \ldots, 35$ days.  Notice that the credible bounds all envelope the true proportion of infected individuals, and the timing of the peak of the epidemic appears to be consistent.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[height=4in]{../Graphs/PF/PF-quant-1000}
+\caption{Displays particle filter results for the proportion of the population infected by the epidemic using $n = 1000$ particles.  The solid black line shows the true proportion of infected in the population from simulation, and colored lines show the weighted mean of the proportion of infected after running all 3 particle filters.  The 95\% credible bounds represent the 2.5\% and 97.5\% quantiles of the proportion of infected individuals in the weighted particle sample.} \label{fig:quant}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{.4\linewidth}
+\caption*{$k = 25$ Days}
+\includegraphics[width=1.0\textwidth]{../Graphs/PF/Hist-KD-1000-day25}
+\end{minipage}
+\begin{minipage}[b]{.4\linewidth}
+\caption*{$k = 154$ Days}
+\includegraphics[width=1.0\textwidth]{../Graphs/PF/Hist-KD-1000-day154}
+\end{minipage}
+\caption{Displays histograms of the unknown parameter values after running the kernel density particle filter using $n = 1000$ particles for $k = 25$ (left) and $k = 154$ (right) days.  True parameter values used for simulation are shown in the subtitles of the graphs.} \label{fig:hist}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[height=5in]{../Graphs/PF/EpidPred-KD-1000}
+\caption{Displays 95\% credible bounds on the predicted epidemic curve after running the kernel density particle filter with $n = 1000$ particles for $k = 10,15,20,25,30,35$ days.} \label{fig:pred}
+\end{figure}
+
+\clearpage
+
+\section{Additional Unknown Parameters}
+
+\clearpage
+
+\bibliographystyle{plainnat}
+\bibliography{pfRefs}
+
+\end{document}
