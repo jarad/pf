@@ -7,23 +7,51 @@
 
 \graphicspath{{/Users/niemi/Dropbox/SIR_Particle_Filtering/Graphs/PF/}
                        {/Users/niemi/Dropbox/SIR_Particle_Filtering/doesnotexist/}
+                       % Add your directories here     
 }
+
+\newcommand{\jarad}[1]{{\color{red}JARAD: #1}}
 
 \begin{document}
 
 \section{Introduction}
 
-The rest of the article proceeds as follows. Section \ref{sec:model} contains a description of state-space models and the nonlinear dynamic model used in \citet{skvortsov}. Section \ref{sec:filtering} describes a variety of particle filtering methodologies including the kernel density approach of \cite{Liu:West:comb:2001}. In Section \ref{sec:apply}, we apply these methods to the \citet{skvortsov} model. In Section \ref{sec:extend}, we use the efficiency of these particle filtering methods to estimate a more complicated model. In Section \ref{sec:discussion}, we conclude with some additional particle filtering methods that may be helpful in certain model structures.
+The rest of the article proceeds as follows. Section \ref{sec:model} contains a description of state-space models and the nonlinear dynamic model used in \citet{skvortsov2012monitoring}. Section \ref{sec:filtering} describes a variety of particle filtering methodologies including the kernel density approach of \cite{Liu:West:comb:2001}. In Section \ref{sec:apply}, we apply these methods to the \citet{skvortsov2012monitoring} model. In Section \ref{sec:extend}, we use the efficiency of these particle filtering methods to estimate a more complicated model. In Section \ref{sec:discussion}, we conclude with some additional particle filtering methods that may be helpful in certain model structures.
 
 \section{State-space models \label{sec:model}}
 
+State-space models are a general class of statistical models used for analysis of dynamic data in many fields including \jarad{references to uses of state-space models}. State space models are constructed using an observation equation, $y_t \stackrel{ind}{\sim} p_{y,t}(y_t|x_t,\theta)$, and a state evolution equation, $x_t \stackrel{ind}{\sim} p_{x,t}(x_t|x_{t-1},\theta)$ where $y_t$ is the observed response, $x_t$ is a latent, dynamic state, and $\theta$ is the unknown fixed parameter, all of which could be vectors. The distributions are assumed known conditional on the values of $\theta$ and $x_t$ in the observation equation and $\theta$ and $x_{t-1}$ in the evolution equation. Depending on whether the observations and the states are continuous or discrete, the distributions themselves may be continuous or discrete. The distributions are typically assumed to only varying with $x_t$ and $\theta$ and therefore the $t$ subscript is dropped. 
+%The particle filtering methodology discussed in Sections \ref{sec:filtering} and \ref{sec:discussion} apply equally well when the distributions depend on $t$ so long as they are known. 
+For simplicity, we will also drop the $x$ and $y$ subscript and instead let the arguments make clear which distribution we are referring to. Thus, the state-space model is 
+\begin{align*}
+y_t &\stackrel{ind}{\sim} p(y_t|x_t,\theta) \\
+x_t &\stackrel{ind}{\sim} p(x_t|x_{t-1},\theta).
+\end{align*}
+
+Special cases of these state-space models include hidden Markov models \jarad{HMM reference}, where the state $x_t$ has finite support, and dynamic linear models (DLMs) \citep{West:Harr:baye:1997}, where the distributions are both Gaussian whose means are linear functions of the states. 
+
+\subsection{Sequential estimation}
+
+When data are collected sequentially, it is often of interest to determine the \emph{filtered distribution}, the distribution of the current state and parameter conditional on the data observed up to that time. This distribution describes all of the available information up to time $t$ about the current state of the system and any fixed parameters It can be updated recursively using Bayes' rule:
+\begin{equation} 
+p(x_t,\theta| y_{1:t}) \propto p(y_t|x_t,\theta)p(x_t,\theta|y_{1:t-1}) \label{eqn:filtered}
+\end{equation}
+where $y_{1:t} = (y_1,\ldots,y_t)$. Only in special cases can $p(x_t,\theta| y_{1:t})$ be evaluated analytically, e.g. in DLMs when $\theta$ is the observation variance \cite[Sec 4.3,][]{petris2009dynamic}. When analytical tractability is not present, we turn to numerical methods including deterministic versions, e.g. extended Kalman filter \jarad{ref} and the Gaussian sum filter \citep{Alsp:Sore:nonl:1972}, or Monte Carlo versions, i.e. particle filters. 
+
+
+
+
 \section{Particle filtering \label{sec:filtering}}
 
-\subsection{Particle Filters}
+Particle filtering is a sequential Monte Carlo inferential technique based on sequential use of importance sampling. It aims to approximate equation \eqref{eqn:filtered} through a weighted Monte Carlo realization from this distribution, i.e.
+\begin{equation}
+p(x_t,\theta| y_{1:t}) \approx \sum_{j}^J w_t^{(j)} \delta_{x_t^{(j)},\theta^{(j)}}
+\end{equation}
+where $\sum_{j=}^J w_t^{(j)}$ are the particle \emph{weights} $\delta_{x_t,\theta}$, $(x_t,\theta)$ is the particle \emph{location}, and $\delta$ is a Dirac delta function. A variety of techniques have been developed to provide efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now introduce three fundamental particle filtering techniques: bootstrap filter, auxiliary particle filter, and the kernel density filter.
 
-\subsubsection{Bootstrap Filter}
+\subsection{Bootstrap Filter}
 
-Assume for the moment that $\theta$ is known.  Then we can omit $\theta$ from all terms in equation \eqref{eqn:bayes} and deal only with the posterior density of the states at time $t_k$, $p(x_{t_k}|y_{1:k})$.  In the absence of an explicit form of this density, the particle filtering approach instead approximates the density using a weighted random sample.  Let $\{x_{t_k}^1,\ldots,x_{t_k}^n\}$ represent $n$ samples or particles of the current state with associated weights $\{\omega_k^1,\ldots,\omega_k^n\}$.  The version of the particle filter known as the bootstrap filter, explained in \citet{gordon}, prescribes updating our weighted random sample to an approximation of $p(x_{t_{k+1}}|y_{1:k+1})$ given a new observation $y_k$ in the following manner:
+Assume for the moment that $\theta$ is known.  Then we can omit $\theta$ from all terms in equation \eqref{eqn:bayes} and deal only with the posterior density of the states at time $t_k$, $p(x_{t_k}|y_{1:k})$.  In the absence of an explicit form of this density, the particle filtering approach instead approximates the density using a weighted random sample.  Let $\{x_{t_k}^1,\ldots,x_{t_k}^n\}$ represent $n$ samples or particles of the current state with associated weights $\{\omega_k^1,\ldots,\omega_k^n\}$.  The version of the particle filter known as the bootstrap filter, explained in \citep{Gord:Salm:Smit:nove:1993}, prescribes updating our weighted random sample to an approximation of $p(x_{t_{k+1}}|y_{1:k+1})$ given a new observation $y_k$ in the following manner:
 
 \begin{enumerate}
 \item Prediction - For each particle $i = {1,\ldots,n}$, sample a new particle $x_{t_{k+1}}^i$ from the transition density $p(x_{t_{k+1}}|x_{t_k}^i$).
@@ -36,7 +64,7 @@ Assume for the moment that $\theta$ is known.  Then we can omit $\theta$ from al
 
 Notice from equation \eqref{eqn:state} that the transition density needed for prediction in our model is a multivariate normal density with mean $f_\tau(x_{t_k},\theta)$ and covariance matrix $Q$.  A few notes on how to carry out the prediction step for this density are necessary. First, recall that that the mean function approximates the disease dynamics better for small $\tau$.  Thus, if the time between observations, $t_{k+1} - t_k$, is large, we can still set $\tau$ to be small and carry out the prediction step $(t_{k+1} - t_k) / \tau$ times to generate $x_{t_{k+1}}^i$.  Second, $i$ and $s$ are proportions and thus constrained to be in $[0,1]$.  However, the stochastic nature of the state equation makes it possible to generate states that do not satisfy this constraint.  In our implementation of the particle filter, we throw away samples in which $i$ or $s$ fall outside of $[0,1]$ and resample.
 
-So how do we reintroduce unknown parameters $\theta$ into the particle filtering framework?  The approach taken by \citet{skvortsov} is to extend the state vector, $x_t$, to include the unknown the parameters and constrain them to remain constant over time in the state equation.  That is, let $x_t = (i_t,s_t,\beta,\gamma,\nu)'$ and redefine $f_\tau$ and $Q$ as
+So how do we reintroduce unknown parameters $\theta$ into the particle filtering framework?  The approach taken by \citet{skvortsov2012monitoring} is to extend the state vector, $x_t$, to include the unknown the parameters and constrain them to remain constant over time in the state equation.  That is, let $x_t = (i_t,s_t,\beta,\gamma,\nu)'$ and redefine $f_\tau$ and $Q$ as
 \[
 f_\tau(x_t) = \left(
 \begin{array}{c}
@@ -61,9 +89,9 @@ Q = \left(
 
 \noindent The main shortcoming of implementing the bootstrap filter in this manner, however, is that particles generated that are less likely given the data will have small weights and get eliminated in the resampling step.  This leads to what is known as particle degeneracy, or a degeneracy of the distribution of the unknown parameters toward one value.  This poses a problem in the context of Bayesian inference where we would like the posterior distribution to incorporate proper uncertainty about $\theta$.
 
-\subsubsection{Auxiliary Particle Filter}
+\subsection{Auxiliary Particle Filter}
 
-One way to fight particle degeneracy is to increase the number of particles, $n$, used in the filter.  A more efficient method, however, has been developed by \citet{pitt} called the auxiliary particle filter.  The idea behind the auxiliary particle filter is to generate particles with higher likelihood given the data by "looking ahead" at the predictive distribution of each particle prior to sampling.  Given a weighted random sample of particles at time $t_k$, the auxiliary particle filter approximates $p(x_{t_{k+1}}|y_{1:k+1})$ by the following:
+One way to fight particle degeneracy is to increase the number of particles, $n$, used in the filter.  A more efficient method, however, has been developed by \citet{Pitt:Shep:filt:1999} called the auxiliary particle filter.  The idea behind the auxiliary particle filter is to generate particles with higher likelihood given the data by "looking ahead" at the predictive distribution of each particle prior to sampling.  Given a weighted random sample of particles at time $t_k$, the auxiliary particle filter approximates $p(x_{t_{k+1}}|y_{1:k+1})$ by the following:
 
 \begin{enumerate}
 \item Estimate - For each particle $i$, calculate a point estimate of $x_{t_{k+1}}^i$ called $\mu_{k+1}^i$.  This is typically taken to be the mean of $p(x_{t_{k+1}}|x_{t_k}^i)$.
@@ -76,9 +104,9 @@ One way to fight particle degeneracy is to increase the number of particles, $n$
 
 \noindent Like the bootstrap filter, the auxiliary particle filter is initiated by taking $n$ samples from the prior distribution $p(x_0)$ and setting the initial weights $\omega_0^i = 1/n$.  Optionally, one can alternate between the bootstrap filter and the auxiliary particle filter as new observations are processed.  For instance, in cases where the distribution of the weights is adequate, we can avoid the estimation step of calculating auxiliary weights so that the algorithm runs more efficiently.
 
-\subsubsection{Kernel Density Particle Filter}
+\subsection{Kernel Density Particle Filter}
 
-Both the bootstrap filter and the auxiliary particle filter as described in the previous two sections do not consider additional unknown parameters $\theta$, but rather require any additional parameters to be concatenated to the state vector $x_t$.  Thus, the values sampled from the prior distribution at time $t_0$ are carried through the entire particle filter.  This makes degeneracy of the unknown parameters difficult to avoid unless a large number of particles is used.  \citet{liu} devised a modification to the auxiliary particle filter that takes into account additional unknown parameters $\theta$ in a flexible way.  They introduce a kernel density estimate of the distribution of $\theta$ for each particle so that new values of the unknown parameters can be sampled at each time step.  This enables us to refresh the distribution of $\theta$ to avoid degeneracy and require a lower number of particles for the filter.
+Both the bootstrap filter and the auxiliary particle filter as described in the previous two sections do not consider additional unknown parameters $\theta$, but rather require any additional parameters to be concatenated to the state vector $x_t$.  Thus, the values sampled from the prior distribution at time $t_0$ are carried through the entire particle filter.  This makes degeneracy of the unknown parameters difficult to avoid unless a large number of particles is used.  \citet{Liu:West:comb:2001} devised a modification to the auxiliary particle filter that takes into account additional unknown parameters $\theta$ in a flexible way.  They introduce a kernel density estimate of the distribution of $\theta$ for each particle so that new values of the unknown parameters can be sampled at each time step.  This enables us to refresh the distribution of $\theta$ to avoid degeneracy and require a lower number of particles for the filter.
 
 Define $x_t = (i_t,s_t)'$ and $\theta = (\beta,\gamma,\nu)'$ and let $f_\tau$ and $Q$ be as they were in equations \eqref{eqn:f} and \eqref{eqn:q}.  Let $\{x_{t_k}^1,\ldots,x_{t_k}^n\}$ and $\{\theta_k^1,\ldots,\theta_k^n\}$ with associated weights $\{\omega_k^1,\ldots,\omega_k^n\}$ be an approximation to the distribution $p(x_{t_k},\theta|y_{1:k})$.  Note that the subscript $k$ for $\theta$ does not imply that $\theta$ changes with time, but rather indicates current knowledge of the distribution of $\theta$ at time $t_k$.  In addition, let $\bar{\theta}_k$ and $V_k$ be the weighted sample mean and weighted sample covariance matrix of the posterior sample ${\theta_k^1,\ldots,\theta_k^n}$.  According to the kernel density particle filter, we move to an approximation of $p(x_{t_{k+1}},\theta|y_{1:{k+1}})$ by the following steps:
 
@@ -102,7 +130,7 @@ Notice above that the mean and variance of the kernel density estimate of $\thet
 
 \subsection{Disease Dynamics}
 
-As in \citet{skvortsov}, we consider the modified SIR model with stochastic fluctuations to describe the dynamics of the disease outbreak.  According to this model, we keep track of the number of susceptible, infected, and recovered individuals - denoted by $S$, $I$, and $R$, respectively - over the course of the epidemic.  We require $S + I + R = P$ where $P$ represents the total population size, and we define $s = S/P$, $i = I/P$, and $r = R/P$ so that $s + i + r = 1$.  The dynamics of the epidemic with respect to time, $t$, are then described by the following differential equations:
+As in \citet{skvortsov2012monitoring}, we consider the modified SIR model with stochastic fluctuations to describe the dynamics of the disease outbreak.  According to this model, we keep track of the number of susceptible, infected, and recovered individuals - denoted by $S$, $I$, and $R$, respectively - over the course of the epidemic.  We require $S + I + R = P$ where $P$ represents the total population size, and we define $s = S/P$, $i = I/P$, and $r = R/P$ so that $s + i + r = 1$.  The dynamics of the epidemic with respect to time, $t$, are then described by the following differential equations:
 
 \begin{align}
 \frac{ds}{dt} &= -\beta is^\nu + \epsilon_\beta \label{eqn:dsdt} \\
@@ -111,7 +139,7 @@ As in \citet{skvortsov}, we consider the modified SIR model with stochastic fluc
 
 \noindent Here, $\beta$ represents the contact rate of spread of the disease, $\gamma$ is the recovery time, and $\nu \ge 0$ is the mixing intensity of the population.  $\epsilon_\beta$ and $\epsilon_\gamma$ are uncorrelated, Gaussian random variables with zero mean and standard deviations $\sigma_\beta$ and $\sigma_\gamma$, respectively.  Note that, by definition, $r$ is completely specified once $s$ and $i$ are known.
 
-As in \citet{skvortsov} once again, we will approximate the standard deviation of the noise terms $\sigma_\beta$ and $\sigma_\gamma$ by the scaling rule \[\sigma_\beta \approx \frac{\sqrt{\beta}}{P} \mbox{, } \sigma_\gamma \approx \frac{\sqrt{\gamma}}{P}\] and use Euler's method to approximate the solution of the differential equations given in \eqref{eqn:dsdt} and \eqref{eqn:didt}.  Letting $s_t$ and $i_t$ be the proportion of the population susceptible to disease and infected by disease at time $t$, respectively, the evolution of the epidemic from time $t$ to time $t + \tau$, $\tau > 0$, is approximated by
+As in \citet{skvortsov2012monitoring} once again, we will approximate the standard deviation of the noise terms $\sigma_\beta$ and $\sigma_\gamma$ by the scaling rule \[\sigma_\beta \approx \frac{\sqrt{\beta}}{P} \mbox{, } \sigma_\gamma \approx \frac{\sqrt{\gamma}}{P}\] and use Euler's method to approximate the solution of the differential equations given in \eqref{eqn:dsdt} and \eqref{eqn:didt}.  Letting $s_t$ and $i_t$ be the proportion of the population susceptible to disease and infected by disease at time $t$, respectively, the evolution of the epidemic from time $t$ to time $t + \tau$, $\tau > 0$, is approximated by
 
 \begin{align}
 s_{t+\tau} &= s_t - \tau\beta i_ts^\nu_t + \xi_s \label{eqn:s} \\
@@ -233,15 +261,11 @@ It is possible to forecast the epidemic curve after observing measurements up un
 \label{fig:pred}
 \end{figure}
 
-\clearpage
+\section{Extending the model \label{sec:extend}}
 
-\section{Extending the model \sec{ref:extend}}
-
-\section{Discussion \sec{ref:discussion}}
-
-\clearpage
+\section{Discussion \label{sec:discussion}}
 
 \bibliographystyle{plainnat}
-%\bibliography{pfRefs}
+\bibliography{jarad}
 
 \end{document}
