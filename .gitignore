@@ -8,5 +8,10 @@
 
 # LaTeX files
 .aux
+.bbl
+.blg
 .log
 .synctex.gz
+
+# Automatic backup files
+.bak
