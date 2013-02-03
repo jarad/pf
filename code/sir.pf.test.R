@@ -26,7 +26,7 @@ dllik_bf = function(y, x){ dllik(y, x, b, varsigma, sigma)}
 revo_bf = function(x){ revo(x, P, d)}
 rprior_bf = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma)}
 source("bf.R")
-n = 100
+n = 10000
 out = bf(sim$y, dllik_bf, revo_bf, rprior_bf, n,
          method="stratified",nonuniformity="ess",threshold=0.8,log=F)
 
@@ -47,6 +47,10 @@ rprior_kd = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma, FALSE)}
 source("kd_pf.R")
 out3 = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n,
          method="stratified",nonuniformity="ess",threshold=0.8,log=F)
+
+# Save data
+save.image(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/sir.pf.test-",n,".rdata",
+	sep=""))
 
 # Comparison
 # Plot % infected
@@ -85,7 +89,7 @@ require(plotrix)
 cutoff = nt + 1
 msize = labsize = 1.5
 pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/Hist-BF-",n,"-day",cutoff-1,".pdf",sep=""),width=5,height=8)
-par(mfrow=c(3,1))
+par(mfrow=c(3,1)) 
 weighted.hist(out$state[3,,cutoff],out$weight[,cutoff],
 	xlab=expression(beta),main="Histogram of Contact Rate",
 	cex.main=msize,cex.lab=labsize)
