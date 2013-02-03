@@ -68,14 +68,20 @@ u2theta = function(u,a,b)
 }
 
 # Functions for particle filters
-dllik = function(y,x,b,varsigma,sigma,theta=NULL,thetal=NULL,thetau=NULL,stateonly=TRUE)
+dllik = function(y,x,b,varsigma,sigma,theta=NULL,thetal=NULL,thetau=NULL,stateonly=TRUE,addparam=FALSE)
 {
   J = which(!is.na(y))
   if (!(length(J) == 1)) stop("y must be a vector with all but 1 element NA")
   if(stateonly)
   {
-    h = varsigma[J]*log(b[J]*x[1])
-    s = sigma[J]
+    if(addparam)
+    {
+      h = x[7]*log(x[6]*x[1])
+      s = x[8]
+    } else {
+      h = varsigma[J]*log(b[J]*x[1])
+      s = sigma[J]
+    }
   } else {
     theta[4] = theta2u(theta[4],thetal[4],thetau[4])
     theta[5] = theta2u(theta[5],thetal[5],thetau[5])
@@ -108,10 +114,12 @@ rprior = function(sim,thetal,thetau,b=NULL,varsigma=NULL,sigma=NULL,stateonly=TR
     i0 = exp(sim$y[J,1] - tauj)/b[J]
     s0 = 1 - i0
   }
-  if(stateonly){
+  if(stateonly & addparam){
+    return(c(i0,s0,beta0,gamma0,nu0,b0,varsigma0,sigma0))
+  } else if(stateonly) {
     return(c(i0,s0,beta0,gamma0,nu0))
   } else if(addparam) {
-    return(list(x=c(10,s0),theta=u2theta(c(beta0,gamma0,nu0,b0,varsigma0,sigma0),thetal,thetau)))
+    return(list(x=c(i0,s0),theta=u2theta(c(beta0,gamma0,nu0,b0,varsigma0,sigma0),thetal,thetau)))
   } else {
     return(list(x=c(i0,s0),theta=u2theta(c(beta0,gamma0,nu0),thetal[1:3],thetau[1:3])))
   }
