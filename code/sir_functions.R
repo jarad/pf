@@ -1,4 +1,14 @@
 # Functions for simulating data; revo also needed for particle filters
+# revo - function that propagates state forward given previous state x and, optionally, parameters theta; intended to be revo argument in ss.sim, bf, apf, or kd_pf functions
+# Arguments:
+# x - vector, current state
+# P - scalar, population size
+# d - scalar, positive integer indicating number of times to run state equation in 1 day before predicting the next state; larger d gives better approximation of differential equations specifying disease dynamics
+# theta - optional vector, current values of parameters
+# thetal - optional vector, prior lower bounds on parameters; must be given if theta given
+# thetau - optional vector, prior upper bounds on parameters; must be given if theta given
+# stateonly - boolean, if TRUE theta is ignored; if FALSE, theta must be given
+# random - boolean, if TRUE function returns a sample from predictive distribution; if FALSE function returns a point estimate of next state
 revo = function(x,P,d=1,theta=NULL,thetal=NULL,thetau=NULL,stateonly=TRUE,random=TRUE)
 {
   tau = 1/d
@@ -40,6 +50,13 @@ revo = function(x,P,d=1,theta=NULL,thetal=NULL,thetau=NULL,stateonly=TRUE,random
   }
   return(x)
 }
+
+# robs - function that produces a simulated observation y given current state x; intended to be robs argument in ss.sim function
+# Arguments:
+# x - vector, current state
+# b - vector of length J = number of syndromes with elements values of parameters b_j
+# varsigma - vector of length J = number of syndromes with elements values of parameters varsigma_j
+# sigma - vector of length J = number of syndromes with elements values of parameters sigma_j
 robs = function(x,b,varsigma,sigma)
 {
   j = length(b)
@@ -49,6 +66,11 @@ robs = function(x,b,varsigma,sigma)
   y[J] = rnorm(1,varsigma[J]*log(b[J]*x[1]),sigma[J])
   return(y)
 }
+
+# rinit - function to initialize values of initial states and unknown parameters; intended to be rinit function in ss.sim
+# Arguments:
+# i0 - scalar between 0 and 1, initial proportion of infected individuals in population
+# theta - vector of true values of unknown parameters
 rinit = function(i0,theta)
 {
   if(i0 < 0 | i0 > 1) stop("i0 must be between 0 and 1")
@@ -67,7 +89,18 @@ u2theta = function(u,a,b)
   return(log(U / (1 - U)))
 }
 
-# Functions for particle filters
+# dllik - function to return the log of the likelihood function given current observation y, current state x, and optionally parameters theta; intended to be dllik argument in bf, apf, or kd_pf functions
+# Arguments:
+# y - vector, current observation of length J = number of syndromes with all elements NA except for element j = syndrome from which current observation arrives
+# x - vector, current state
+# b - vector of length J, values of b_j's if known; ignored if addparam or stateonly FALSE
+# varsigma - vector of length J, values of varsigma_j's if known; ignored if addparam or stateonly FALSE
+# sigma - vector of length J, values of sigma_j's if known; ignored if addparam or stateonly FALSE
+# theta - optional vector, current values of parameters
+# thetal - optional vector, prior lower bounds on parameters; must be given if theta given
+# thetau - optional vector, prior upper bounds on parameters; must be given if theta given
+# stateonly - boolean, if TRUE theta is ignored; if FALSE theta must be given
+# addparam - boolean, if TRUE b, varsigma, and sigma assumed unknown and included in either x or theta; if FALSE b, varsigma, and sigma must be given
 dllik = function(y,x,b,varsigma,sigma,theta=NULL,thetal=NULL,thetau=NULL,stateonly=TRUE,addparam=FALSE)
 {
   J = which(!is.na(y))
@@ -91,6 +124,17 @@ dllik = function(y,x,b,varsigma,sigma,theta=NULL,thetal=NULL,thetau=NULL,stateon
   }
   return(dnorm(y[J],h,s,log=T))
 }
+
+# rprior - function that samples from prior distributions of initial states and unknown parameters and returns a state vector or a list with initial state vector x and parameter values theta; intended to be rprior argument in functions bf, apf, or kd_pf
+# Arguments:
+# sim - list with an element called y that is a J x nt matrix of observations, where J is the number of syndromes, nt is the number of total time points at which observations were given, and each column y is defined as the argument y in function dllik (above)
+# thetal - vector, prior lower bounds on unknown parameters
+# thetau - vector, prior upper bounds on unknown parameters
+# b - vector of length J, values of b_j's if known; ignored if addparam FALSE
+# varsigma - vector of length J, values of varsigma_j's if known; ignored if addparam FALSE
+# sigma - vector of length J, values of sigma_j's if known; ignored if addparam FALSE
+# stateonly - boolean, if TRUE only a state vector is returned; if FALSE, a list with state vector x and parameters theta is returned
+# addparam - boolean, if TRUE initial values of unknown b_j's, varsigma_j's and sigma_j's are included in returned x or theta (depending on value of stateonly)
 rprior = function(sim,thetal,thetau,b=NULL,varsigma=NULL,sigma=NULL,stateonly=TRUE,addparam=FALSE)
 {
   J = which(!is.na(sim$y[,1]))
