@@ -1,3 +1,7 @@
+# Set graphics and data paths
+gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
+dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
+
 # Set known parameter values
 P = 5000
 d = 5
@@ -26,7 +30,7 @@ dllik_bf = function(y, x){ dllik(y, x, b, varsigma, sigma)}
 revo_bf = function(x){ revo(x, P, d)}
 rprior_bf = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma)}
 source("bf.R")
-n = 10000
+n = 1000
 out = bf(sim$y, dllik_bf, revo_bf, rprior_bf, n,
          method="stratified",nonuniformity="ess",threshold=0.8,log=F)
 
@@ -49,8 +53,7 @@ out3 = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n,
          method="stratified",nonuniformity="ess",threshold=0.8,log=F)
 
 # Save data
-save.image(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/sir.pf.test-",n,".rdata",
-	sep=""))
+save.image(paste(dpath,"sir.pf.test-",n,".rdata",sep=""))
 
 # Comparison
 # Plot % infected
@@ -68,7 +71,7 @@ for(i in 1:tt){
 	kd.li[i] = wtd.quantile(out3$state[1,,i], out3$weight[,i], normwt=T, probs=.025)
 	kd.ui[i] = wtd.quantile(out3$state[1,,i], out3$weight[,i], normwt=T, probs=.975)
 }
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/PF-quant-",n,".pdf",sep=""))
+pdf(paste(gpath,"PF-quant-",n,".pdf",sep=""))
 plot(sim$x[1,],type="l",ylim=c(0,.28),xlab="Time (days)",ylab="% Population",
 	main="95% Credible Intervals of %Pop Infected")
 lines(bf.i,col=2)
@@ -88,7 +91,7 @@ dev.off()
 require(plotrix)
 cutoff = nt + 1
 msize = labsize = 1.5
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/Hist-BF-",n,"-day",cutoff-1,".pdf",sep=""),width=5,height=8)
+pdf(paste(gpath,"Hist-BF-",n,"-day",cutoff-1,".pdf",sep=""),width=5,height=8)
 par(mfrow=c(3,1)) 
 weighted.hist(out$state[3,,cutoff],out$weight[,cutoff],
 	xlab=expression(beta),main="Histogram of Contact Rate",
@@ -105,7 +108,7 @@ mtext(substitute(paste(nu," = ",aa,sep=""),list(aa=theta[3])),side=3)
 dev.off()
 
 # auxillary particle filter
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/Hist-APF-",n,"-day",cutoff-1,".pdf",sep=""),width=5,height=8)
+pdf(paste(gpath,"Hist-APF-",n,"-day",cutoff-1,".pdf",sep=""),width=5,height=8)
 par(mfrow=c(3,1))
 weighted.hist(out2$state[3,,cutoff],out2$weight[,cutoff],
 	xlab=expression(beta),main="Histogram of Contact Rate",
@@ -122,7 +125,7 @@ mtext(substitute(paste(nu," = ",aa,sep=""),list(aa=theta[3])),side=3)
 dev.off()
 
 # kernel density particle filter
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/Hist-KD-",n,"-day",cutoff-1,".pdf",sep=""),width=5,height=8)
+pdf(paste(gpath,"Hist-KD-",n,"-day",cutoff-1,".pdf",sep=""),width=5,height=8)
 par(mfrow=c(3,1))
 weighted.hist(theta2u(out3$theta[1,,cutoff],thetal[1],thetau[1]),out3$weight[,cutoff],
 	xlab=expression(beta),main="Histogram of Contact Rate",
