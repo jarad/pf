@@ -1,3 +1,7 @@
+# Set graphics and data paths
+gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
+dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
+
 # Set known parameter values
 P = 5000
 d = 5
@@ -70,6 +74,10 @@ for(j in 1:N)
   cat("\n",j,"\n")
 }
 
+# Save data
+save.image(paste(dpath,"sir.pf.med-",n,"-",n,".rdata",sep=""))
+
+# Calculate mean of the medians and lower/upper quantiles
 bf.i = apply(bf.med,2,mean)
 apf.i = apply(apf.med,2,mean)
 kd.i = apply(kd.med,2,mean)
@@ -82,8 +90,10 @@ for(i in 1:(nt+1)){
 	kd.li[i] = quantile(kd.med[,i],probs=.025)
 	kd.ui[i] = quantile(kd.med[,i],probs=.975)
 }
+
+# Plot mean medians and lower/upper quantiles of medians over time
 ymax = max(bf.ui,apf.ui,kd.ui)
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/PF-med-",n,"-",n,".pdf",sep=""))
+pdf(paste(gpath,"PF-med-",n,"-",n,".pdf",sep=""))
 plot(sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
 	main="95% Credible Intervals of %Pop Infected")
 lines(bf.i,col=2)
@@ -98,4 +108,3 @@ lines(kd.ui,col=3,lty=2)
 legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2))
 dev.off()
 
-save.image(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/sir.pf.med-",n,"-",n,".rdata",sep=""))
