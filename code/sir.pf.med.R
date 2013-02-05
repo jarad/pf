@@ -38,8 +38,8 @@ rprior_kd = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma, FALSE)}
 # Run particle filters N times
 N = 100
 n = 100
-bf.med = apf.med = kd.med = matrix(NA,nr=N,nc=nt+1)
 nt = 125
+bf.med = apf.med = kd.med = matrix(NA,nr=N,nc=nt+1)
 source("ss.sim.R")
 source("bf.R")
 source("apf.R")
