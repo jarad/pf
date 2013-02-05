@@ -1,7 +1,11 @@
+# Set graphics and data paths
+gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
+dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
+
 # Load particle filter data
 param = "-6P"
 num = "-10000"
-load(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/sir.pf.test",param,num,".rdata",sep=""))
+load(paste(dpath,"sir.pf.test",param,num,".rdata",sep=""))
 ns = dim(sim$x)[1]
 
 # Function needed to generate predicted SIR curves
@@ -43,7 +47,7 @@ length(kd.peak.prop) = length(kd.peak.calc) = length(days)
 pb = txtProgressBar(0,n*length(days),style=3)
 for(j in 1:length(days))
 {
-  # Grab  particles from each filter at time days[j]
+  # Grab particles from each filter at time days[j]
   mystate = out$state[,,days[j]+1]
   mystate2 = out2$state[,,days[j]+1]
   mybeta = theta2u(out3$theta[1,,days[j]+1],thetal[1],thetau[1])
@@ -124,11 +128,11 @@ for(j in 1:length(days))
   kd.peak.calc[[j]][2,] = wtd.quantile(peak_intensity_calc[,3],out3$weight[,days[j]+1],normwt=T,probs=c(.025,.5,.975))
 }
 
-save.image(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/sir.pf.pred",param,"-",n,".rdata",sep=""))
+save.image(paste(dpath,"sir.pf.pred",param,"-",n,".rdata",sep=""))
 
 # Plot predicted % population infected
 # Bootstrap filter
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/EpidPred-BF",param,"-",n,".pdf",sep=""),
+pdf(paste(gpath,"EpidPred-BF",param,"-",n,".pdf",sep=""),
 	width=10,height=8)
 par(mfrow=c(2,3))
 ymax = max(sapply(bf.ui,max),max(sim$x[1,]))
@@ -146,7 +150,7 @@ for(j in 1:length(days))
 dev.off()
 
 # Auxiliary particle filter
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/EpidPred-APF",param,"-",n,".pdf",sep=""),
+pdf(paste(gpath,"EpidPred-APF",param,"-",n,".pdf",sep=""),
 	width=10,height=8)
 par(mfrow=c(2,3))
 ymax = max(sapply(apf.ui,max),max(sim$x[1,]))
@@ -164,7 +168,7 @@ for(j in 1:length(days))
 dev.off()
 
 # Kernel density particle filter
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/EpidPred-KD",param,"-",n,".pdf",sep=""),
+pdf(paste(gpath,"EpidPred-KD",param,"-",n,".pdf",sep=""),
 	width=10,height=8)
 par(mfrow=c(2,3))
 ymax = max(sapply(kd.ui,max),max(sim$x[1,]))
@@ -200,7 +204,7 @@ intsc.l = sapply(bf.peak.calc,function(x) x[2,1])
 intsc.u = sapply(bf.peak.calc,function(x) x[2,3])
 ymin = min(times.l,timesc.l,tpeak)
 ymax = max(times.u,timesc.u,tpeak)
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/Peaks-BF",param,"-",n,".pdf",sep=""),width=10,height=5)
+pdf(paste(gpath,"Peaks-BF",param,"-",n,".pdf",sep=""),width=10,height=5)
 par(mfrow=c(1,2))
 plot(days,times,ylim=c(ymin,ymax),xlim=c(min(days),max(days)+1),
 	xlab="Days",ylab="Peak (Days)",main="Predicted Time of Epidemic Peak")
@@ -236,7 +240,7 @@ intsc.l = sapply(apf.peak.calc,function(x) x[2,1])
 intsc.u = sapply(apf.peak.calc,function(x) x[2,3])
 ymin = min(times.l,timesc.l,tpeak)
 ymax = max(times.u,timesc.u,tpeak)
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/Peaks-APF",param,"-",n,".pdf",sep=""),width=10,height=5)
+pdf(paste(gpath,"Peaks-APF",param,"-",n,".pdf",sep=""),width=10,height=5)
 par(mfrow=c(1,2))
 plot(days,times,ylim=c(ymin,ymax),xlim=c(min(days),max(days)+1),
 	xlab="Days",ylab="Peak (Days)",main="Predicted Time of Epidemic Peak")
@@ -272,7 +276,7 @@ intsc.l = sapply(kd.peak.calc,function(x) x[2,1])
 intsc.u = sapply(kd.peak.calc,function(x) x[2,3])
 ymin = min(times.l,timesc.l,tpeak)
 ymax = max(times.u,timesc.u,tpeak)
-pdf(paste("C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/Peaks-KD",param,"-",n,".pdf",sep=""),width=10,height=5)
+pdf(paste(gpath,"Peaks-KD",param,"-",n,".pdf",sep=""),width=10,height=5)
 par(mfrow=c(1,2))
 plot(days,times,ylim=c(ymin,ymax),xlim=c(min(days),max(days)+1),
 	xlab="Days",ylab="Peak (Days)",main="Predicted Time of Epidemic Peak")
