@@ -1,4 +1,5 @@
-# Functions for simulating data; revo also needed for particle filters
+# sir_functions.R - functions needed for simulating data and running particle filters for SIR model of a disease epidemic
+#
 # revo - function that propagates state forward given previous state x and, optionally, parameters theta; intended to be revo argument in ss.sim, bf, apf, or kd_pf functions
 # Arguments:
 # x - vector, current state
