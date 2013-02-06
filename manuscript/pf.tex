@@ -68,7 +68,7 @@ This procedure provides an approximation to $p(x_t,\theta| y_{1:t})$ and therefo
 
 \danny{start here}
 
-Notice from equation \eqref{eqn:state} that the transition density needed for prediction in our model is a multivariate normal density with mean $f_\tau(x_t,\theta)$ and covariance matrix $Q$.  A few notes on how to carry out the prediction step for this density are necessary. First, recall that that the mean function approximates the disease dynamics better for small $\tau$.  Thus, if the time between observations, $t_{t+1} - t_k$, is large, we can still set $\tau$ to be small and carry out the prediction step $(t_{t+1} - t_k) / \tau$ times to generate $x_{t_{t+1}}^{(j)}$.  Second, $i$ and $s$ are proportions and thus constrained to be in $[0,1]$.  However, the stochastic nature of the state equation makes it possible to generate states that do not satisfy this constraint.  In our implementation of the particle filter, we throw away samples in which $i$ or $s$ fall outside of $[0,1]$ and resample.
+Notice from equation \eqref{eqn:state} that the transition density needed for prediction in our model is a multivariate normal density with mean $f_\tau(x_t,\theta)$ and covariance matrix $Q$.  A few notes on how to carry out the prediction step for this density are necessary. First, recall that that the mean function approximates the disease dynamics better for small $\tau$.  Thus, if the time between observations, $t+1 - t_k$, is large, we can still set $\tau$ to be small and carry out the prediction step $(t+1 - t_k) / \tau$ times to generate $x_{t+1}^{(j)}$.  Second, $i$ and $s$ are proportions and thus constrained to be in $[0,1]$.  However, the stochastic nature of the state equation makes it possible to generate states that do not satisfy this constraint.  In our implementation of the particle filter, we throw away samples in which $i$ or $s$ fall outside of $[0,1]$ and resample.
 
 So how do we reintroduce unknown parameters $\theta$ into the particle filtering framework?  The approach taken by \citet{skvortsov2012monitoring} is to extend the state vector, $x_t$, to include the unknown the parameters and constrain them to remain constant over time in the state equation.  That is, let $x_t = (i_t,s_t,\beta,\gamma,\nu)'$ and redefine $f_\tau$ and $Q$ as
 \[
@@ -84,11 +84,11 @@ s_t - \tau\beta i_ts^{\nu}_t \\
 \mbox{, }
 Q = \left(
 \begin{array}{ccccc}
-(\beta + \gamma)\tau^2/P^2 & 0 & 0 & 0 & 0 \\
-0 & \beta\tau^2/P^2 & 0 & 0 & 0 \\
-0 & 0 & 0 & 0 & 0 \\
-0 & 0 & 0 & 0 & 0 \\
-0 & 0 & 0 & 0 & 0
+(\beta + \gamma)\tau^2/P^2 & . & . & . & . \\
+. & \beta\tau^2/P^2 & . & . & . \\
+. & . & . & . & . \\
+. & . & . & . & . \\
+. & . & . & . & .
 \end{array}
 \right)
  \]
@@ -97,37 +97,52 @@ Q = \left(
 
 \subsection{Auxiliary Particle Filter}
 
-One way to fight particle degeneracy is to increase the number of particles, $n$, used in the filter.  A more efficient method, however, has been developed by \citet{Pitt:Shep:filt:1999} called the auxiliary particle filter.  The idea behind the auxiliary particle filter is to generate particles with higher likelihood given the data by "looking ahead" at the predictive distribution of each particle prior to sampling.  Given a weighted random sample of particles at time $t_k$, the auxiliary particle filter approximates $p(x_{t_{t+1}}|y_{1:k+1})$ by the following:
+One way to fight particle degeneracy is to increase the number of particles, $n$, used in the filter.  A more efficient method, however, has been developed by \citet{Pitt:Shep:filt:1999} called the auxiliary particle filter.  The idea behind the auxiliary particle filter is to generate particles with higher likelihood given the data by "looking ahead" at the predictive distribution of each particle prior to sampling.  Given a weighted random sample of particles at time $t_k$, the auxiliary particle filter approximates $p(x_{t+1}|y_{1:t+1})$ by the following:
 
 \begin{enumerate}
-\item Estimate - For each particle $i$, calculate a point estimate of $x_{t_{t+1}}^{(j)}$ called $\mu_{t+1}^{(j)}$.  This is typically taken to be the mean of $p(x_{t_{t+1}}|x_t^{(j)})$.
-\item Auxiliary weights - Calculate auxiliary weights $\tilde{g}_{t+1}^{(j)}$ for each particle by $\tilde{g}_{t+1}^{(j)} = w_k^{(j)} p(y_{t+1}|\mu_{t+1}^{(j)})$ and normalize the auxiliary weights by \[g_{t+1}^{(j)} = \frac{\tilde{g}_{t+1}^{(j)}}{\sum_{l=1}^n \tilde{g}_{t+1}^l}\]
-\item Resample - Sample with replacement from the particles according to the normalized auxiliary weights $g_{t+1}^{(j)}$.
-\item Propagate: for each particle $i = {1,\ldots,n}$, sample a new particle $x_{t_{t+1}}^{(j)}$ from the transition density $p(x_{t_{t+1}}|x_t^{(j)}$).
-\item Calculate new weights and renormalize 
-\[\tilde{w}_{t+1}^{(j)} = \frac{p(y_{t+1}|x_{t_{t+1}}^{(j)})}{p(y_{t+1}|\mu_{t+1}^{(j)})} \qquad w_{t+1}^{(j)} = \frac{\tilde{w}_{t+1}^{(j)}}{\sum_{l=1}^n \tilde{w}_{t+1}^l}\]
+\item For each particle $j$, calculate a point estimate of $x_{t+1}^{(j)}$ called $\mu_{t+1}^{(j)}$.  %This is typically taken to be the mean of $p(x_{t+1}|x_t^{(j)})$.
+\item Calculate auxiliary weights and renormalize 
+\[ \tilde{g}_{t+1}^{(j)} = w_k^{(j)} p(y_{t+1}|\mu_{t+1}^{(j)}) \qquad g_{t+1}^{(j)} = \tilde{g}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{g}_{t+1}^l\right. \]
+\item For each particle $j=1,\ldots,J$
+	\begin{enumerate}
+	\item Sample an index $k\in\{1,\ldots,j,\ldots,J\}$ with probability $g_{t+1}^{(j)}$.
+	\item Propagate the particle $x_{t+1}^{(j)}\sim p\left(x_{t+1}|x_t^{(k)}\right)$.
+	\item Calculate new weights and renormalize 
+\[\tilde{w}_{t+1}^{(j)} = \frac{p\left(y_{t+1}|x_{t+1}^{(j)}\right)}{p\left(y_{t+1}|\mu_{t+1}^{(k)}\right)} \qquad w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{w}_{t+1}^l \right.\]
+	\end{enumerate}
 \end{enumerate}
 
-\noindent Like the bootstrap filter, the auxiliary particle filter is initiated by taking $n$ samples from the prior distribution $p(x_0)$ and setting the initial weights $w_0^{(j)} = 1/n$.  Optionally, one can alternate between the bootstrap filter and the auxiliary particle filter as new observations are processed.  For instance, in cases where the distribution of the weights is adequate, we can avoid the estimation step of calculating auxiliary weights so that the algorithm runs more efficiently.
+\noindent Like the bootstrap filter, the auxiliary particle filter is initiated by taking $n$ samples from the prior distribution $p(x_0)$ and setting the initial weights $w_0^{(j)} = 1/J$.  Optionally, one can alternate between the bootstrap filter and the auxiliary particle filter as new observations are processed.  For instance, in cases where the distribution of the weights is adequate, we can avoid the estimation step of calculating auxiliary weights so that the algorithm runs more efficiently.
 
 \subsection{Kernel Density Particle Filter}
 
 Both the bootstrap filter and the auxiliary particle filter as described in the previous two sections do not consider additional unknown parameters $\theta$, but rather require any additional parameters to be concatenated to the state vector $x_t$.  Thus, the values sampled from the prior distribution at time $t_0$ are carried through the entire particle filter.  This makes degeneracy of the unknown parameters difficult to avoid unless a large number of particles is used.  \citet{Liu:West:comb:2001} devised a modification to the auxiliary particle filter that takes into account additional unknown parameters $\theta$ in a flexible way.  They introduce a kernel density estimate of the distribution of $\theta$ for each particle so that new values of the unknown parameters can be sampled at each time step.  This enables us to refresh the distribution of $\theta$ to avoid degeneracy and require a lower number of particles for the filter.
 
-Define $x_t = (i_t,s_t)'$ and $\theta = (\beta,\gamma,\nu)'$ and let $f_\tau$ and $Q$ be as they were in equations \eqref{eqn:f} and \eqref{eqn:q}.  Let $\{x_t^1,\ldots,x_t^n\}$ and $\{\theta_k^1,\ldots,\theta_k^n\}$ with associated weights $\{w_k^1,\ldots,w_k^n\}$ be an approximation to the distribution $p(x_t,\theta|y_{1:k})$.  Note that the subscript $k$ for $\theta$ does not imply that $\theta$ changes with time, but rather indicates current knowledge of the distribution of $\theta$ at time $t_k$.  In addition, let $\bar{\theta}_k$ and $V_k$ be the weighted sample mean and weighted sample covariance matrix of the posterior sample ${\theta_k^1,\ldots,\theta_k^n}$.  According to the kernel density particle filter, we move to an approximation of $p(x_{t_{t+1}},\theta|y_{1:{k+1}})$ by the following steps:
+Define $x_t = (i_t,s_t)'$ and $\theta = (\beta,\gamma,\nu)'$ and let $f_\tau$ and $Q$ be as they were in equations \eqref{eqn:f} and \eqref{eqn:q}.  Let $\{x_t^1,\ldots,x_t^n\}$ and $\{\theta_k^1,\ldots,\theta_k^n\}$ with associated weights $\{w_k^1,\ldots,w_k^n\}$ be an approximation to the distribution $p(x_t,\theta|y_{1:k})$.  Note that the subscript $t$ for $\theta$ does not imply that $\theta$ changes with time, but rather indicates current knowledge of the distribution of $\theta$ at time $t$.  In addition, let $\bar{\theta}_k$ and $V_k$ be the weighted sample mean and weighted sample covariance matrix of the posterior sample $\theta_t^{(1)},\ldots,\theta_t^{(J)}$.  According to the kernel density particle filter, we move to an approximation of $p(x_{t+1},\theta|y_{1:t+1})$ by the following steps:
 
 \begin{enumerate}
-\item Estimate - For each particle $i$, calculate a point estimate of $(x_{t_{t+1}}^{(j)},\theta)$ given by $(\mu_{t+1}^{(j)},m_k^{(j)})$ where
-    \begin{align*}
-    \mu_{t+1}^{(j)} &= E(x_{t_{t+1}}|x_t^{(j)},\theta_k^{(j)}) \\
-    m_k^{(j)} &= a\theta_k^{(j)} + (1-a)\bar{\theta}_k
-    \end{align*}
-\item Auxiliary weights - Calculate auxiliary weights $\tilde{g}_{t+1}^{(j)}$ for each particle by $\tilde{g}_{t+1}^{(j)} = w_k^{(j)} p(y_{t+1}|\mu_{t_{t+1}}^{(j)},m_k^{(j)})$ and normalize the auxiliary weights by \[g_{t+1}^{(j)} = \frac{\tilde{g}_{t+1}^{(j)}}{\sum_{l=1}^n \tilde{g}_{t+1}^l}\]
-\item Resample - Sample with replacement from the particles according to the normalized auxiliary weights $g_{t+1}^{(j)}$.
-\item Prediction - For each particle $i = {1,\ldots,n}$, sample $\theta_{t+1}^{(j)}$ from a normal density with mean $m_k^{(j)}$ and covariance matrix $h^2V_k$.  Then, sample $x_{t_{t+1}}^{(j)}$ from the transition density $p(x_{t_{t+1}}|x_t^{(j)},\theta_{t+1}^{(j)}$).
-\item Update - Calculate new weights of the particles by \[\tilde{w}_{t+1}^{(j)} = \frac{p(y_{t+1}|x_{t_{t+1}}^{(j)},\theta_{t+1}^{(j)})}{p(y_{t+1}|\mu_{t_{t+1}}^{(j)},m_k^{(j)})}\]
-\item Normalize - Normalize the weights of the particles so they sum to 1: \[w_{t+1}^{(j)} = \frac{\tilde{w}_{t+1}^{(j)}}{\sum_{l=1}^n \tilde{w}_{t+1}^l}\]
+\item For each particle $i$, calculate a point estimate of $\left(x_{t+1}^{(j)},\theta\right)$ given by $\left(\mu_{t+1}^{(j)},m_k^{(j)}\right)$ where
+    \[ 
+    \mu_{t+1}^{(j)} = E\left(x_{t+1}\left|x_t^{(j)},\theta_k^{(j)} \right.\right) \qquad 
+    m_t^{(j)} = a\theta_t^{(j)} + (1-a)\bar{\theta}_t
+    \]
+\item Calculate auxiliary weights and renormalize
+\[ \tilde{g}_{t+1}^{(j)} = w_k^{(j)} p\left(y_{t+1}\left|\mu_{t+1}^{(j)},m_k^{(j)}\right.\right) \qquad g_{t+1}^{(j)} = \tilde{g}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{g}_{t+1}^l. \right. \]
+\item For each particle $j=1,\ldots,J$
+	\begin{enumerate}
+	\item Sample an index $k\in\{1,\ldots,j,\ldots,J\}$ with probability $g_{t+1}^{(j)}$.
+	\item Regenerate the fixed parameters 
+	\[ \theta_{t+1}^{(j)} \sim N\left( m_t^{(k)}, h^2V_t \right). \]
+	\item Propagate the particle 
+	\[ x_{t+1}^{(j)} \sim p(x_{t+1}|x_t^{(k)},\theta_{t+1}^{(j)}). \]
+	\item Calculate weights and renormalize 
+	\[\tilde{w}_{t+1}^{(j)} = \frac{p(y_{t+1}|x_{t+1}^{(j)},\theta_{t+1}^{(j)})}{p(y_{t+1}|\mu_{t+1}^{(k)},m_t^{(k)})}
+	\qquad 
+	w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{w}_{t+1}^l \right.\]
+	\end{enumerate}
 \end{enumerate}
+
+
 
 Notice above that the mean and variance of the kernel density estimate of $\theta_k^{(j)}$ depend also on scalars $a$ and $h$.  $a$ specifies the weight given to each particle versus the overall mean in calculating the mean of the kernel density, and $h$ is the bandwidth of the kernel. We have the relationship $a^2 = 1 - h^2$ and let $h^2 = 1 - ((3\delta - 1)/2\delta)^2$.  $\delta$ called the discount factor and is usually taken to be between 0.95 and 0.99.
 
@@ -194,10 +209,10 @@ Q = \left(
 
 \noindent Having formulated the observation and state equations, we can now express the likelihood of an observation $y_{j,k}$ given the state of the epidemic at time $t_k$, $x_t$, and the unknown parameters $\theta$ by \[p(y_{j,k}|x_t,\theta) = N(y_{j,k};b_ji^{\varsigma_j}_t,\sigma^2_j)\] where $N(.;\mu,\sigma^2)$ represents the pdf of the normal distribution with mean $\mu$ and variance $\sigma^2$.
 
-We are interested now in how to update the posterior distribution of the states and unknown parameters given new data.  That is, given the posterior distribution at time $t_k$, denoted by $p(x_t,\theta|y_{1:k})$, how do we obtain $p(x_{t_{t+1}},\theta|y_{1:k+1})$?  Theoretically, this is obtained by Bayes rule:
+We are interested now in how to update the posterior distribution of the states and unknown parameters given new data.  That is, given the posterior distribution at time $t_k$, denoted by $p(x_t,\theta|y_{1:k})$, how do we obtain $p(x_{t+1},\theta|y_{1:k+1})$?  Theoretically, this is obtained by Bayes rule:
 
 \begin{equation}
-p(x_{t_{t+1}},\theta|y_{1:k+1}) = \frac{p(y_{j,k}|x_t,\theta)p(x_t,\theta|y_{1:k})}{\int p(y_{j,k}|x_t,\theta)p(x_t,\theta|y_{1:k}) \mathrm{d} x_t} \label{eqn:bayes}
+p(x_{t+1},\theta|y_{1:k+1}) = \frac{p(y_{j,k}|x_t,\theta)p(x_t,\theta|y_{1:k})}{\int p(y_{j,k}|x_t,\theta)p(x_t,\theta|y_{1:k}) \mathrm{d} x_t} \label{eqn:bayes}
 \end{equation}
 
 \noindent However, because the densities in the numerator are nonlinear functions of $x_t$ and $\theta$, a closed-form solution to equation \eqref{eqn:bayes} cannot be obtained.  Instead, we use a numerical simulation approach called sequential monte carlo or particle filtering, discussed in the next section.
