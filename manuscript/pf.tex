@@ -48,7 +48,7 @@ where $y_{1:t} = (y_1,\ldots,y_t)$. Only in special cases can $p(x_t,\theta| y_{
 
 Particle filtering is a sequential Monte Carlo inferential technique based on sequential use of importance sampling. It aims to approximate equation \eqref{eqn:filtered} through a weighted Monte Carlo realization from this distribution, i.e.
 \begin{equation}
-p(x_t,\theta| y_{1:t}) \approx \sum_{j}^J w_t^{(j)} \delta_{x_t^{(j)},\theta^{(j)}}
+p(x_t,\theta| y_{1:t}) \approx \sum_{j}^J w_t^{(j)} \delta_{x_t^{(j)},\theta^{(j)}} \label{eqn:approx}
 \end{equation}
 where $\sum_{j=}^J w_t^{(j)}$ are the particle \emph{weights} $\delta_{x_t,\theta}$, $(x_t,\theta)$ is the particle \emph{location}, and $\delta$ is a Dirac delta function. A variety of techniques have been developed to provide efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now introduce three fundamental particle filtering techniques: bootstrap filter, auxiliary particle filter, and the kernel density filter.
 
@@ -112,13 +112,19 @@ One way to fight particle degeneracy is to increase the number of particles, $n$
 	\end{enumerate}
 \end{enumerate}
 
-\noindent Like the bootstrap filter, the auxiliary particle filter is initiated by taking $n$ samples from the prior distribution $p(x_0)$ and setting the initial weights $w_0^{(j)} = 1/J$.  Optionally, one can alternate between the bootstrap filter and the auxiliary particle filter as new observations are processed.  For instance, in cases where the distribution of the weights is adequate, we can avoid the estimation step of calculating auxiliary weights so that the algorithm runs more efficiently.
+\noindent 
+
+The bootstrap filter and the auxiliary particle filter were constructed with the idea that all fixed parameters were known. In order to simultaneously estimate the states and fixed parameters using these methods it is necessary to incorporate the fixed parameters into the state with degenerate evolutions. Due to the resampling step, the number of unique values of the fixed parameters in out particle set will decrease over time, the \emph{degeneracy} problem \cite{Liu:West:comb:2001} \jarad{more references}. 
 
 \subsection{Kernel Density Particle Filter}
 
-Both the bootstrap filter and the auxiliary particle filter as described in the previous two sections do not consider additional unknown parameters $\theta$, but rather require any additional parameters to be concatenated to the state vector $x_t$.  Thus, the values sampled from the prior distribution at time $t_0$ are carried through the entire particle filter.  This makes degeneracy of the unknown parameters difficult to avoid unless a large number of particles is used.  \citet{Liu:West:comb:2001} devised a modification to the auxiliary particle filter that takes into account additional unknown parameters $\theta$ in a flexible way.  They introduce a kernel density estimate of the distribution of $\theta$ for each particle so that new values of the unknown parameters can be sampled at each time step.  This enables us to refresh the distribution of $\theta$ to avoid degeneracy and require a lower number of particles for the filter.
+The particle filter introduced by \cite{Liu:West:comb:2001} is a generally way of fighting this degeneracy problem by approximating the set of fixed parameter values by a kernel density approximation and then resampling from this approximation at each step in the filter. This enables us to refresh the distribution of $\theta$ to avoid degeneracy and require a lower number of particles to efficiently run the filter. We will refer to this filter as the kernel density particle filter. 
 
-Define $x_t = (i_t,s_t)'$ and $\theta = (\beta,\gamma,\nu)'$ and let $f_\tau$ and $Q$ be as they were in equations \eqref{eqn:f} and \eqref{eqn:q}.  Let $\{x_t^1,\ldots,x_t^n\}$ and $\{\theta_k^1,\ldots,\theta_k^n\}$ with associated weights $\{w_k^1,\ldots,w_k^n\}$ be an approximation to the distribution $p(x_t,\theta|y_{1:k})$.  Note that the subscript $t$ for $\theta$ does not imply that $\theta$ changes with time, but rather indicates current knowledge of the distribution of $\theta$ at time $t$.  In addition, let $\bar{\theta}_k$ and $V_k$ be the weighted sample mean and weighted sample covariance matrix of the posterior sample $\theta_t^{(1)},\ldots,\theta_t^{(J)}$.  According to the kernel density particle filter, we move to an approximation of $p(x_{t+1},\theta|y_{1:t+1})$ by the following steps:
+We now reintroduce the fixed parameter $\theta$ into the notation. The kernel density particle filter provides an approximation to the filtered distribution via equation \eqref{eqn:approx}. To make the notation transparent, we introduce subscripts for our fixed parameters, e.g. $\theta_t^{(j)}$ represents the value for $\theta$ at time $t$ in particle $j$. This does not imply that $\theta$ is dynamic, but rather that the particle can have different values for $\theta$ throughout time. 
+
+Let $\bar{\theta}_t$ and $V_t$ be the weighted sample mean and weighted sample covariance matrix of the posterior sample $\theta_t^{(1)},\ldots,\theta_t^{(J)}$.  The kernel density particle filter also uses a tuning parameter $\delta$, the discount factor, and two derived quantities $h^2 = 1 - ((3\delta - 1)/2\delta)^2$ and $a^2 = 1 - h^2$ that determine how sharp the kernel density approximation is. Typically $\delta$ is taken to be between 0.95 and 0.99.
+
+The kernel density particle filter, we move to an approximation of $p(x_{t+1},\theta|y_{1:t+1})$ by the following steps:
 
 \begin{enumerate}
 \item For each particle $i$, calculate a point estimate of $\left(x_{t+1}^{(j)},\theta\right)$ given by $\left(\mu_{t+1}^{(j)},m_k^{(j)}\right)$ where
@@ -134,17 +140,20 @@ Define $x_t = (i_t,s_t)'$ and $\theta = (\beta,\gamma,\nu)'$ and let $f_\tau$ an
 	\item Regenerate the fixed parameters 
 	\[ \theta_{t+1}^{(j)} \sim N\left( m_t^{(k)}, h^2V_t \right). \]
 	\item Propagate the particle 
-	\[ x_{t+1}^{(j)} \sim p(x_{t+1}|x_t^{(k)},\theta_{t+1}^{(j)}). \]
+	\[ x_{t+1}^{(j)} \sim p\left(x_{t+1}\left|x_t^{(k)},\theta_{t+1}^{(j)}\right.\right). \]
 	\item Calculate weights and renormalize 
-	\[\tilde{w}_{t+1}^{(j)} = \frac{p(y_{t+1}|x_{t+1}^{(j)},\theta_{t+1}^{(j)})}{p(y_{t+1}|\mu_{t+1}^{(k)},m_t^{(k)})}
+	\[\tilde{w}_{t+1}^{(j)} = \frac{p\left(y_{t+1}\left|x_{t+1}^{(j)},\theta_{t+1}^{(j)}\right.\right)}{p\left(y_{t+1}\left|\mu_{t+1}^{(k)},m_t^{(k)}\right.\right)}
 	\qquad 
 	w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{w}_{t+1}^l \right.\]
 	\end{enumerate}
 \end{enumerate}
 
+To use the kernel density particle filter with normal kernels it is necessary to parameterize the fixed parameters so that their support is on the real line. This is not a constraint, but rather a practical implementation detail. We typically use logarithms for parameters that have positive support and the logit function for parameters in the interval (0,1). For a parameter $\psi$ bounded in the interval (a,b), can first be rebounded to (0,1) through $(\psi-a)/(b-a)$ and then the logit transformation can be applied.
 
+\subsection{General advice}
 
-Notice above that the mean and variance of the kernel density estimate of $\theta_k^{(j)}$ depend also on scalars $a$ and $h$.  $a$ specifies the weight given to each particle versus the overall mean in calculating the mean of the kernel density, and $h$ is the bandwidth of the kernel. We have the relationship $a^2 = 1 - h^2$ and let $h^2 = 1 - ((3\delta - 1)/2\delta)^2$.  $\delta$ called the discount factor and is usually taken to be between 0.95 and 0.99.
+ 
+
 
 
 \section{Particle filtering in epidemiological models \label{sec:apply}}
