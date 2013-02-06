@@ -4,6 +4,7 @@
 \usepackage{natbib}
 \usepackage{color}
 \usepackage{graphicx}
+\usepackage[font={small,it}]{caption}
 
 \graphicspath{{/Users/niemi/Dropbox/SIR_Particle_Filtering/Graphs/PF/}
                        {/Users/niemi/Dropbox/SIR_Particle_Filtering/doesnotexist/}
@@ -204,7 +205,7 @@ p(x_{t_{t+1}},\theta|y_{1:k+1}) = \frac{p(y_{j,k}|x_t,\theta)p(x_t,\theta|y_{1:k
 
 \subsection{Comparison of Particle Filters}
 
-An epidemic was simulated from our model for $T = 154$ days for a population of size $P = 5000$.  True values of unknown parameters were set to $\beta = 0.2399$, $\gamma = 0.1066$, and $\nu = 1.2042$.  Values of known constants for $J = 4$ syndromes are given in table \ref{tab:true}.  Infection was introduced in 10 people in the population at day 0 (i.e. $i_0 = 10/5000$ and $s_0 = 4990/5000$).  Observations arrived daily from the different syndromes asynchronously, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
+An epidemic was simulated from our model for $T = 125$ days for a population of size $P = 5000$.  True values of unknown parameters were set to $\beta = 0.2399$, $\gamma = 0.1066$, and $\nu = 1.2042$.  Values of known constants for $J = 4$ syndromes are given in table \ref{tab:true}.  Infection was introduced in 10 people in the population at day 0 (i.e. $i_0 = 10/5000$ and $s_0 = 4990/5000$).  Observations arrived daily from the different syndromes asynchronously, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
 
 \begin{table}[ht]
 \begin{center}
@@ -247,26 +248,90 @@ It is possible to forecast the epidemic curve after observing measurements up un
 \end{figure}
 
 \begin{figure}[ht]
-\centering
-\begin{minipage}[b]{.4\linewidth}
-\caption*{$k = 25$ Days}
-\includegraphics[width=1.0\textwidth]{Hist-KD-1000-day25}
-\end{minipage}
-\begin{minipage}[b]{.4\linewidth}
-\caption*{$k = 154$ Days}
-\includegraphics[width=1.0\textwidth]{Hist-KD-1000-day154}
-\end{minipage}
-\caption{Displays histograms of the unknown parameter values after running the kernel density particle filter using $n = 1000$ particles for $k = 25$ (left) and $k = 154$ (right) days.  True parameter values used for simulation are shown in the subtitles of the graphs.} \label{fig:hist}
+\includegraphics[width=1.1\textwidth]{Hist-Time-KD-3P-1000-beta}
+\caption{Displays histograms of the marginal posterior distribution of $\beta$ after running the kernel density particle filter using $n = 1000$ particles for $k = 15,30,45,60,75,90,105,120$ days.  The true value used for simulation is shown in the subtitle of the upper-left plot represented in the histograms by black vertical lines.} \label{fig:histbeta}
+\end{figure}
+
+\begin{figure}[ht]
+\includegraphics[width=1.1\textwidth]{Hist-Time-KD-3P-1000-gamma}
+\caption{Displays histograms of the marginal posterior distribution of $\gamma$ after running the kernel density particle filter using $n = 1000$ particles for $k = 15,30,45,60,75,90,105,120$ days.  The true value used for simulation is shown in the subtitle of the upper-left plot represented in the histograms by black vertical lines.} \label{fig:histgamma}
+\end{figure}
+
+\begin{figure}[ht]
+\includegraphics[width=1.1\textwidth]{Hist-Time-KD-3P-1000-nu}
+\caption{Displays histograms of the marginal posterior distribution of $\nu$ after running the kernel density particle filter using $n = 1000$ particles for $k = 15,30,45,60,75,90,105,120$ days.  The true value used for simulation is shown in the subtitle of the upper-left plot represented in the histograms by black vertical lines.} \label{fig:histnu}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
-\includegraphics[height=5in]{EpidPred-KD-1000}
-\caption{Displays 95\% credible bounds on the predicted epidemic curve after running the kernel density particle filter with $n = 1000$ particles for $k = 10,15,20,25,30,35$ days.}
+\includegraphics[width=1.1\textwidth]{EpidPred-KD-1000}
+\caption{Displays median and 95\% credible bounds on the predicted epidemic curve after running the kernel density particle filter with $n = 1000$ particles for $k = 10,15,20,25,30,35$ days.}
 \label{fig:pred}
 \end{figure}
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=1.1\textwidth]{Peaks-KD-1000}
+\caption{Displays median and 95\% credible bounds on the predicted time and intensity of the peak of the epidemic after running the kernel density particle filter with $n = 1000$ particles for $k = 10,15,20,25,30,35$ days.  Predictions shown with circles were obtained numerically by propagating particles forward, and predictions shown with triangles were obtained by prediction equations found in \citet{skvortsov2012monitoring}.}
+\end{figure}
+
+\clearpage
+
 \section{Extending the model \label{sec:extend}}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[height=4in]{PF-quant-6P-10000}
+\caption{Displays particle filter results for the proportion of the population infected by the epidemic using $n = 10000$ particles.  The solid black line shows the true proportion of infected in the population from simulation, and colored lines show the weighted mean of the proportion of infected after running all 3 particle filters.  The 95\% credible bounds represent the 2.5\% and 97.5\% quantiles of the proportion of infected individuals in the weighted particle sample.} \label{fig:quant6P}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{1.0\linewidth}
+\includegraphics[width=1.1\textwidth]{Hist-Time-KD-6P-10000-beta}
+\end{minipage}
+\begin{minipage}[b]{1.0\linewidth}
+\includegraphics[width=1.1\textwidth]{Hist-Time-KD-6P-10000-gamma}
+\end{minipage}
+\caption{Displays histograms of the marginal posterior distributions of $\beta$ (top) and $\gamma$ (bottom) after running the kernel density particle filter using $n = 10000$ particles for $k = 15,30,45,60,75,90,105,120$ days.  The true value used for simulation is shown in the subtitle of the upper-left plot represented in the histograms by black vertical lines.} \label{fig:histbetagamma}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{1.0\linewidth}
+\includegraphics[width=1.1\textwidth]{Hist-Time-KD-6P-10000-nu}
+\end{minipage}
+\begin{minipage}[b]{1.0\linewidth}
+\includegraphics[width=1.1\textwidth]{Hist-Time-KD-6P-10000-b}
+\end{minipage}
+\caption{Displays histograms of the marginal posterior distributions of $\nu$ (top) and $b$ (bottom) after running the kernel density particle filter using $n = 10000$ particles for $k = 15,30,45,60,75,90,105,120$ days.  The true value used for simulation is shown in the subtitle of the upper-left plot represented in the histograms by black vertical lines.} \label{fig:histnub}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{1.0\linewidth}
+\includegraphics[width=1.1\textwidth]{Hist-Time-KD-6P-10000-varsigma}
+\end{minipage}
+\begin{minipage}[b]{1.0\linewidth}
+\includegraphics[width=1.1\textwidth]{Hist-Time-KD-6P-10000-sigma}
+\end{minipage}
+\caption{Displays histograms of the marginal posterior distributions of $\varsigma$ (top) and $\sigma$ (bottom) after running the kernel density particle filter using $n = 10000$ particles for $k = 15,30,45,60,75,90,105,120$ days.  The true value used for simulation is shown in the subtitle of the upper-left plot represented in the histograms by black vertical lines.} \label{fig:histvarsigmasigma}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=1.1\textwidth]{EpidPred-KD-6P-10000}
+\caption{Displays median and 95\% credible bounds on the predicted epidemic curve after running the kernel density particle filter with $n = 10000$ particles for $k = 10,15,20,25,30,35$ days.}
+\label{fig:pred}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=1.1\textwidth]{Peaks-KD-6P-10000}
+\caption{Displays median and 95\% credible bounds on the predicted time and intensity of the peak of the epidemic after running the kernel density particle filter with $n = 10000$ particles for $k = 10,15,20,25,30,35$ days.  Predictions shown with circles were obtained numerically by propagating particles forward, and predictions shown with triangles were obtained by prediction equations found in \citet{skvortsov2012monitoring}.}
+\end{figure}
+
+\clearpage
 
 \section{Discussion \label{sec:discussion}}
 
