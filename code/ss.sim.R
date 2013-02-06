@@ -4,7 +4,7 @@
 # param revo a function to generate next state given previous state x
 # param robs a function to generate next observation given current state x
 # param rinit a function to generate initial state vector
-# returns a list containing an nt + 1 x ns matrix of states (x) and an nt x no matrix of generated observations (y)
+# returns a list containing an ns x nt + 1 matrix of states (x) and an no x nt matrix of generated observations (y)
 #
 ss.sim = function(nt,revo,robs,rinit)
 {
