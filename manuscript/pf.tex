@@ -152,7 +152,7 @@ To use the kernel density particle filter with normal kernels it is necessary to
 
 \subsection{General advice}
 
- 
+Practical implementation of any particle filter involves a choice of resampling function and a decision about when resampling should be performed. Throughout our discussion we have implicitly used multinomial resampling, i.e. whenever we say `Sample an index $k\in\{1,\ldots,j,\ldots,J\}$ with probability $w$'. Alternative, and better resampling functions exist including stratified, residual, and systematic resampling. In addition, the frequency of resampling should be minimized to reduce Monte Carlo variability introduced during resampling. Typically a measure of the nonuniformity is used including effective sample size, entropy, and coefficient of variance. For a discussion of these topics please see \cite{Douc:Capp:Moul:comp:2005}.
 
 
 
