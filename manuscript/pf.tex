@@ -23,7 +23,7 @@ The rest of the article proceeds as follows. Section \ref{sec:model} contains a 
 
 \section{State-space models \label{sec:model}}
 
-State-space models are a general class of statistical models used for analysis of dynamic data in many fields including \jarad{references to uses of state-space models}. State space models are constructed using an observation equation, $y_t \stackrel{ind}{\sim} p_{y,t}(y_t|x_t,\theta)$, and a state evolution equation, $x_t \stackrel{ind}{\sim} p_{x,t}(x_t|x_{t-1},\theta)$ where $y_t$ is the observed response, $x_t$ is a latent, dynamic state, and $\theta$ is the unknown fixed parameter, all of which could be vectors. The distributions are assumed known conditional on the values of $\theta$ and $x_t$ in the observation equation and $\theta$ and $x_{t-1}$ in the evolution equation. Depending on whether the observations and the states are continuous or discrete, the distributions themselves may be continuous or discrete. The distributions are typically assumed to only varying with $x_t$ and $\theta$ and therefore the $t$ subscript is dropped.
+State-space models are a general class of statistical models used for analysis of dynamic data in many fields including \jarad{references to uses of state-space models}. State space models are constructed using an observation equation, $y_t \stackrel{ind}{\sim} p_{y,t}(y_t|x_t,\theta)$, and a state evolution equation, $x_t \stackrel{ind}{\sim} p_{x,t}(x_t|x_{t-1},\theta)$ where $y_t$ is the observed response, $x_t$ is a latent, dynamic state, and $\theta$ is the unknown fixed parameter, all of which could be vectors. The distributions are assumed known conditional on the values of $\theta$ and $x_t$ in the observation equation and $\theta$ and $x_{t-1}$ in the evolution equation. Depending on whether the observations and the states are continuous or discrete, the distributions themselves may be continuous or discrete. The distributions are typically assumed to only vary with $x_t$ and $\theta$ and therefore the $t$ subscript is dropped.
 %The particle filtering methodology discussed in Sections \ref{sec:filtering} and \ref{sec:discussion} apply equally well when the distributions depend on $t$ so long as they are known.
 For simplicity, we will also drop the $x$ and $y$ subscript and instead let the arguments make clear which distribution we are referring to. Thus, the state-space model is
 \begin{align*}
@@ -35,38 +35,51 @@ Special cases of these state-space models include hidden Markov models \jarad{HM
 
 \subsection{Sequential estimation}
 
-When data are collected sequentially, it is often of interest to determine the \emph{filtered distribution}, the distribution of the current state and parameter conditional on the data observed up to that time. This distribution describes all of the available information up to time $t$ about the current state of the system and any fixed parameters It can be updated recursively using Bayes' rule:
+When data are collected sequentially, it is often of interest to determine the \emph{filtered distribution}, the distribution of the current state and parameter conditional on the data observed up to that time. This distribution describes all of the available information up to time $t$ about the current state of the system and any fixed parameters. It can be updated recursively using Bayes' rule:
 \begin{equation}
 p(x_t,\theta| y_{1:t}) \propto p(y_t|x_t,\theta)p(x_t,\theta|y_{1:t-1}) \label{eqn:filtered}
 \end{equation}
 where $y_{1:t} = (y_1,\ldots,y_t)$. Only in special cases can $p(x_t,\theta| y_{1:t})$ be evaluated analytically, e.g. in DLMs when $\theta$ is the observation variance \cite[Sec 4.3,][]{petris2009dynamic}. When analytical tractability is not present, we turn to numerical methods including deterministic versions, e.g. extended Kalman filter \jarad{ref} and the Gaussian sum filter \citep{Alsp:Sore:nonl:1972}, or Monte Carlo versions, i.e. particle filters.
 
-
-
-
 \section{Particle filtering \label{sec:filtering}}
 
 Particle filtering is a sequential Monte Carlo inferential technique based on sequential use of importance sampling. It aims to approximate equation \eqref{eqn:filtered} through a weighted Monte Carlo realization from this distribution, i.e.
 \begin{equation}
-p(x_t,\theta| y_{1:t}) \approx \sum_{j}^J w_t^{(j)} \delta_{x_t^{(j)},\theta^{(j)}}
+p(x_t,\theta| y_{1:t}) \approx \sum_{j}^J w_t^{(j)} \delta_{x_t^{(j)},\theta^{(j)}} \label{eqn:particle}
 \end{equation}
-where $\sum_{j=}^J w_t^{(j)}$ are the particle \emph{weights} $\delta_{x_t,\theta}$, $(x_t,\theta)$ is the particle \emph{location}, and $\delta$ is a Dirac delta function. A variety of techniques have been developed to provide efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now introduce three fundamental particle filtering techniques: bootstrap filter, auxiliary particle filter, and the kernel density filter.
+where $w_t^{(j)},j=1,\ldots,J$ are the particle \emph{weights}, $(x_t,\theta)$ is the particle \emph{location}, and $\delta$ is a Dirac delta function. A variety of techniques have been developed to provide efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now introduce three fundamental particle filtering techniques: bootstrap filter, auxiliary particle filter, and the kernel density filter.
 
 \subsection{Bootstrap Filter}
 
-The first successful version of particle filtering is known as the bootstrap filter \citep{Gord:Salm:Smit:nove:1993}. Since this method and the auxiliary particle filter were developed for the situation when $\theta$ is known, we will (for the moment) drop $\theta$ from the notation. Suppose you have a current approximation as in equation \eqref{eqn:particle}, then for each particle $j$,
+The first successful version of particle filtering is known as the bootstrap filter \citep{Gord:Salm:Smit:nove:1993}. Since this method and the auxiliary particle filter were developed for the situation when $\theta$ is known, we will (for the moment) drop $\theta$ from the notation. Suppose you have a current approximation as in equation \eqref{eqn:particle}. Then for each particle $j$,
 
 \begin{enumerate}
 \item Resample: sample an index $k\in \{1,\ldots,j,\ldots,J\}$ with probability $w_t^{(j)}$,
 \item Propagate: sample $x_{t+1}^{(j)} \sim p\left(\left. x_{t+1}^{(k)}\right|y_{1:t}\right)$, and
-\item Calculate weights: $\tilde{w}_{t+1}^{(j)} = p\left(y_{t}\left|x_{t+1}^{(j)}\right.\right)$.
+\item Calculate weights: $\tilde{w}_{t+1}^{(j)} = p\left(y_{t+1}\left|x_{t+1}^{(j)}\right.\right)$.
 \end{enumerate}
 
 \noindent After weights for all particles have been calculated, these weights need to be renormalized via $w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{w}_{t+1}^{(l)} \right.$
 
 This procedure provides an approximation to $p(x_t,\theta| y_{1:t})$ and therefore can be applied recursively provided an initial set of weights $w_0^{(j)}$ and locations $x_0^{(j)}$ for all $j$.
 
+\danny{started here}
+
+\subsection{Auxiliary Particle Filter}
+
+A key problem that arises in implementing the bootstrap filter is that $w_t^{(j)}$ may be small for samples $x_t^{(j)}$ that are less likely given $y_t$ and hence can be eliminated during resampling, resulting in \emph{particle degeneracy}. The auxiliary particle filter \citep{Pitt:Shep:filt:1999} was developed to be more efficient than the bootstrap filter by providing a greater chance of avoiding particle degeneracy. The idea is to generate particles with higher likelihood given the data by "looking ahead" at $p(x_{t+1}^{(k)}|y_{1:t})$ prior to sampling $x_{t+1}^{(j)}$. Given a current approximation of $p(x_t|y_{1:t})$ as in equation \eqref{eqn:particle}, calculate point estimates of $x_{t+1}^{(j)}$ for each $j = 1,\ldots,J$ called $\mu_{t+1}^{(j)}$, typically taken to be the mean of $p(x_{t+1}^{(j)}|y_{1:t})$.  Then for each particle $j$,
+
+\begin{enumerate}
+\item Resample: sample an index $k\in \{1,\ldots,j,\ldots,J\}$ with probability $w_t^{(j)}p\left(y_{t+1}\left|\mu_{t+1}^{(j)}\right.\right)$,
+\item Propagate: sample $x_{t+1}^{(j)} \sim p\left(\left. x_{t+1}^{(k)}\right|y_{1:t}\right)$, and
+\item Calculate weights: $\tilde{w}_{t+1}^{(j)} = p\left(y_{t+1}\left|x_{t+1}^{(j)}\right.\right)$.
+\end{enumerate}
+
+\noindent As with the bootstrap filter, after weights for all particles have been calculated, they need to be renormalized via $w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{w}_{t+1}^{(l)} \right.$
+
 \danny{start here}
+
+\noindent Like the bootstrap filter, the auxiliary particle filter is initiated by taking $n$ samples from the prior distribution $p(x_0)$ and setting the initial weights $w_0^{(j)} = 1/n$.  Optionally, one can alternate between the bootstrap filter and the auxiliary particle filter as new observations are processed.  For instance, in cases where the distribution of the weights is adequate, we can avoid the estimation step of calculating auxiliary weights so that the algorithm runs more efficiently.
 
 Notice from equation \eqref{eqn:state} that the transition density needed for prediction in our model is a multivariate normal density with mean $f_\tau(x_t,\theta)$ and covariance matrix $Q$.  A few notes on how to carry out the prediction step for this density are necessary. First, recall that that the mean function approximates the disease dynamics better for small $\tau$.  Thus, if the time between observations, $t_{t+1} - t_k$, is large, we can still set $\tau$ to be small and carry out the prediction step $(t_{t+1} - t_k) / \tau$ times to generate $x_{t_{t+1}}^{(j)}$.  Second, $i$ and $s$ are proportions and thus constrained to be in $[0,1]$.  However, the stochastic nature of the state equation makes it possible to generate states that do not satisfy this constraint.  In our implementation of the particle filter, we throw away samples in which $i$ or $s$ fall outside of $[0,1]$ and resample.
 
@@ -94,21 +107,6 @@ Q = \left(
  \]
 
 \noindent The main shortcoming of implementing the bootstrap filter in this manner, however, is that particles generated that are less likely given the data will have small weights and get eliminated in the resampling step.  This leads to what is known as particle degeneracy, or a degeneracy of the distribution of the unknown parameters toward one value.  This poses a problem in the context of Bayesian inference where we would like the posterior distribution to incorporate proper uncertainty about $\theta$.
-
-\subsection{Auxiliary Particle Filter}
-
-One way to fight particle degeneracy is to increase the number of particles, $n$, used in the filter.  A more efficient method, however, has been developed by \citet{Pitt:Shep:filt:1999} called the auxiliary particle filter.  The idea behind the auxiliary particle filter is to generate particles with higher likelihood given the data by "looking ahead" at the predictive distribution of each particle prior to sampling.  Given a weighted random sample of particles at time $t_k$, the auxiliary particle filter approximates $p(x_{t_{t+1}}|y_{1:k+1})$ by the following:
-
-\begin{enumerate}
-\item Estimate - For each particle $i$, calculate a point estimate of $x_{t_{t+1}}^{(j)}$ called $\mu_{t+1}^{(j)}$.  This is typically taken to be the mean of $p(x_{t_{t+1}}|x_t^{(j)})$.
-\item Auxiliary weights - Calculate auxiliary weights $\tilde{g}_{t+1}^{(j)}$ for each particle by $\tilde{g}_{t+1}^{(j)} = w_k^{(j)} p(y_{t+1}|\mu_{t+1}^{(j)})$ and normalize the auxiliary weights by \[g_{t+1}^{(j)} = \frac{\tilde{g}_{t+1}^{(j)}}{\sum_{l=1}^n \tilde{g}_{t+1}^l}\]
-\item Resample - Sample with replacement from the particles according to the normalized auxiliary weights $g_{t+1}^{(j)}$.
-\item Prediction - For each particle $i = {1,\ldots,n}$, sample a new particle $x_{t_{t+1}}^{(j)}$ from the transition density $p(x_{t_{t+1}}|x_t^{(j)}$).
-\item Update - Calculate new weights of the particles by \[\tilde{w}_{t+1}^{(j)} = \frac{p(y_{t+1}|x_{t_{t+1}}^{(j)})}{p(y_{t+1}|\mu_{t+1}^{(j)})}\]
-\item Normalize - Normalize the weights of the particles so they sum to 1: \[w_{t+1}^{(j)} = \frac{\tilde{w}_{t+1}^{(j)}}{\sum_{l=1}^n \tilde{w}_{t+1}^l}\]
-\end{enumerate}
-
-\noindent Like the bootstrap filter, the auxiliary particle filter is initiated by taking $n$ samples from the prior distribution $p(x_0)$ and setting the initial weights $w_0^{(j)} = 1/n$.  Optionally, one can alternate between the bootstrap filter and the auxiliary particle filter as new observations are processed.  For instance, in cases where the distribution of the weights is adequate, we can avoid the estimation step of calculating auxiliary weights so that the algorithm runs more efficiently.
 
 \subsection{Kernel Density Particle Filter}
 
@@ -272,7 +270,7 @@ It is possible to forecast the epidemic curve after observing measurements up un
 \begin{figure}[ht]
 \centering
 \includegraphics[width=1.1\textwidth]{Peaks-KD-1000}
-\caption{Displays median and 95\% credible bounds on the predicted time and intensity of the peak of the epidemic after running the kernel density particle filter with $n = 1000$ particles for $k = 10,15,20,25,30,35$ days.  Predictions shown with circles were obtained numerically by propagating particles forward, and predictions shown with triangles were obtained by prediction equations found in \citet{skvortsov2012monitoring}.}
+\caption{Displays median and 95\% credible bounds on the predicted time and intensity of the peak of the epidemic after running the kernel density particle filter with $n = 1000$ particles for $k = 10,15,20,25,30,35$ days.  Predictions shown with circles were obtained numerically by propagating particles forward, and predictions shown with triangles were obtained by equations found in \citet{skvortsov2012monitoring}.}
 \end{figure}
 
 \clearpage
@@ -328,7 +326,7 @@ It is possible to forecast the epidemic curve after observing measurements up un
 \begin{figure}[ht]
 \centering
 \includegraphics[width=1.1\textwidth]{Peaks-KD-6P-10000}
-\caption{Displays median and 95\% credible bounds on the predicted time and intensity of the peak of the epidemic after running the kernel density particle filter with $n = 10000$ particles for $k = 10,15,20,25,30,35$ days.  Predictions shown with circles were obtained numerically by propagating particles forward, and predictions shown with triangles were obtained by prediction equations found in \citet{skvortsov2012monitoring}.}
+\caption{Displays median and 95\% credible bounds on the predicted time and intensity of the peak of the epidemic after running the kernel density particle filter with $n = 10000$ particles for $k = 10,15,20,25,30,35$ days.  Predictions shown with circles were obtained numerically by propagating particles forward, and predictions shown with triangles were obtained by equations found in \citet{skvortsov2012monitoring}.}
 \end{figure}
 
 \clearpage
