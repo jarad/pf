@@ -103,9 +103,9 @@ One way to fight particle degeneracy is to increase the number of particles, $n$
 \item Estimate - For each particle $i$, calculate a point estimate of $x_{t_{t+1}}^{(j)}$ called $\mu_{t+1}^{(j)}$.  This is typically taken to be the mean of $p(x_{t_{t+1}}|x_t^{(j)})$.
 \item Auxiliary weights - Calculate auxiliary weights $\tilde{g}_{t+1}^{(j)}$ for each particle by $\tilde{g}_{t+1}^{(j)} = w_k^{(j)} p(y_{t+1}|\mu_{t+1}^{(j)})$ and normalize the auxiliary weights by \[g_{t+1}^{(j)} = \frac{\tilde{g}_{t+1}^{(j)}}{\sum_{l=1}^n \tilde{g}_{t+1}^l}\]
 \item Resample - Sample with replacement from the particles according to the normalized auxiliary weights $g_{t+1}^{(j)}$.
-\item Prediction - For each particle $i = {1,\ldots,n}$, sample a new particle $x_{t_{t+1}}^{(j)}$ from the transition density $p(x_{t_{t+1}}|x_t^{(j)}$).
-\item Update - Calculate new weights of the particles by \[\tilde{w}_{t+1}^{(j)} = \frac{p(y_{t+1}|x_{t_{t+1}}^{(j)})}{p(y_{t+1}|\mu_{t+1}^{(j)})}\]
-\item Normalize - Normalize the weights of the particles so they sum to 1: \[w_{t+1}^{(j)} = \frac{\tilde{w}_{t+1}^{(j)}}{\sum_{l=1}^n \tilde{w}_{t+1}^l}\]
+\item Propagate: for each particle $i = {1,\ldots,n}$, sample a new particle $x_{t_{t+1}}^{(j)}$ from the transition density $p(x_{t_{t+1}}|x_t^{(j)}$).
+\item Calculate new weights and renormalize 
+\[\tilde{w}_{t+1}^{(j)} = \frac{p(y_{t+1}|x_{t_{t+1}}^{(j)})}{p(y_{t+1}|\mu_{t+1}^{(j)})} \qquad w_{t+1}^{(j)} = \frac{\tilde{w}_{t+1}^{(j)}}{\sum_{l=1}^n \tilde{w}_{t+1}^l}\]
 \end{enumerate}
 
 \noindent Like the bootstrap filter, the auxiliary particle filter is initiated by taking $n$ samples from the prior distribution $p(x_0)$ and setting the initial weights $w_0^{(j)} = 1/n$.  Optionally, one can alternate between the bootstrap filter and the auxiliary particle filter as new observations are processed.  For instance, in cases where the distribution of the weights is adequate, we can avoid the estimation step of calculating auxiliary weights so that the algorithm runs more efficiently.
