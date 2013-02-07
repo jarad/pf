@@ -37,10 +37,14 @@ revo_kd = function(x, theta){ revo(x, P, d, theta, thetal, thetau, FALSE)}
 rprior_kd = function(){ rprior(sim, thetal, thetau, stateonly=FALSE, addparam=TRUE)}
 
 # Run particle filters N times
-N = 100
+N = 5
 n = 100
 nt = 125
+ns = length(rinit_sim())
+current.seed = .Random.seed
+no = length(robs_sim(rinit_sim()))
 bf.med = apf.med = kd.med = matrix(NA,nr=N,nc=nt+1)
+sims = list(x=array(NA,dim=c(N,ns,nt+1)),y=array(NA,dim=c(N,no,nt)))
 source("ss.sim.R")
 source("bf.R")
 source("apf.R")
@@ -50,6 +54,8 @@ for(j in 1:N)
 {
   # Simulate epidemic
   sim = ss.sim(nt, revo_sim, robs_sim, rinit_sim)
+  sims$x[j,,] = sim$x
+  sims$y[j,,] = sim$y
  
   # Run bootstrap filter
   out = bf(sim$y, dllik_bf, revo_bf, rprior_bf, n,
@@ -71,28 +77,30 @@ for(j in 1:N)
   cat("\n",j,"\n")
 }
 
+# Calculate median of the medians and lower/upper quantiles
+bf.i = apply(bf.med,2,median)
+bf.li = apply(bf.med,2,function(x) quantile(x,probs=.025))
+bf.ui = apply(bf.med,2,function(x) quantile(x,probs=.975))
+apf.i = apply(apf.med,2,median)
+apf.li = apply(apf.med,2,function(x) quantile(x,probs=.025))
+apf.ui = apply(apf.med,2,function(x) quantile(x,probs=.975))
+kd.i = apply(kd.med,2,median)
+kd.li = apply(kd.med,2,function(x) quantile(x,probs=.025))
+kd.ui = apply(kd.med,2,function(x) quantile(x,probs=.975))
+truth.i = apply(sims$x[,1,],2,median)
+truth.li = apply(sims$x[,1,],2,function(x) quantile(x,probs=.025))
+truth.ui = apply(sims$x[,1,],2,function(x) quantile(x,probs=.975))
+
 # Save data
 save.image(paste(dpath,"sir.pf.med-6P-",n,"-",n,".rdata",sep=""))
-
-# Calculate mean of the medians and lower/upper quantiles
-bf.i = apply(bf.med,2,mean)
-apf.i = apply(apf.med,2,mean)
-kd.i = apply(kd.med,2,mean)
-bf.li = bf.ui = apf.li = apf.ui = kd.li = kd.ui = numeric(nt+1)
-for(i in 1:(nt+1)){
-	bf.li[i] = quantile(bf.med[,i],probs=.025)
-	bf.ui[i] = quantile(bf.med[,i],probs=.975)
-	apf.li[i] = quantile(apf.med[,i],probs=.025)
-	apf.ui[i] = quantile(apf.med[,i],probs=.975)
-	kd.li[i] = quantile(kd.med[,i],probs=.025)
-	kd.ui[i] = quantile(kd.med[,i],probs=.975)
-}
 
 # Plot mean medians and lower/upper quantiles of medians over time
 ymax = max(bf.ui,apf.ui,kd.ui)
 pdf(paste(gpath,"PF-med-6P-",n,"-",n,".pdf",sep=""))
-plot(sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
+plot(0:nt,truth.i,type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
 	main="95% Credible Intervals of %Pop Infected")
+lines(0:nt,truth.li,lty=2)
+lines(0:nt,truth.ui,lty=2)
 lines(bf.i,col=2)
 lines(bf.li,col=2,lty=2)
 lines(bf.ui,col=2,lty=2)
