@@ -2,10 +2,14 @@
 gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
 dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
 
-# Load particle filter data
-param = "-6P"
-num = "-10000"
-load(paste(dpath,"sir.pf.test",param,num,".rdata",sep=""))
+# How many particles? Set n = 100, 1000, or 10000
+n = 10000
+# How many parameters? Set p = 3 or p = 6
+p = 6
+if(p == 3) param = "" else param = "-6P"
+
+# Load data
+load(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
 ns = dim(sim$x)[1]
 
 # Function needed to generate predicted SIR curves
@@ -63,7 +67,7 @@ for(j in 1:length(days))
   } else { stop("Wrong number of parameters") }
 
   # Propagate particles forward to end of epidemic
-  pred = pred2 = pred3 = array(NA,dim=c(8,n,nt-days[j]))
+  pred = pred2 = pred3 = array(NA,dim=c(ns,n,nt-days[j]))
   for(i in 1:n)
   {
     setTxtProgressBar(pb,i + n*(j-1))
@@ -101,7 +105,11 @@ for(j in 1:length(days))
   # By calculation
   peak_time_calc = matrix(NA,nr=n,nc=3)
   peak_intensity_calc = matrix(NA,nr=n,nc=3)
-  calc.peak.time = function(x) log(1/x[ns+1])/(x[4]*(x[3]/x[4] - 1)) + 0.4/x[4]
+  calc.peak.time = function(x)
+  {
+    if(x[ns+1] < 1e-300) x[ns+1] = 1e-300
+    log(1/x[ns+1])/(x[4]*(x[3]/x[4] - 1)) + 0.4/x[4]
+  }
   calc.peak.intensity = function(x) 1 - x[4]/x[3] + log(x[4]/x[3])/(x[3]/x[4])
   peak_intensity_calc[,1] = apply(rbind(mystate,out$state[1,,1]),2,calc.peak.intensity)
   peak_intensity_calc[,2] = apply(rbind(mystate2,out2$state[1,,1]),2,calc.peak.intensity)
@@ -129,6 +137,7 @@ for(j in 1:length(days))
 }
 
 save.image(paste(dpath,"sir.pf.pred",param,"-",n,".rdata",sep=""))
+#load(paste(dpath,"sir.pf.pred",param,"-",n,".rdata",sep=""))
 
 # Plot predicted % population infected
 # Bootstrap filter
@@ -138,9 +147,17 @@ par(mfrow=c(2,3))
 ymax = max(sapply(bf.ui,max),max(sim$x[1,]))
 for(j in 1:length(days))
 {
-  plot(sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
-	main="Predicted %Pop Infected")
-  mtext(paste("k = ",days[j]," Days",sep=""),side=3)
+  if(j == 1)
+  {
+    plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
+      main="Predicted %Pop Infected")
+    mtext(paste("k = ",days[j]," Days",sep=""),side=3)
+    abline(v=days[j]+1)
+  } else {
+    plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="",ylab="",)
+    mtext(paste("k = ",days[j]," Days",sep=""),side=3)
+    abline(v=days[j]+1)
+  }
   lines((days[j]+1):nt,bf.i[[j]],col=2)
   lines((days[j]+1):nt,bf.li[[j]],lty=2,col=2)
   lines((days[j]+1):nt,bf.ui[[j]],lty=2,col=2)
@@ -156,9 +173,17 @@ par(mfrow=c(2,3))
 ymax = max(sapply(apf.ui,max),max(sim$x[1,]))
 for(j in 1:length(days))
 {
-  plot(sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
-	main="Predicted %Pop Infected")
-  mtext(paste("k = ",days[j]," Days",sep=""),side=3)
+  if(j == 1)
+  {
+    plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
+	  main="Predicted %Pop Infected")
+    mtext(paste("k = ",days[j]," Days",sep=""),side=3)
+    abline(v=days[j]+1)
+  } else {
+    plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="",ylab="")
+    mtext(paste("k = ",days[j]," Days",sep=""),side=3)
+    abline(v=days[j]+1)
+  }
   lines((days[j]+1):nt,apf.i[[j]],col=4)
   lines((days[j]+1):nt,apf.li[[j]],lty=2,col=4)
   lines((days[j]+1):nt,apf.ui[[j]],lty=2,col=4)
@@ -174,9 +199,17 @@ par(mfrow=c(2,3))
 ymax = max(sapply(kd.ui,max),max(sim$x[1,]))
 for(j in 1:length(days))
 {
-  plot(sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
-	main="Predicted %Pop Infected")
-  mtext(paste("k = ",days[j]," Days",sep=""),side=3)
+  if(j == 1)
+  {
+    plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
+	  main="Predicted %Pop Infected")
+    mtext(paste("k = ",days[j]," Days",sep=""),side=3)
+    abline(v=days[j]+1)
+  } else {
+    plot(sim$x[1,],type="l",ylim=c(0,ymax),xlab="",ylab="")
+    mtext(paste("k = ",days[j]," Days",sep=""),side=3)
+    abline(v=days[j]+1)
+  }
   lines((days[j]+1):nt,kd.i[[j]],col=3)
   lines((days[j]+1):nt,kd.li[[j]],lty=2,col=3)
   lines((days[j]+1):nt,kd.ui[[j]],lty=2,col=3)
