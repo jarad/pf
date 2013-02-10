@@ -64,7 +64,7 @@ robs = function(x,b,varsigma,sigma)
   if(!(j == length(varsigma) & j == length(sigma))) stop("b, varsigma, and sigma must all have same length")
   J = sample(1:j,1)
   y = rep(NA,j)
-  y[J] = rnorm(1,varsigma[J]*log(b[J]*x[1]),sigma[J])
+  y[J] = rnorm(1,varsigma[J]*log(b[J]*x[1]),sigma[J]/(b[J]*x[1]^varsigma[J]))
   return(y)
 }
 
@@ -111,17 +111,17 @@ dllik = function(y,x,b,varsigma,sigma,theta=NULL,thetal=NULL,thetau=NULL,stateon
     if(addparam)
     {
       h = x[7]*log(x[6]*x[1])
-      s = x[8]
+      s = x[8]/(x[6]*x[1]^x[7])
     } else {
       h = varsigma[J]*log(b[J]*x[1])
-      s = sigma[J]
+      s = sigma[J]/(b[J]*x[1]^varsigma[J])
     }
   } else {
     theta[4] = theta2u(theta[4],thetal[4],thetau[4])
     theta[5] = theta2u(theta[5],thetal[5],thetau[5])
     theta[6] = theta2u(theta[6],thetal[6],thetau[6])
     h = theta[5]*log(theta[4]*x[1])
-    s = theta[6]
+    s = theta[6]/(theta[4]*x[1]^theta[5])
   }
   return(dnorm(y[J],h,s,log=T))
 }
@@ -149,14 +149,14 @@ rprior = function(sim,thetal,thetau,b=NULL,varsigma=NULL,sigma=NULL,stateonly=TR
     b0 = runif(1,thetal[4],thetau[4])
     varsigma0 = runif(1,thetal[5],thetau[5])
     sigma0 = runif(1,thetal[6],thetau[6])
-    tauj = sim$y[J,1] - log(b0) - 1
-    while(tauj < sim$y[J,1] - log(b0)) tauj = rnorm(1,0,sigma0)
-    i0 = exp(sim$y[J,1] - tauj)/b0
+    tauj = sim$y[J,1] - varsigma0*log(b0) - 1
+    while(tauj < sim$y[J,1] - varsigma0*log(b0)) tauj = rnorm(1,0,sigma0/(b0*.001^varsigma0))
+    i0 = exp((sim$y[J,1] - tauj)/varsigma0)/b0
     s0 = 1 - i0
   } else {
-    tauj = sim$y[J,1] - log(b[J]) - 1
-    while(tauj < sim$y[J,1] - log(b[J])) tauj = rnorm(1,0,sigma[J])
-    i0 = exp(sim$y[J,1] - tauj)/b[J]
+    tauj = sim$y[J,1] - varsigma[J]*log(b[J]) - 1
+    while(tauj < sim$y[J,1] - varsigma[J]*log(b[J])) tauj = rnorm(1,0,sigma[J]/(b[J]*.001^varsigma[J]))
+    i0 = exp((sim$y[J,1] - tauj)/varsigma[J])/b[J]
     s0 = 1 - i0
   }
   if(stateonly & addparam){
