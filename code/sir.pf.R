@@ -6,7 +6,7 @@ gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
 dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
 
 # How many unknown parameters? Set p = 3 or p = 6
-p = 6
+p = 3
 if(p == 3)
 {
   s = 4
@@ -113,7 +113,7 @@ out3 = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n,
 
 # Save data
 save.image(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
-#load(paste(dpath,"sir.pf-",n,".rdata",sep=""))
+#load(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
 
 # Calculate 2.5%, 50%, and 97.5% quantiles of states over time
 require(Hmisc)
@@ -143,36 +143,6 @@ for(i in 1:tt)
   kd.ms[i] = wtd.quantile(out3$state[2,,i], out$weight[,i], normwt=T, probs=.500)
 }
 
-# Plot % infected and % susceptible quantiles over time
-pdf(paste(gpath,"PF-states",param,"-",n,".pdf",sep=""),width=10,height=5)
-par(mfrow=c(1,2))
-ymax = max(bf.ui[-1],apf.ui[-1],kd.ui[-1],sim$x[1,])
-plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab="% Population",
-	main="95% Credible Intervals of %Pop Infected")
-lines(0:nt,bf.mi,col=2)
-lines(0:nt,bf.li,col=2,lty=2)
-lines(0:nt,bf.ui,col=2,lty=2)
-lines(0:nt,apf.mi,col=4)
-lines(0:nt,apf.li,col=4,lty=2)
-lines(0:nt,apf.ui,col=4,lty=2)
-lines(0:nt,kd.mi,col=3)
-lines(0:nt,kd.li,col=3,lty=2)
-lines(0:nt,kd.ui,col=3,lty=2)
-if(n == 100) legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2))
-ymin = min(bf.ls[-1],apf.ls[-1],kd.ls[-1],sim$x[2,])
-plot(0:nt,sim$x[2,],type="l",ylim=c(ymin,1),xlab="Time (days)",ylab="% Population",
-	main="95% Credible Intervals of %Pop Susceptible")
-lines(0:nt,bf.ms,col=2)
-lines(0:nt,bf.ls,col=2,lty=2)
-lines(0:nt,bf.us,col=2,lty=2)
-lines(0:nt,apf.ms,col=4)
-lines(0:nt,apf.ls,col=4,lty=2)
-lines(0:nt,apf.us,col=4,lty=2)
-lines(0:nt,kd.ms,col=3)
-lines(0:nt,kd.ls,col=3,lty=2)
-lines(0:nt,kd.us,col=3,lty=2)
-dev.off()
-
 # Calculate 2.5%, 50%, and 97.5% quantiles of unknown parameters over time
 bf.m = apf.m = kd.m = matrix(NA,nr=tt,nc=p)
 bf.l = bf.u = apf.l = apf.u = kd.l = kd.u = matrix(NA,nr=tt,nc=p)
@@ -193,16 +163,74 @@ for(i in 1:tt)
   }
 }
 
+# Save quantiles data
+save.image(paste(dpath,"sir.pf.quant",param,"-",n,".rdata",sep=""))
+#load(paste(dpath,"sir.pf.quant",param,"-",n,".rdata",sep=""))
+
+# Plot % infected and % susceptible quantiles over time
+pdf(paste(gpath,"PF-states",param,"-",n,".pdf",sep=""),width=10,height=5)
+par(mfrow=c(1,2),mar=c(5,5,3,1)+0.1)
+ymax = max(bf.ui[-1],apf.ui[-1],kd.ui[-1],sim$x[1,])
+if(n == 100)
+{
+  plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="",ylab=paste("J = ",n,sep=""),main=expression(i),cex.lab=1.5,cex.main=1.75)
+  legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2))
+} else if(n == 1000){
+  plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="",ylab=paste("J = ",n,sep=""),cex.lab=1.5)
+} else {
+  plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab=paste("J = ",n,sep=""),cex.lab=1.5)
+}
+lines(0:nt,bf.mi,col=2)
+lines(0:nt,bf.li,col=2,lty=2)
+lines(0:nt,bf.ui,col=2,lty=2)
+lines(0:nt,apf.mi,col=4)
+lines(0:nt,apf.li,col=4,lty=2)
+lines(0:nt,apf.ui,col=4,lty=2)
+lines(0:nt,kd.mi,col=3)
+lines(0:nt,kd.li,col=3,lty=2)
+lines(0:nt,kd.ui,col=3,lty=2)
+ymin = min(bf.ls[-1],apf.ls[-1],kd.ls[-1],sim$x[2,])
+if(n == 100)
+{
+  plot(0:nt,sim$x[2,],type="l",ylim=c(ymin,1),xlab="",ylab="",main=expression(s),cex.main=1.75)
+} else {
+  plot(0:nt,sim$x[2,],type="l",ylim=c(ymin,1),xlab="",ylab="")
+}
+lines(0:nt,bf.ms,col=2)
+lines(0:nt,bf.ls,col=2,lty=2)
+lines(0:nt,bf.us,col=2,lty=2)
+lines(0:nt,apf.ms,col=4)
+lines(0:nt,apf.ls,col=4,lty=2)
+lines(0:nt,apf.us,col=4,lty=2)
+lines(0:nt,kd.ms,col=3)
+lines(0:nt,kd.ls,col=3,lty=2)
+lines(0:nt,kd.us,col=3,lty=2)
+dev.off()
+
 # Plot 95% credible bounds and medians of parameters over time
 expr = expression(beta,gamma,nu,b,varsigma,sigma)
+msize = 2.4
+labsize = 2.2
+legendsize = 1.5
 pdf(paste(gpath,"PF-params",param,"-",n,".pdf",sep=""),width=15,height=5*((p == 6)+1))
-par(mfrow=c((p == 6)+1,3),mar=c(5,5,4,1)+.1)
+par(mfrow=c((p == 6)+1,3),mar=c(5,5,3,1)+.1)
 for(j in 1:p)
 {
   ymin = min(bf.l[,j],apf.l[,j],kd.l[,j],theta[j])
   ymax = max(bf.u[,j],apf.u[,j],kd.u[,j],theta[j])
-  plot(0:nt,bf.m[,j],type="l",xlab="Time (Days)",ylab=expr[j],ylim=c(ymin,ymax),col=2,
-  	cex.lab=1.75)
+  if(j == 1 & n == 100)
+  {
+    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="",ylab=paste("J = ",n,sep=""),main=expr[j],cex.lab=labsize,cex.main=msize)
+    legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2),cex=legendsize)
+  } else if(j == 1 & n == 10000) {
+    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="Time (days)",ylab=paste("J = ",n,sep=""),cex.lab=labsize)
+  } else if(j == 1) {
+    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab=paste("J = ",n,sep=""),xlab="",cex.lab=labsize)
+  } else if(n == 100) {
+    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab="",xlab="",main=expr[j],cex.main=msize)
+  } else {
+    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab="",xlab="")
+  }
   lines(0:nt,bf.l[,j],col=2,lty=2)
   lines(0:nt,bf.u[,j],col=2,lty=2)
   lines(0:nt,apf.m[,j],col=4)
@@ -212,10 +240,5 @@ for(j in 1:p)
   lines(0:nt,kd.l[,j],col=3,lty=2)
   lines(0:nt,kd.u[,j],col=3,lty=2)
   abline(h=theta[j])
-  if(n == 100 & j == 1) legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2))
-  par(mar=c(5,5,4,1)+.1)
 }
 dev.off()
-
-# Save quantiles data
-save.image(paste(dpath,"sir.pf.quant",param,"-",n,".rdata",sep=""))

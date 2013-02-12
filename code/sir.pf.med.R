@@ -145,14 +145,16 @@ save.image(paste(dpath,"sir.pf.med",param,"-",n,"-",N,".rdata",sep=""))
 
 # Plot medians and lower/upper quantiles of parameters over time
 expr = expression(beta,gamma,nu,b,varsigma,sigma)
+xlabs = c("Time (days)",rep("",p-1))
+labsize = 2.5
 pdf(paste(gpath,"PF-params-med",param,"-",n,"-",N,".pdf",sep=""),width=15,height=5*((p == 6)+1))
-par(mfrow=c(1+(p == 6),3),mar=c(5,5,4,1)+0.1)
+par(mfrow=c(1+(p == 6),3),mar=c(5,6,4,0)+0.1)
 for(k in 1:p)
 {
   ymax = max(bf.u[,k+2],apf.u[,k+2],kd.u[,k+2],truth.u[,k+2])
   ymin = min(bf.l[,k+2],apf.l[,k+2],kd.l[,k+2],truth.l[,k+2])
   plot(0:nt,truth.m[,k+2],type="l",ylim=c(ymin,ymax),
-  	xlab="Time (days)",ylab=expr[k],cex.lab=1.75)
+  	xlab=xlabs[k],ylab=expr[k],cex.lab=labsize)
   lines(0:nt,truth.l[,k+2],lty=2)
   lines(0:nt,truth.u[,k+2],lty=2)
   lines(0:nt,bf.m[,k+2],col=2)
@@ -164,14 +166,14 @@ for(k in 1:p)
   lines(0:nt,kd.m[,k+2],col=3)
   lines(0:nt,kd.l[,k+2],col=3,lty=2)
   lines(0:nt,kd.u[,k+2],col=3,lty=2)
-  if(k == 1 & n == 100) legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2))
 }
 dev.off()
 
 # Plot medians and upper/lower quantiles of %infected/susceptible over time
-ylabs = c("% Population Infected","% Population Susceptible")
+ylabs = expression(i,s)
+xlabs = c("Time (days)","")
 pdf(paste(gpath,"PF-states-med",param,"-",n,"-",N,".pdf",sep=""),width=10,height=5)
-par(mfrow=c(1,2))
+par(mfrow=c(1,2),mar=c(5,5,4,1)+0.1)
 for(k in 1:2)
 {
   if(k == 1) {
@@ -182,7 +184,7 @@ for(k in 1:2)
     ymin = min(bf.l[,k],apf.l[,k],kd.l[,k],truth.l[,k])
   }
   plot(0:nt,truth.m[,k],type="l",ylim=c(ymin,ymax),
-  	xlab="Time (days)",ylab=ylabs[k])
+  	xlab=xlabs[k],ylab=ylabs[k],cex.lab=2)
   lines(0:nt,truth.l[,k],lty=2)
   lines(0:nt,truth.u[,k],lty=2)
   lines(0:nt,bf.m[,k],col=2)
