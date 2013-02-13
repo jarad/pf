@@ -6,7 +6,7 @@ gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
 dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
 
 # How many unknown parameters? Set p = 3 or p = 6
-p = 3
+p = 6
 if(p == 3) param = "" else param = "-6P"
 
 # Set known parameter values
@@ -145,7 +145,7 @@ save.image(paste(dpath,"sir.pf.med",param,"-",n,"-",N,".rdata",sep=""))
 
 # Plot medians and lower/upper quantiles of parameters over time
 expr = expression(beta,gamma,nu,b,varsigma,sigma)
-xlabs = c("Time (days)",rep("",p-1))
+if(p == 3) xlabs = c("Time (days)",rep("",p-1)) else xlabs=c(rep("",3),"Time (days)","","")
 labsize = 2.5
 pdf(paste(gpath,"PF-params-med",param,"-",n,"-",N,".pdf",sep=""),width=15,height=5*((p == 6)+1))
 par(mfrow=c(1+(p == 6),3),mar=c(5,6,4,0)+0.1)

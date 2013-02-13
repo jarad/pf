@@ -6,14 +6,16 @@ gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
 dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
 
 # How many unknown parameters? Set p = 3 or p = 6
-p = 3
+p = 6
 if(p == 3)
 {
   s = 4
   param = ""
+  op = c("","")
 } else { 
   s = 1
   param = "-6P"
+  op = c("","-op")
 }
 
 # Set known parameter values
@@ -209,36 +211,37 @@ dev.off()
 
 # Plot 95% credible bounds and medians of parameters over time
 expr = expression(beta,gamma,nu,b,varsigma,sigma)
+xlabs = rep(c("Time (days)","",""),2)
+ylabs = rep(c(paste("J = ",n,sep=""),"",""),2)
 msize = 2.4
 labsize = 2.2
 legendsize = 1.5
-pdf(paste(gpath,"PF-params",param,"-",n,".pdf",sep=""),width=15,height=5*((p == 6)+1))
-par(mfrow=c((p == 6)+1,3),mar=c(5,5,3,1)+.1)
-for(j in 1:p)
+for(k in 1:((p==6)+1))
 {
-  ymin = min(bf.l[,j],apf.l[,j],kd.l[,j],theta[j])
-  ymax = max(bf.u[,j],apf.u[,j],kd.u[,j],theta[j])
-  if(j == 1 & n == 100)
+  pdf(paste(gpath,"PF-params",param,op[k],"-",n,".pdf",sep=""),width=15,height=5)
+  par(mfrow=c(1,3),mar=c(5,5,3,1)+.1)
+  for(j in ((k-1)*3+1):(k*3))
   {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="",ylab=paste("J = ",n,sep=""),main=expr[j],cex.lab=labsize,cex.main=msize)
-    legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2),cex=legendsize)
-  } else if(j == 1 & n == 10000) {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="Time (days)",ylab=paste("J = ",n,sep=""),cex.lab=labsize)
-  } else if(j == 1) {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab=paste("J = ",n,sep=""),xlab="",cex.lab=labsize)
-  } else if(n == 100) {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab="",xlab="",main=expr[j],cex.main=msize)
-  } else {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab="",xlab="")
+    ymin = min(bf.l[,j],apf.l[,j],kd.l[,j],theta[j])
+    ymax = max(bf.u[,j],apf.u[,j],kd.u[,j],theta[j])
+    if(n == 100)
+    {
+      plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="",ylab=ylabs[j],main=expr[j],cex.lab=labsize,cex.main=msize)
+      if(j == 1 | j == 4) legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2),cex=legendsize)
+    } else if(n == 10000) {
+      plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab=xlabs[j],ylab=ylabs[j],cex.lab=labsize)
+    } else {
+      plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab=ylabs[j],xlab="",cex.lab=labsize)
+    }
+    lines(0:nt,bf.l[,j],col=2,lty=2)
+    lines(0:nt,bf.u[,j],col=2,lty=2)
+    lines(0:nt,apf.m[,j],col=4)
+    lines(0:nt,apf.l[,j],col=4,lty=2)
+    lines(0:nt,apf.u[,j],col=4,lty=2)
+    lines(0:nt,kd.m[,j],col=3)
+    lines(0:nt,kd.l[,j],col=3,lty=2)
+    lines(0:nt,kd.u[,j],col=3,lty=2)
+    abline(h=theta[j])
   }
-  lines(0:nt,bf.l[,j],col=2,lty=2)
-  lines(0:nt,bf.u[,j],col=2,lty=2)
-  lines(0:nt,apf.m[,j],col=4)
-  lines(0:nt,apf.l[,j],col=4,lty=2)
-  lines(0:nt,apf.u[,j],col=4,lty=2)
-  lines(0:nt,kd.m[,j],col=3)
-  lines(0:nt,kd.l[,j],col=3,lty=2)
-  lines(0:nt,kd.u[,j],col=3,lty=2)
-  abline(h=theta[j])
+  dev.off()
 }
-dev.off()
