@@ -2,12 +2,19 @@
 set.seed(sample(1:1000,1))
 
 # Set graphics and data paths
-gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
-dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
+gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF-D1/"
+dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/D1/"
 
 # How many unknown parameters? Set p = 3 or p = 6
-p = 6
-if(p == 3) param = "" else param = "-6P"
+p = 3
+if(p == 3)
+{
+  param = "-1F"
+  s = 4
+} else {
+  param = "-6P"
+  s = 1
+}
 
 # Set known parameter values
 P = 5000
@@ -15,6 +22,7 @@ d = 5
 b = c(.25, .27, .23, .29)
 varsigma = c(1.07, 1.05, 1.01, .98)
 sigma = c(.0012, .0008, .0010, .0011)
+dpower = 1
 
 # Set unknown parameter values and prior bounds
 theta = c(0.2399, 0.1066, 1.2042, b[1], varsigma[1], sigma[1])
@@ -26,47 +34,47 @@ thetau = thetau[1:p]
 
 # Functions to simulate epidemic
 source("sir_functions.R")
-revo_sim = function(x){ revo(x, P, d)}
-robs_sim = function(x){ robs(x, b[1:s], varsigma[1:s], sigma[1:s])}
+revo_sim = function(x){ revo(x, P, d, random=FALSE)}
+robs_sim = function(x){ robs(x, b[1:s], varsigma[1:s], sigma[1:s], dpower)}
 rinit_sim = function(){ rinit(10/P, theta)}
 
 if(p == 3)
 {
   # 3 parameter PF functions
   # Functions for bootstrap filter
-  dllik_bf = function(y, x){ dllik(y, x, b, varsigma, sigma)}
+  dllik_bf = function(y, x){ dllik(y, x, b, varsigma, sigma, dpower)}
   revo_bf = function(x){ revo(x, P, d)}
-  rprior_bf = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma)}
+  rprior_bf = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma, dpower)}
 
   # Functions for auxiliary particle filter
-  dllik_apf = function(y, x){ dllik(y, x, b, varsigma, sigma)}
+  dllik_apf = function(y, x){ dllik(y, x, b, varsigma, sigma, dpower)}
   pstate_apf = function(x) { revo(x, P, d, random = FALSE)}
   revo_apf = function(x){ revo(x, P, d)}
-  rprior_apf = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma)}
+  rprior_apf = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma, dpower)}
 
   # Functions for kernel density particle filter
-  dllik_kd = function(y, x, theta=NULL){ dllik(y, x, b, varsigma, sigma)}
+  dllik_kd = function(y, x, theta=NULL){ dllik(y, x, b, varsigma, sigma, dpower)}
   pstate_kd = function(x, theta) { revo(x, P, d, theta, thetal, thetau, FALSE, FALSE)}
   revo_kd = function(x, theta){ revo(x, P, d, theta, thetal, thetau, FALSE)}
-  rprior_kd = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma, FALSE)}
+  rprior_kd = function(){ rprior(sim, thetal, thetau, b, varsigma, sigma, dpower, FALSE)}
 } else {
   # 6 parameter PF functions
   # Run bootstrap filter
-  dllik_bf = function(y, x){ dllik(y, x, NULL, NULL, NULL, addparam=TRUE)}
+  dllik_bf = function(y, x){ dllik(y, x, NULL, NULL, NULL, dpower, addparam=TRUE)}
   revo_bf = function(x){ revo(x, P, d)}
-  rprior_bf = function(){ rprior(sim, thetal, thetau, addparam=TRUE)}
+  rprior_bf = function(){ rprior(sim, thetal, thetau, dpower=dpower, addparam=TRUE)}
 
   # Run auxiliary particle filter
-  dllik_apf = function(y, x){ dllik(y, x, NULL, NULL, NULL, addparam=TRUE)}
+  dllik_apf = function(y, x){ dllik(y, x, NULL, NULL, NULL, dpower, addparam=TRUE)}
   pstate_apf = function(x) { revo(x, P, d, random = FALSE)}
   revo_apf = function(x){ revo(x, P, d)}
-  rprior_apf = function(){ rprior(sim, thetal, thetau, addparam=TRUE)}
+  rprior_apf = function(){ rprior(sim, thetal, thetau, dpower=dpower, addparam=TRUE)}
 
   # Run kernel density particle filter
-  dllik_kd = function(y, x, theta){ dllik(y, x, NULL, NULL, NULL, theta, thetal, thetau, FALSE, TRUE)}
+  dllik_kd = function(y, x, theta){ dllik(y, x, NULL, NULL, NULL, dpower, theta, thetal, thetau, FALSE, TRUE)}
   pstate_kd = function(x, theta) { revo(x, P, d, theta, thetal, thetau, FALSE, FALSE)}
   revo_kd = function(x, theta){ revo(x, P, d, theta, thetal, thetau, FALSE)}
-  rprior_kd = function(){ rprior(sim, thetal, thetau, stateonly=FALSE, addparam=TRUE)}
+  rprior_kd = function(){ rprior(sim, thetal, thetau, dpower=dpower, stateonly=FALSE, addparam=TRUE)}
 }
 
 # Run particle filters N times with n particles
@@ -78,7 +86,7 @@ current.seed = .Random.seed
 no = length(robs_sim(rinit_sim()))
 .Random.seed = current.seed
 bf.med = apf.med = kd.med = array(NA,dim=c(N,nt+1,p+2))
-sims = list(x=array(NA,dim=c(N,ns,nt+1)),y=array(NA,dim=c(N,no,nt)))
+sims_y = array(NA,dim=c(N,no,nt))
 source("ss.sim.R")
 source("bf.R")
 source("apf.R")
@@ -88,8 +96,7 @@ for(j in 1:N)
 {
   # Simulate epidemic
   sim = ss.sim(nt, revo_sim, robs_sim, rinit_sim)
-  sims$x[j,,] = sim$x
-  sims$y[j,,] = sim$y
+  sims_y[j,,] = sim$y
  
   # Run bootstrap filter
   out = bf(sim$y, dllik_bf, revo_bf, rprior_bf, n,
@@ -122,7 +129,6 @@ for(j in 1:N)
 
 # Calculate median of the medians and lower/upper quantiles
 bf.m = apf.m = kd.m = bf.l = apf.l = kd.l = bf.u = apf.u = kd.u = matrix(NA,nr=nt+1,nc=p+2)
-truth.m = truth.l = truth.u = matrix(NA,nr=nt+1,nc=p+2)
 for(k in 1:(p+2))
 {
   bf.m[,k] = apply(bf.med[,,k],2,median)
@@ -134,9 +140,6 @@ for(k in 1:(p+2))
   kd.m[,k] = apply(kd.med[,,k],2,median)
   kd.l[,k] = apply(kd.med[,,k],2,function(x) quantile(x,probs=.025))
   kd.u[,k] = apply(kd.med[,,k],2,function(x) quantile(x,probs=.975))
-  truth.m[,k] = apply(sims$x[,k,],2,median)
-  truth.l[,k] = apply(sims$x[,k,],2,function(x) quantile(x,probs=.025))
-  truth.u[,k] = apply(sims$x[,k,],2,function(x) quantile(x,probs=.975))
 }
 
 # Save data
@@ -151,12 +154,12 @@ pdf(paste(gpath,"PF-params-med",param,"-",n,"-",N,".pdf",sep=""),width=15,height
 par(mfrow=c(1+(p == 6),3),mar=c(5,6,4,0)+0.1)
 for(k in 1:p)
 {
-  ymax = max(bf.u[,k+2],apf.u[,k+2],kd.u[,k+2],truth.u[,k+2])
-  ymin = min(bf.l[,k+2],apf.l[,k+2],kd.l[,k+2],truth.l[,k+2])
-  plot(0:nt,truth.m[,k+2],type="l",ylim=c(ymin,ymax),
+  ymax = thetau[k]
+  ymin = thetal[k]
+#  ymax = max(bf.u[,k+2],apf.u[,k+2],kd.u[,k+2],sim$x[k+2,])
+#  ymin = min(bf.l[,k+2],apf.l[,k+2],kd.l[,k+2],sim$x[k+2,])
+  plot(0:nt,sim$x[k+2,],type="l",ylim=c(ymin,ymax),
   	xlab=xlabs[k],ylab=expr[k],cex.lab=labsize)
-  lines(0:nt,truth.l[,k+2],lty=2)
-  lines(0:nt,truth.u[,k+2],lty=2)
   lines(0:nt,bf.m[,k+2],col=2)
   lines(0:nt,bf.l[,k+2],col=2,lty=2)
   lines(0:nt,bf.u[,k+2],col=2,lty=2)
@@ -177,16 +180,14 @@ par(mfrow=c(1,2),mar=c(5,5,4,1)+0.1)
 for(k in 1:2)
 {
   if(k == 1) {
-    ymax = max(bf.u[,k],apf.u[,k],kd.u[,k],truth.u[,k])
+    ymax = max(bf.u[,k],apf.u[,k],kd.u[,k],sim$x[k,])
     ymin = 0
   } else {
     ymax = 1
-    ymin = min(bf.l[,k],apf.l[,k],kd.l[,k],truth.l[,k])
+    ymin = min(bf.l[,k],apf.l[,k],kd.l[,k],sim$x[k,])
   }
-  plot(0:nt,truth.m[,k],type="l",ylim=c(ymin,ymax),
+  plot(0:nt,sim$x[k,],type="l",ylim=c(ymin,ymax),
   	xlab=xlabs[k],ylab=ylabs[k],cex.lab=2)
-  lines(0:nt,truth.l[,k],lty=2)
-  lines(0:nt,truth.u[,k],lty=2)
   lines(0:nt,bf.m[,k],col=2)
   lines(0:nt,bf.l[,k],col=2,lty=2)
   lines(0:nt,bf.u[,k],col=2,lty=2)

@@ -58,13 +58,13 @@ revo = function(x,P,d=1,theta=NULL,thetal=NULL,thetau=NULL,stateonly=TRUE,random
 # b - vector of length J = number of syndromes with elements values of parameters b_j
 # varsigma - vector of length J = number of syndromes with elements values of parameters varsigma_j
 # sigma - vector of length J = number of syndromes with elements values of parameters sigma_j
-robs = function(x,b,varsigma,sigma)
+robs = function(x,b,varsigma,sigma,dpower=2)
 {
   j = length(b)
   if(!(j == length(varsigma) & j == length(sigma))) stop("b, varsigma, and sigma must all have same length")
   J = sample(1:j,1)
   y = rep(NA,j)
-  y[J] = rnorm(1,varsigma[J]*log(b[J]*x[1]),sigma[J]/(b[J]*x[1]^varsigma[J]))
+  y[J] = rnorm(1,varsigma[J]*log(b[J]*x[1]),sigma[J]/sqrt(b[J]*x[1]^varsigma[J])^dpower)
   return(y)
 }
 
@@ -102,7 +102,7 @@ u2theta = function(u,a,b)
 # thetau - optional vector, prior upper bounds on parameters; must be given if theta given
 # stateonly - boolean, if TRUE theta is ignored; if FALSE theta must be given
 # addparam - boolean, if TRUE b, varsigma, and sigma assumed unknown and included in either x or theta; if FALSE b, varsigma, and sigma must be given
-dllik = function(y,x,b,varsigma,sigma,theta=NULL,thetal=NULL,thetau=NULL,stateonly=TRUE,addparam=FALSE)
+dllik = function(y,x,b,varsigma,sigma,dpower=2,theta=NULL,thetal=NULL,thetau=NULL,stateonly=TRUE,addparam=FALSE)
 {
   J = which(!is.na(y))
   if (!(length(J) == 1)) stop("y must be a vector with all but 1 element NA")
@@ -111,17 +111,17 @@ dllik = function(y,x,b,varsigma,sigma,theta=NULL,thetal=NULL,thetau=NULL,stateon
     if(addparam)
     {
       h = x[7]*log(x[6]*x[1])
-      s = x[8]/(x[6]*x[1]^x[7])
+      s = x[8]/sqrt(x[6]*x[1]^x[7])^dpower
     } else {
       h = varsigma[J]*log(b[J]*x[1])
-      s = sigma[J]/(b[J]*x[1]^varsigma[J])
+      s = sigma[J]/sqrt(b[J]*x[1]^varsigma[J])^dpower
     }
   } else {
     theta[4] = theta2u(theta[4],thetal[4],thetau[4])
     theta[5] = theta2u(theta[5],thetal[5],thetau[5])
     theta[6] = theta2u(theta[6],thetal[6],thetau[6])
     h = theta[5]*log(theta[4]*x[1])
-    s = theta[6]/(theta[4]*x[1]^theta[5])
+    s = theta[6]/sqrt(theta[4]*x[1]^theta[5])^dpower
   }
   return(dnorm(y[J],h,s,log=T))
 }
@@ -136,7 +136,7 @@ dllik = function(y,x,b,varsigma,sigma,theta=NULL,thetal=NULL,thetau=NULL,stateon
 # sigma - vector of length J, values of sigma_j's if known; ignored if addparam FALSE
 # stateonly - boolean, if TRUE only a state vector is returned; if FALSE, a list with state vector x and parameters theta is returned
 # addparam - boolean, if TRUE initial values of unknown b_j's, varsigma_j's and sigma_j's are included in returned x or theta (depending on value of stateonly)
-rprior = function(sim,thetal,thetau,b=NULL,varsigma=NULL,sigma=NULL,stateonly=TRUE,addparam=FALSE)
+rprior = function(sim,thetal,thetau,b=NULL,varsigma=NULL,sigma=NULL,dpower=2,stateonly=TRUE,addparam=FALSE)
 {
   J = which(!is.na(sim$y[,1]))
   if (!(length(J) == 1)) stop("y must be a vector with all but 1 element NA")
@@ -150,12 +150,12 @@ rprior = function(sim,thetal,thetau,b=NULL,varsigma=NULL,sigma=NULL,stateonly=TR
     varsigma0 = runif(1,thetal[5],thetau[5])
     sigma0 = runif(1,thetal[6],thetau[6])
     tauj = sim$y[J,1] - varsigma0*log(b0) - 1
-    while(tauj < sim$y[J,1] - varsigma0*log(b0)) tauj = rnorm(1,0,sigma0/(b0*.001^varsigma0))
+    while(tauj < sim$y[J,1] - varsigma0*log(b0)) tauj = rnorm(1,0,sigma0/sqrt(b0*.001^varsigma0)^dpower)
     i0 = exp((sim$y[J,1] - tauj)/varsigma0)/b0
     s0 = 1 - i0
   } else {
     tauj = sim$y[J,1] - varsigma[J]*log(b[J]) - 1
-    while(tauj < sim$y[J,1] - varsigma[J]*log(b[J])) tauj = rnorm(1,0,sigma[J]/(b[J]*.001^varsigma[J]))
+    while(tauj < sim$y[J,1] - varsigma[J]*log(b[J])) tauj = rnorm(1,0,sigma[J]/sqrt(b[J]*.001^varsigma[J])^dpower)
     i0 = exp((sim$y[J,1] - tauj)/varsigma[J])/b[J]
     s0 = 1 - i0
   }
