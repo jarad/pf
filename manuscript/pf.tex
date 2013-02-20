@@ -232,6 +232,147 @@ where $\tau_n \sim N_{(y_{n,1} - \varsigma_n \log b_n,\infty]}(0,\sigma_n^2 / (b
 
 \begin{figure}[ht]
 \centering
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-params-1Pbeta-100}
+\end{minipage}
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-params-1Pgamma-100}
+\end{minipage}
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-params-1Pbeta-1000}
+\end{minipage}
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-params-1Pgamma-1000}
+\end{minipage}
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-params-1Pbeta-10000}
+\end{minipage}
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-params-1Pgamma-10000}
+\end{minipage}
+\caption{Displays median and 2.5\%/97.5\% quantiles of filtered distributions of the unknown parameter over time for separate models with $\beta$ unknown (left) and then $\gamma$ unknown (right) for $J = 100, 1000, \mbox{ and } 10000$ particles.}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-params-2P-100}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-params-2P-1000}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-params-2P-10000}
+\end{minipage}
+\caption{Displays median and 2.5\%/97.5\% quantiles of filtered distributions of unknown parameters over time for a model with $\beta$ and $\gamma$ both unknown for $J = 100, 1000, \mbox{ and } 10000$ particles.}
+\end{figure}
+
+\begin{figure}[ht]
+\caption*{$y_{l,t} \sim N(\log(b_li^{\varsigma_l}),\frac{\sigma_l^2}{(b_li^{\varsigma_l})^\kappa})$}
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{../PF-D0/PF-params-100}
+\end{minipage}
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{../PF-D1/PF-params-100}
+\end{minipage}
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{PF-params-100}
+\end{minipage}
+\caption{Displays median and 2.5\%/97.5\% quantiles of filtered distributions of unknown parameters over time using the observation equation above the graphs in figure \ref{fig:kappa} with $\kappa = 0 \mbox{ (top)}, 1 \mbox{ (middle)}, \mbox{ and } 2 \mbox{ (bottom)}$ for $J = 100$ particles. For $\kappa = 0$, $\sigma_l$ was set to 25 times the values given in table \ref{tab:true} and 5 times those values for $\kappa = 1$.} \label{fig:kappa}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{../PF-D0/PF-params-1000}
+\end{minipage}
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{../PF-D1/PF-params-1000}
+\end{minipage}
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{PF-params-1000}
+\end{minipage}
+\caption{Displays median and 2.5\%/97.5\% quantiles of filtered distributions of unknown parameters over time using the observation equation above the graphs in figure \ref{fig:kappa} with $\kappa = 0 \mbox{ (top)}, 1 \mbox{ (middle)}, \mbox{ and } 2 \mbox{ (bottom)}$ for $J = 1000$ particles. For $\kappa = 0$, $\sigma_l$ was set to 25 times the values given in table \ref{tab:true} and 5 times those values for $\kappa = 1$.}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{../PF-D0/PF-params-10000}
+\end{minipage}
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{../PF-D1/PF-params-10000}
+\end{minipage}
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{PF-params-10000}
+\end{minipage}
+\caption{Displays median and 2.5\%/97.5\% quantiles of filtered distributions of unknown parameters over time using the observation equation above the graphs in figure \ref{fig:kappa} with $\kappa = 0 \mbox{ (top)}, 1 \mbox{ (middle)}, \mbox{ and } 2 \mbox{ (bottom)}$ for $J = 10000$ particles. For $\kappa = 0$, $\sigma_l$ was set to 25 times the values given in table \ref{tab:true} and 5 times those values for $\kappa = 1$.}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{../PF-D0/PF-states-100}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{../PF-D1/PF-states-100}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-states-100}
+\end{minipage}
+\caption{Displays median and 2.5\%/97.5\% quantiles of filtered distributions of unknown states over time using the observation equation above the graphs in figure \ref{fig:kappa} with $\kappa = 0 \mbox{ (top)}, 1 \mbox{ (middle)}, \mbox{ and } 2 \mbox{ (bottom)}$ for $J = 100$ particles. For $\kappa = 0$, $\sigma_l$ was set to 25 times the values given in table \ref{tab:true} and 5 times those values for $\kappa = 1$.}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{../PF-D0/PF-states-1000}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{../PF-D1/PF-states-1000}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-states-1000}
+\end{minipage}
+\caption{Displays median and 2.5\%/97.5\% quantiles of filtered distributions of unknown states over time using the observation equation above the graphs in figure \ref{fig:kappa} with $\kappa = 0 \mbox{ (top)}, 1 \mbox{ (middle)}, \mbox{ and } 2 \mbox{ (bottom)}$ for $J = 100-$ particles. For $\kappa = 0$, $\sigma_l$ was set to 25 times the values given in table \ref{tab:true} and 5 times those values for $\kappa = 1$.}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{../PF-D0/PF-states-10000}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{../PF-D1/PF-states-10000}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-states-10000}
+\end{minipage}
+\caption{Displays median and 2.5\%/97.5\% quantiles of filtered distributions of unknown states over time using the observation equation above the graphs in figure \ref{fig:kappa} with $\kappa = 0 \mbox{ (top)}, 1 \mbox{ (middle)}, \mbox{ and } 2 \mbox{ (bottom)}$ for $J = 10--0$ particles. For $\kappa = 0$, $\sigma_l$ was set to 25 times the values given in table \ref{tab:true} and 5 times those values for $\kappa = 1$.}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{../PF-D0/PF-params-med-100-100}
+\end{minipage}
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{../PF-D1/PF-params-med-100-100}
+\end{minipage}
+\begin{minipage}{1.1\linewidth}
+\includegraphics[width=1.1\textwidth]{PF-params-med-100-100}
+\end{minipage}
+\caption{Each panel displays the median (solid colored lines) and 2.5\%/97.5\% quantiles (dashed colored lines) over time of 100 medians of the filtered distributions of unknown parameters over time using the observation equation above the graphs in figure \ref{fig:kappa} with $\kappa = 0 \mbox{ (top)}, 1 \mbox{ (middle)}, \mbox{ and } 2 \mbox{ (bottom)}$ for $J = 100$ particles. For $\kappa = 0$, $\sigma_l$ was set to 25 times the values given in table \ref{tab:true} and 5 times those values for $\kappa = 1$.}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{../PF-D0/PF-states-med-100-100}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{../PF-D1/PF-states-med-100-100}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-states-med-100-100}
+\end{minipage}
+\caption{Each panel displays the median (solid colored lines) and 2.5\%/97.5\% quantiles (dashed colored lines) over time of 100 medians of the filtered distributions of unknown states over time using the observation equation above the graphs in figure \ref{fig:kappa} with $\kappa = 0 \mbox{ (top)}, 1 \mbox{ (middle)}, \mbox{ and } 2 \mbox{ (bottom)}$ for $J = 100$ particles. For $\kappa = 0$, $\sigma_l$ was set to 25 times the values given in table \ref{tab:true} and 5 times those values for $\kappa = 1$.}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
 \begin{minipage}{1.0\linewidth}
 \includegraphics[width=1.0\textwidth]{PF-states-100}
 \end{minipage}
@@ -268,6 +409,8 @@ where $\tau_n \sim N_{(y_{n,1} - \varsigma_n \log b_n,\infty]}(0,\sigma_n^2 / (b
 \end{minipage}
 \caption{Each panel displays the median (solid colored lines) and 2.5\%/97.5\% quantiles (dashed colored lines) over time of 100 medians of the filtered distributions of the states (top) and unknown parameters (bottom).  Different colors represent the different particle filter methods using $J = 100$ particles.  In the top two panels, black solid and dashed lines represent the median and 2.5\%/97.5\% quantiles of the true simulated $i$ and $s$, and horizontal solid black lines in the bottom three panels show the true value of the parameters used to simulate the data.} \label{fig:meds}
 \end{figure}
+
+\clearpage
 
 \section{Extending the model \label{sec:extend}}
 
@@ -323,7 +466,6 @@ where $\tau_n \sim N_{(y_{n,1} - \varsigma_n \log b_n,\infty]}(0,\sigma_n^2 / (b
 \end{minipage}
 \caption{Each panel displays the median (solid colored lines) and 2.5\%/97.5\% quantiles (dashed colored lines) over time of 100 medians of the filtered distributions of the states (top) and unknown parameters (bottom).  Different colors represent the different particle filter methods using $J = 100$ particles.  In the top two panels, black solid and dashed lines represent the median and 2.5\%/97.5\% quantiles of the true simulated $i$ and $s$, and horizontal solid black lines in the bottom three panels show the true value of the parameters used to simulate the data.} \label{fig:meds}
 \end{figure}
-
 
 \section{Discussion \label{sec:discussion}}
 
