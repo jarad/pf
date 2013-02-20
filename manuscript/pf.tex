@@ -146,15 +146,15 @@ i_{t+\tau} &= i_t + \tau i_t(\beta s^\nu_t - \gamma) + \xi_i \label{eqn:i}
 
 When monitoring the epidemic, the true $s$, $i$ and $r$ are unknown and regarded as hidden states of the model.  We instead observe measurements consisting of public health data, medical data such as hospital visits, and non-medical data such as absenteeism from work or school \danny{reference?}.  Thus, we characterize a state-space model of the epidemic by two equations: the observation equation and the state equation.  The observation equation specifies how the observed data depend on the state of the epidemic and other parameters.  We can observe data from multiple syndromes of a disease that arrive asynchronously in time.
 
-Let $z_{n,k}$ represent data coming from syndrome $n$ at discrete-time index $k$ (i.e. at time $t_k$), with $k = 1,2,\ldots,T$ and $n = 1,2,\ldots,N$.  \citet{skvortsov2012monitoring} assumes a power law model relating observations to the proportion of infected individuals by $z_{n,k} = b_ni_{t_k}^{\varsigma_n} + \tau^*_n$ where $b_n \ge 0$ and $\varsigma_n$ are constants and $\tau^*_j$ is a random component. Since $z_{n,k}$ is constrained to be nonnegative, however, we let $y_{n,k} = \log z_{n,k}$ and model the log of the observations by
+Let $z_{l,t}$ represent data coming from syndrome $l$ at time $t$ where $l = 1,2,\ldots,L$.  \citet{skvortsov2012monitoring} assumes a power law model relating observations to the proportion of infected individuals by $z_{l,t} = b_li_t^{\varsigma_l} + \tau^*_l$ where $b_l \ge 0$ and $\varsigma_l$ are constants, and $\tau^*_l$ is a random component with variance $\sigma_l^2$. Since $z_{l,t}$ is constrained to be nonnegative, however, we let $y_{l,t} = \log z_{l,t}$ and model the log of the observations by
 
 \begin{equation}
-y_{n,k} = \log \left(b_ni_{t_k}^{\varsigma_n}\right) + \tau_n \qquad \tau_n \sim N\left(0,\sigma_n^2 / (b_ni_{t_k}^{\varsigma_n})^2\right) \label{eqn:obs}
+y_{l,t} = \log \left(b_li_t^{\varsigma_l}\right) + \tau_l \qquad \tau_l \sim N\left(0,\sigma_l^2 / (b_li_t^{\varsigma_l})^2\right) \label{eqn:obs}
 \end{equation}
 
-\noindent The variance of $\tau_n$ is obtained by assuming $\tau^*_n \sim N(0,\sigma_n^2)$ and applying the delta method to $z_{n,k}$ \danny{reference?}.
+\noindent The variance of $\tau_l$ is obtained by assuming $\tau^*_l \sim N(0,\sigma_l^2)$ and applying the delta method to $z_{l,t}$ \danny{reference?}.  For notational convenience, we will drop the subscript $l$ from $y_{l,t}$ from this point forward and assume $y_t$'s dependence on $l$ is implied.
 
-Next, we specify the state evolution equation.  The state equation explains how the unobserved states of the epidemic evolve over time.  Let $x_t = (i_t,s_t)'$ represent the state of the epidemic at time $t$, and let $\theta$ represent any unknown, fixed parameters in the model.  For the time being, we let $\theta = (\beta, \gamma, \nu)'$ and regard the $b_n$'s, $\varsigma_n$'s, and $\sigma_n$'s as known.  Letting $\tau > 0$ be small, the state evolution equation is given according to equations \eqref{eqn:s} and \eqref{eqn:i} by the transition density
+Next, we specify the state evolution equation.  The state equation explains how the unobserved states of the epidemic evolve over time.  Let $x_t = (i_t,s_t)'$ represent the state of the epidemic at time $t$, and let $\theta$ represent any unknown, fixed parameters in the model.  For the time being, we let $\theta = (\beta, \gamma, \nu)'$ and regard the $b_l$'s, $\varsigma_l$'s, and $\sigma_l$'s as known.  Letting $\tau > 0$ be small, the state evolution equation is given according to equations \eqref{eqn:s} and \eqref{eqn:i} by the transition density
 
 \begin{equation}
 p\left(x_{t+\tau}\left|x_t,\theta\right.\right) = N_{[0,1]\times[0,1]}\left(x_{t+\tau};f_\tau(x_t,\theta),Q_{\tau}(\theta)\right) \label{eqn:state}
@@ -180,21 +180,23 @@ Q_\tau(\theta) = \left(
 
 \noindent and $N_{\Omega}(.;\mu,\Sigma)$ represents the pdf of the normal distribution with mean $\mu$ and covariance matrix $\Sigma$ truncated onto the set $\Omega$.  Notice that in equation \eqref{eqn:state} the marginal distributions of $s$ and $i$ have been truncated onto $[0,1]$ since they are proportions and it is possible from equations \eqref{eqn:s} and \eqref{eqn:i} to generate values outside of $[0,1]$.
 
-Having formulated the observation and state equations, we can now express the likelihood of an observation $y_{j,k}$ given $x_t$ and $\theta$ by
+Having formulated the observation and state equations, we can now express the likelihood of an observation $y_t$ given $x_t$ and $\theta$ by
 
 \begin{equation}
-p\left(y_{n,k}\left|x_{t_k},\theta\right.\right) = N\left(y_{n,k};\log(b_ni_{t_k}^{\varsigma_n}),\sigma_n^2 / (b_ni_{t_k}^{\varsigma_n})^2\right) \label{eqn:lik}
+p\left(y_t\left|x_t,\theta\right.\right) = N\left(y_t;\log(b_li_t^{\varsigma_l}),\sigma_l^2 / (b_li_t^{\varsigma_l})^2\right) \label{eqn:lik}
 \end{equation}
 
 Since $p(x_{t+\tau}|x_t,\theta)$ and $p(y_t|x_t,\theta)$ are nonlinear functions of $x_t$ and $\theta$, a closed-form solution to the posterior $p(x_t,\theta|y_{1:t})$ cannot be obtained.  Thus, we use particle filtering techniques described in section \ref{sec:filtering} to approximate $p(x_t,\theta|y_{1:t})$ for all $t$.
 
-\subsection{A Note on Propagation}
+\subsection{A Note on Time-indexing and Propagation}
 
-Notice from equation \eqref{eqn:state} that the transition density needed to propagate $x_t$ in our model is a multivariate normal density with mean $f_\tau(x_t,\theta)$, and recall that that the mean function approximates the disease dynamics better for small $\tau$.  Thus, if the time between observations, $t_{k+1} +1 - t_k$, is large, then the mean of $p(x_{t_{k+1}}|x_{t_k}^{(j)})$ for each particle $j$ may be inaccurate.  To ensure that the transition density matches the actual disease dynamics more closely, we can choose $d$ to be an integer larger than 1, set $\tau = (t_{k+1} + 1 - t_k) / d$, and propagate $x_{t_k}^{(j)}$ forward $d$ times to generate $x_{t+1}^{(j)}$.
+In section \ref{sec:filtering}, we described how to implement particle filtering by moving from an approximation of $p(x_t,\theta|y_{1:t})$ to an approximation of $p(x_{t+1},\theta|y_{1:t+1})$.  However, the time index in our model is continuous and observations may not be regularly spaced.  Nonetheless, we will still refer to $y_{1:t}$ as representing all the observed data through time $t$, and the particle filtering methodology can be generalized to moving from an approximation of $p(x_{t_1},\theta|y_{1:t_1})$ to an approximation of $p(x_{t_2},\theta|y_{1:t_2})$ for any $t_2 > t_1$.
+
+In addition, notice from equation \eqref{eqn:state} that the transition density needed to propagate $x_t$ in our model is a multivariate normal density with mean $f_\tau(x_t,\theta)$, and recall that that the mean function approximates the disease dynamics better for small $\tau$.  Thus, for data observed at times $t_1$ and $t_2$ where the time between observations, $t_2 - t_1$, is large, the mean of $p(x_{t_2}|x_{t_1}^{(j)})$ for each particle $j$ may be inaccurate if $\tau$ is set to $t_2 - t_1$.  To ensure that the transition density matches the actual disease dynamics more closely, we can choose $d$ to be an integer larger than 1, set $\tau = (t_2 - t_1) / d$, and propagate $x_{t_1}^{(j)}$ forward $d$ times to generate $x_{t_2}^{(j)}$.
 
 \subsection{Comparison of Particle Filters}
 
-An epidemic was simulated from our model for $T = 125$ days for a population of size $P = 5000$.  True values of unknown parameters were set to $\beta = 0.2399$, $\gamma = 0.1066$, and $\nu = 1.2042$.  Values of known constants for $N = 4$ syndromes are given in table \ref{tab:true}.  Infection was introduced in 10 people in the population at day 0 (i.e. $i_0 = 10/5000$ and $s_0 = 4990/5000$).  Observations arrived daily from the different syndromes asynchronously, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
+An epidemic lasting $T = 125$ days was simulated from our model for a population of size $P = 5000$.  True values of unknown parameters were set to $\beta = 0.2399$, $\gamma = 0.1066$, and $\nu = 1.2042$.  Values of known constants for $L = 4$ syndromes are given in table \ref{tab:true}.  Infection was introduced in 10 people in the population at day 0 (i.e. $i_0 = 10/5000$ and $s_0 = 4990/5000$).  Observations arrived daily from the different syndromes asynchronously, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
 
 \begin{table}[ht]
 \begin{center}
@@ -202,7 +204,7 @@ An epidemic was simulated from our model for $T = 125$ days for a population of 
 \label{tab:true}
 \begin{tabular}{|cccc|}
 \hline
-$n$ & $b_n$ & $\varsigma_n$ & $\sigma_n$ \\
+$l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
 \hline
 1 & 0.25 & 1.07 & 0.0012 \\
 2 & 0.27 & 1.05 & 0.0008 \\
@@ -213,7 +215,7 @@ $n$ & $b_n$ & $\varsigma_n$ & $\sigma_n$ \\
 \end{center}
 \end{table}
 
-The bootstrap filter (BF), auxilliary particle filter (APF), and kernel density particle filter (KD) were each run using $J = 100, 1000, \mbox{ and } 10000$ particles to obtain weighted sample approximations to $p(x_{t_k},\theta|y_{1:k})$ for $k = 1,\ldots,T$.  For all three particle filter methods, stratified resampling with an effective sample size threshold of 0.8 was used.  For the kernel density particle filter, the tuning parameter $\delta$ was set to 0.99. $x_0$ and $\theta_0$ were sampled from the prior density given by
+The bootstrap filter (BF), auxilliary particle filter (APF), and kernel density particle filter (KD) were each run using $J = 100, 1000, \mbox{ and } 10000$ particles to obtain weighted sample approximations to $p(x_t,\theta|y_{1:t})$ for $t = 1,\ldots,T$.  For all three particle filter methods, stratified resampling with an effective sample size threshold of 0.8 was used.  For the kernel density particle filter, the tuning parameter $\delta$ was set to 0.99. $x_0$ and $\theta_0$ were sampled from the prior density given by
 
 \[p\left(x_0,\theta\right) = p\left(\beta\right)p\left(\gamma\right)p\left(\nu\right)p\left(i_0,s_0\right)\] where
 \begin{align*}
@@ -223,8 +225,8 @@ p(\nu) &= U_{[0.95,1.3]}(\nu)
 \end{align*}
 
 \noindent where $U_{[a,b]}(.)$ is the pdf of a uniform distribution on the interval $[a,b]$.  $p(i_0,s_0)$ is the joint pdf of the random variables $i_0$ and $s_0$ defined by
-\[i_0 = \frac{1}{b_n} \emph{e}^{\frac{y_{n,1}-\tau_n}{\varsigma_n}} \qquad s_0 = 1 - i_0 \]
-where $\tau_n \sim N_{(y_{n,1} - \varsigma_n \log b_n,\infty]}(0,\sigma_n^2 / (b_n(0.001)^{\varsigma_n})^2)$ and $n$ corresponds to the syndrome from which the first observation came.  The form of $i_0$ comes from rearranging equation \eqref{eqn:obs}, and the upper bound on the truncation of the distribution of $\tau_n$ ensures that $i_0$ is no greater than 1.
+\[i_0 = \frac{1}{b_l} \emph{e}^{\frac{y_1-\tau_l}{\varsigma_l}} \qquad s_0 = 1 - i_0 \]
+where $\tau_l \sim N_{(y_1 - \varsigma_l \log b_l,\infty]}(0,\sigma_l^2 / (b_l(0.001)^{\varsigma_l})^2)$ and $l$ corresponds to the syndrome from which the first observation came.  The form of $i_0$ comes from rearranging equation \eqref{eqn:obs}, and the upper bound on the truncation of the distribution of $\tau_l$ ensures that $i_0$ is no greater than 1.
 
 %Figure \ref{fig:quant} shows the mean and 95\% credible intervals of the proportion of infected individuals in the population over time using the quantiles of the weighted particle sample at each time point, and figure \ref{fig:hist} shows histograms of the unknown parameters after running the particle filters for $k = 25, 154$ days.  Notice in figure \ref{fig:quant} how the bootstrap and auxiliary particle filters degenerate early on in the epidemic because of particle deficiency, while the kernel density particle filter keeps a balanced distribution centered around the true proportion of the population infected.  In addition, it is possible to learn about the distribution of the unknown parameters over the course of the epidemic as is indicated in figure \ref{fig:hist}.  At day 25, the marginal posterior distribution of the contact rate parameter $\beta$ appears normal centered around the true value, and the marginal posterior distributions of $\gamma$ and $\nu$ appear more or less uniform, indicating that a lack of knowledge about these parameters within the first 25 days of the epidemic.  By the end of the epidemic, however, the distributions of all three parameters have shifted left.
 
