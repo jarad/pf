@@ -1,16 +1,15 @@
-# Set graphics and data paths
-gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
-dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
+# Set graphics and data path
+gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF-D2/"
+dpath = "C:/Users/Danny/My Documents/UCSB - Research/pf/data/D2/"
 
-# How many particles? Set n = 100, 1000, or 10000
-n = 10000
-# How many parameters? Set p = 3 or p = 6
-p = 6
-if(p == 3) param = "" else param = "-6P"
+# Load PF data
+load(paste(dpath,"sir.pf.quant-3P-normpriors-100.rdata",sep=""))
 
-# Load data
-load(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
-ns = dim(sim$x)[1]
+# Which parameters unknown, labels
+p = 1:3
+
+# Create function to map theta from a matrix with length(p) rows corresponding to unknown parameters on the real line to a matrix with 3 rows corresonding to beta, gamma, and nu on original scale
+ftheta = function(theta) exp(theta)
 
 # Function needed to generate predicted SIR curves
 ss.pred = function(nt,revo,rinit)
@@ -54,20 +53,10 @@ for(j in 1:length(days))
   # Grab particles from each filter at time days[j]
   mystate = out$state[,,days[j]+1]
   mystate2 = out2$state[,,days[j]+1]
-  mybeta = theta2u(out3$theta[1,,days[j]+1],thetal[1],thetau[1])
-  mygamma = theta2u(out3$theta[2,,days[j]+1],thetal[2],thetau[2])
-  mynu = theta2u(out3$theta[3,,days[j]+1],thetal[3],thetau[3])
-  if(ns == 8) {
-    myb = theta2u(out3$theta[4,,days[j]+1],thetal[4],thetau[4])
-    myvarsigma = theta2u(out3$theta[5,,days[j]+1],thetal[5],thetau[5])
-    mysigma = theta2u(out3$theta[6,,days[j]+1],thetal[6],thetau[6])
-    mystate3 = rbind(out3$state[,,days[j]+1],mybeta,mygamma,mynu,myb,myvarsigma,mysigma)
-  } else if(ns == 5) {
-    mystate3 = rbind(out3$state[,,days[j]+1],mybeta,mygamma,mynu)  
-  } else { stop("Wrong number of parameters") }
+  mystate3 = rbind(out3$state[,,days[j]+1],out3$theta[,,days[j]+1])
 
   # Propagate particles forward to end of epidemic
-  pred = pred2 = pred3 = array(NA,dim=c(ns,n,nt-days[j]))
+  pred = pred2 = pred3 = array(NA,dim=c(2+length(p),n,nt-days[j]))
   for(i in 1:n)
   {
     setTxtProgressBar(pb,i + n*(j-1))
@@ -107,16 +96,16 @@ for(j in 1:length(days))
   peak_intensity_calc = matrix(NA,nr=n,nc=3)
   calc.peak.time = function(x)
   {
-    if(x[ns+1] < 1e-300) x[ns+1] = 1e-300
-    log(1/x[ns+1])/(x[4]*(x[3]/x[4] - 1)) + 0.4/x[4]
+    if(x[6] < 1e-300) x[6] = 1e-300
+    log(1/x[6])/(x[4]*(x[3]/x[4] - 1)) + 0.4/x[4]
   }
   calc.peak.intensity = function(x) 1 - x[4]/x[3] + log(x[4]/x[3])/(x[3]/x[4])
-  peak_intensity_calc[,1] = apply(rbind(mystate,out$state[1,,1]),2,calc.peak.intensity)
-  peak_intensity_calc[,2] = apply(rbind(mystate2,out2$state[1,,1]),2,calc.peak.intensity)
-  peak_intensity_calc[,3] = apply(rbind(mystate3,out3$state[1,,1]),2,calc.peak.intensity)
-  peak_time_calc[,1] = apply(rbind(mystate,out$state[1,,1]),2,calc.peak.time)
-  peak_time_calc[,2] = apply(rbind(mystate2,out2$state[1,,1]),2,calc.peak.time)
-  peak_time_calc[,3] = apply(rbind(mystate3,out3$state[1,,1]),2,calc.peak.time)
+  peak_intensity_calc[,1] = apply(rbind(mystate[1:2,],ftheta(mystate[-(1:2),]),out$state[1,,1]),2,calc.peak.intensity)
+  peak_intensity_calc[,2] = apply(rbind(mystate2[1:2,],ftheta(mystate2[-(1:2),]),out2$state[1,,1]),2,calc.peak.intensity)
+  peak_intensity_calc[,3] = apply(rbind(mystate3[1:2,],ftheta(mystate3[-(1:2),]),out3$state[1,,1]),2,calc.peak.intensity)
+  peak_time_calc[,1] = apply(rbind(mystate[1:2,],ftheta(mystate[-(1:2),]),out$state[1,,1]),2,calc.peak.time)
+  peak_time_calc[,2] = apply(rbind(mystate2[1:2,],ftheta(mystate2[-(1:2),]),out2$state[1,,1]),2,calc.peak.time)
+  peak_time_calc[,3] = apply(rbind(mystate3[1:2,],ftheta(mystate3[-(1:2),]),out3$state[1,,1]),2,calc.peak.time)
 
   # Calculate .025, .5, and .975 quantiles of peak times and intensities
   bf.peak.prop[[j]] = apf.peak.prop[[j]] = kd.peak.prop[[j]] = matrix(NA,nr=2,nc=3)
@@ -143,7 +132,7 @@ save.image(paste(dpath,"sir.pf.pred",param,"-",n,".rdata",sep=""))
 # Bootstrap filter
 pdf(paste(gpath,"EpidPred-BF",param,"-",n,".pdf",sep=""),
 	width=10,height=8)
-par(mfrow=c(2,3))
+par(mfrow=c(2,3)) # dimensions of plot should depend on cutoff
 ymax = max(sapply(bf.ui,max),max(sim$x[1,]))
 for(j in 1:length(days))
 {

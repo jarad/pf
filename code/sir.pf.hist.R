@@ -1,70 +1,71 @@
 # Set graphics and data path
-gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF/"
-dpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Data/"
+gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF-D2/"
+dpath = "C:/Users/Danny/My Documents/UCSB - Research/pf/data/D2/"
 
-# How many particles? Set n = 100, 1000, or 10000
-n = 10000
-# How many parameters? Set p = 3 or p = 6
-p = 3
-if(p == 3) param = "" else param = "-6P"
+# Load PF data
+load(paste(dpath,"sir.pf.quant-3P-normpriors-100.rdata",sep=""))
 
-# Load data
-load(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
+# Which parameters unknown, labels
+p = 1:3
+expr = expression(beta,gamma,nu)
+parnames = c("beta","gamma","nu")
+all.theta = c(theta,b,varsigma,sigma)[p]
+
+# Create function to map theta from real line to original scale
+ftheta = function(theta) exp(theta)
 
 # Resample particles at pre-specified times so they have equal weights
 require(smcUtils)
 M = 10000
 cutoff = seq(16,121,15)
-w = out3$weight[,cutoff]
-tmps = matrix(NA,nr=M,nc=length(cutoff))
-for(i in 1:length(cutoff)) tmps[,i] = resample(w[,i], M, method="stratified", nonuniformity="none")$indices
+w = array(NA,dim=c(3,n,length(cutoff)))
+w[1,,] = out$weight[,cutoff]
+w[2,,] = out2$weight[,cutoff]
+w[3,,] = out3$weight[,cutoff]
+tmps = array(NA,dim=c(3,M,length(cutoff)))
+for(i in 1:length(cutoff))
+{
+  tmps[1,,i] = resample(w[1,,i], M, method="stratified", nonuniformity="none")$indices
+  tmps[2,,i] = resample(w[2,,i], M, method="stratified", nonuniformity="none")$indices
+  tmps[3,,i] = resample(w[3,,i], M, method="stratified", nonuniformity="none")$indices
+}
 
 # Plot histograms of unknown parameters over time
 msize = labsize = 1.5
-expr = expression(beta,gamma,nu,b,varsigma,sigma)
-parnames = c("beta","gamma","nu","b","varsigma","sigma")
-st = 3:8
-for(j in 1:p)
+st = p+2
+for(j in p)
 {
-  x = list(bf=out$state[st[j],,cutoff],apf=out2$state[st[j],,cutoff],kd=theta2u(out3$theta[j,,cutoff],thetal[j],thetau[j]))
+  x = list(bf=ftheta(out$state[st[j],,cutoff]),apf=ftheta(out2$state[st[j],,cutoff]),kd=ftheta(out3$theta[j,,cutoff]))
   pf = c("BF","APF","KD")
   for(k in 1:length(pf))
   {
     xrw = matrix(NA,nr=M,nc=length(cutoff))
-    for(i in 1:length(cutoff)) xrw[,i] = x[[k]][tmps[,i],i]
+    for(i in 1:length(cutoff)) xrw[,i] = x[[k]][tmps[k,,i],i]
     xmin = min(apply(xrw,2,function(x) min(hist(x,plot=FALSE)$breaks)))
     xmax = max(apply(xrw,2,function(x) max(hist(x,plot=FALSE)$breaks)))
     ymin = min(apply(xrw,2,function(x) min(hist(x,plot=FALSE)$density)))
     ymax = max(apply(xrw,2,function(x) max(hist(x,plot=FALSE)$density)))
     pdf(paste(gpath,"Hist-",pf[k],param,"-",n,"-",parnames[j],".pdf",sep=""),width=10,height=5)
-    par(mfrow=c(2,4)) # dimensions should depend on cutoff
+    par(mfrow=c(2,4),mar=c(4,5.2,3,.5)+.1) # dimensions should depend on cutoff
     for(i in 1:length(cutoff))
     {
       if(i==1){
-        hist(xrw[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),freq=FALSE,
-          main=paste("k = ",cutoff[i]-1,sep=""),xlab=expr[j],
-	    cex.main=msize,cex.lab=labsize)
-        abline(v=theta[j],col=2,lwd=2)
-        if(j == 1) mtext(substitute(paste(beta," = ",aa,sep=""),list(aa=theta[1])),side=3,cex=.85)
-        if(j == 2) mtext(substitute(paste(gamma," = ",aa,sep=""),list(aa=theta[2])),side=3,cex=.85)
-        if(j == 3) mtext(substitute(paste(nu," = ",aa,sep=""),list(aa=theta[3])),side=3,cex=.85)
-        if(j == 4) mtext(substitute(paste(b," = ",aa,sep=""),list(aa=theta[4])),side=3,cex=.85)
-        if(j == 5) mtext(substitute(paste(varsigma," = ",aa,sep=""),list(aa=theta[5])),side=3,cex=.85)
-        if(j == 6) mtext(substitute(paste(sigma," = ",aa,sep=""),list(aa=theta[6])),side=3,cex=.85)
+        hist(xrw[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),freq=FALSE,main=paste("t = ",cutoff[i]-1,sep=""),xlab=expr[j],cex.main=msize,cex.lab=labsize)
+        abline(v=all.theta[j],col=2,lwd=2)
+        mtext(paste("Truth = ",all.theta[j],sep=""),side=3,cex=.65)
       } else {
-        hist(xrw[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),freq=FALSE,
-          main=paste("k = ",cutoff[i]-1,sep=""),xlab="",ylab="",
-	    cex.main=msize,cex.lab=labsize)
-        abline(v=theta[j],col=2,lwd=2)
+        hist(xrw[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),freq=FALSE,main=paste("t = ",cutoff[i]-1,sep=""),xlab="",ylab="",cex.main=msize)
+        abline(v=all.theta[j],col=2,lwd=2)
       }
     }
     dev.off()
   }
 }
 
-# Scatterplot of beta v gamma over time
-xb = list(bf=out$state[3,,cutoff],apf=out2$state[3,,cutoff],kd=theta2u(out3$theta[1,,cutoff],thetal[1],thetau[1]))
-xg = list(bf=out$state[4,,cutoff],apf=out2$state[4,,cutoff],theta2u(out3$theta[2,,cutoff],thetal[2],thetau[2]))
+# Scatterplot of 2 unknown parameters over time
+p1 = 1; p2 = 2
+xb = list(bf=ftheta(out$state[p1+2,,cutoff]),apf=ftheta(out2$state[p1+2,,cutoff]),kd=ftheta(out3$theta[p1,,cutoff]))
+xg = list(bf=ftheta(out$state[p2+2,,cutoff]),apf=ftheta(out2$state[p2+2,,cutoff]),ftheta(out3$theta[p2,,cutoff]))
 for(k in 1:length(pf))
 {
   xrwb = matrix(NA,nr=M,nc=length(cutoff))
@@ -72,25 +73,26 @@ for(k in 1:length(pf))
   xmin = Inf; xmax = -Inf; ymin = Inf; ymax = -Inf
   for(i in 1:length(cutoff))
   {
-    xrwb[,i] = xb[[k]][tmps[,i],i]
-    xrwg[,i] = xg[[k]][tmps[,i],i]
+    xrwb[,i] = xb[[k]][tmps[k,,i],i]
+    xrwg[,i] = xg[[k]][tmps[k,,i],i]
     xmin = min(xmin,xrwb[,i])
     xmax = max(xmax,xrwb[,i])
     ymin = min(ymin,xrwg[,i])
     ymax = max(ymax,xrwg[,i])
   }
-  pdf(paste(gpath,"Hist-",pf[k],param,"-",n,"-betagamma.pdf",sep=""),width=10,height=5)
-  par(mfrow=c(2,4))
+  pdf(paste(gpath,"Hist-",pf[k],param,"-",n,"-",parnames[p1],parnames[p2],".pdf",sep=""),width=10,height=5)
+  par(mfrow=c(2,4),mar=c(4,6,2,.5)+.1)
   for(i in 1:length(cutoff))
   {
     if(i == 1)
     {
-      plot(xrwb[,i],xrwg[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab=expression(beta),ylab=expression(gamma),main=paste("k = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize)
-      mtext(substitute(paste(beta," = ",aa,", ",gamma," = ",ab,sep=""),list(aa=theta[1],ab=theta[2])),side=3,cex=.85)
-	points(theta[1],theta[2],col=4,pch=20)
+      plot(xrwb[,i],xrwg[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab=expr[p1],ylab=expr[p2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize)
+      mtext(paste("Truth = ",all.theta[p1],sep=""),side=1,cex=.65)
+	mtext(paste("Truth = ",all.theta[p2],sep=""),side=2,cex=.65)
+      points(all.theta[p1],all.theta[p2],col=2,pch=20)
     } else {
-      plot(xrwb[,i],xrwg[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab="",ylab="",main=paste("k = ",cutoff[i]-1,sep=""),cex.main=msize)
-	points(theta[1],theta[2],col=4,pch=20)
+      plot(xrwb[,i],xrwg[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize)
+      points(all.theta[p1],all.theta[p2],col=2,pch=20)
     }
   }
   dev.off()
