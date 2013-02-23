@@ -57,7 +57,7 @@ thetau = c(0.5000, 0.1430)
 rtheta = function(){ u2theta(runif(2,thetal,thetau),thetal,thetau)}
 
 # How many particles?
-n = 100
+n = 1000
 
 # Run bootstrap filter
 dllik_bf = function(y, x){ dllik(y, x, b, varsigma, sigma, dpower)}
@@ -89,10 +89,6 @@ revo_kd = function(x, mytheta){ revo(x, P, d, c(theta2u(mytheta,thetal,thetau),t
 rprior_kd = function(){ rprior(sim$y[,1], rtheta, b, varsigma, sigma, dpower)}
 source("kd_pf.R")
 out3 = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, method="stratified", nonuniformity="ess", threshold=0.8, log=F)
-
-# Save data
-save.image(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
-#load(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
 
 # Calculate 2.5%, 50%, and 97.5% quantiles of states over time
 require(Hmisc)
@@ -143,8 +139,8 @@ for(i in 1:tt)
 }
 
 # Save quantiles data
-save.image(paste(dpath,"sir.pf.quant",param,"-",n,".rdata",sep=""))
-#load(paste(dpath,"sir.pf.quant",param,"-",n,".rdata",sep=""))
+save.image(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
+#load(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
 
 # Plot % infected and % susceptible quantiles over time
 pdf(paste(gpath,"PF-states",param,"-",n,".pdf",sep=""),width=10,height=5)
@@ -190,9 +186,9 @@ dev.off()
 expr = expression(beta,gamma,nu)
 xlabs = c("Time (days)","")
 ylabs = c(paste("J = ",n,sep=""),"")
-msize = 2.4
-labsize = 2.2
-legendsize = 1.5
+msize = 1.75
+labsize = 1.5
+legendsize = 1.0
 pdf(paste(gpath,"PF-params",param,"-",n,".pdf",sep=""),width=10,height=5)
 par(mfrow=c(1,2),mar=c(5,5,3,1)+.1)
 for(j in 1:2)
@@ -204,7 +200,7 @@ for(j in 1:2)
     plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="",ylab=ylabs[j],main=expr[j],cex.lab=labsize,cex.main=msize)
     if(j == 1) legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2),cex=legendsize)
   } else if(n == 10000) {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab=xlabs[j],ylab=ylabs[j],cex.lab=labsize)
+    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,xlab=xlabs[j],ylab=ylabs[j],cex.lab=labsize)
   } else {
     plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab=ylabs[j],xlab="",cex.lab=labsize)
   }

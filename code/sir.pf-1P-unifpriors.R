@@ -8,7 +8,7 @@ set.seed(sample(1:1000,1))
 # Set graphics and data paths, param label
 gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF-D2/"
 dpath = "C:/Users/Danny/My Documents/UCSB - Research/pf/data/D2/"
-param = "-2P-normpriors"
+param = "-1Pbeta-unifpriors"
 
 # Set known parameter values
 P = 5000
@@ -34,7 +34,7 @@ save.image(paste(dpath,"sim-xy.rdata",sep=""))
 ###### (*) ######
 dpath = "C:/Users/Danny/My Documents/UCSB - Research/pf/data/D2/"
 load(paste(dpath,"sim-xy.rdata",sep=""))
-param = "-2P-normpriors"
+param = "-1Pbeta-unifpriors"
 ################# 
 
 # Plot the data
@@ -51,17 +51,22 @@ plot(which(J==1),exp(y[J==1]),ylim=c(0,max(exp(y))),xlim=c(0,nt),
 if(no > 1) for(i in 2:no) points(which(J==i),exp(y[J==i]),col=i)
 dev.off()
 
+# Which parameter is unknown?
+p = 1 # p = 1 for beta, p = 2 gamma, and p = 3 for nu
+s = rep(0,3); s[p] = 1
+sinv = rep(1,3); sinv[p] = 0
+
 # Create function to sample from prior distribution of theta
-theta.mean = c(-1.3296, -2.1764)
-theta.sd = sqrt(c(0.1055, 0.0140))
-rtheta = function(){ rnorm(2,theta.mean,theta.sd)}
+thetal = c(0.1400, 0.0900)[p]
+thetau = c(0.5000, 0.1430)[p]
+rtheta = function(){ u2theta(runif(1,thetal,thetau),thetal,thetau)}
 
 # How many particles?
 n = 1000
 
 # Run bootstrap filter
 dllik_bf = function(y, x){ dllik(y, x, b, varsigma, sigma, dpower)}
-revo_bf = function(x){ revo(x, P, d, c(exp(x[3:4]),theta[3]))}
+revo_bf = function(x){ revo(x, P, d, s*theta2u(x[3],thetal,thetau)+sinv*theta)}
 rprior_bf = function()
 { 
   myprior = rprior(sim$y[,1], rtheta, b, varsigma, sigma, dpower)
@@ -72,8 +77,8 @@ out = bf(sim$y, dllik_bf, revo_bf, rprior_bf, n, method="stratified", nonuniform
 
 # Run auxiliary particle filter
 dllik_apf = function(y, x){ dllik(y, x, b, varsigma, sigma, dpower)}
-pstate_apf = function(x) { revo(x, P, d, c(exp(x[3:4]),theta[3]), FALSE)}
-revo_apf = function(x){ revo(x, P, d, c(exp(x[3:4]),theta[3]))}
+pstate_apf = function(x) { revo(x, P, d, s*theta2u(x[3],thetal,thetau)+sinv*theta, FALSE)}
+revo_apf = function(x){ revo(x, P, d, s*theta2u(x[3],thetal,thetau)+sinv*theta)}
 rprior_apf = function()
 { 
   myprior = rprior(sim$y[,1], rtheta, b, varsigma, sigma, dpower)
@@ -84,8 +89,8 @@ out2 = apf(sim$y, dllik_apf, pstate_apf, revo_apf, rprior_apf, n, method="strati
 
 # Run kernel density particle filter
 dllik_kd = function(y, x, theta=NULL){ dllik(y, x, b, varsigma, sigma, dpower)}
-pstate_kd = function(x, mytheta) { revo(x, P, d, c(exp(mytheta),theta[3]), FALSE)}
-revo_kd = function(x, mytheta){ revo(x, P, d, c(exp(mytheta),theta[3]))}
+pstate_kd = function(x, mytheta) { revo(x, P, d, s*theta2u(mytheta,thetal,thetau)+sinv*theta, FALSE)}
+revo_kd = function(x, mytheta){ revo(x, P, d, s*theta2u(mytheta,thetal,thetau)+sinv*theta)}
 rprior_kd = function(){ rprior(sim$y[,1], rtheta, b, varsigma, sigma, dpower)}
 source("kd_pf.R")
 out3 = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, method="stratified", nonuniformity="ess", threshold=0.8, log=F)
@@ -121,20 +126,20 @@ for(i in 1:tt)
 # Calculate 2.5%, 50%, and 97.5% quantiles of unknown parameters over time
 bf.m = apf.m = kd.m = matrix(NA,nr=tt,nc=3)
 bf.l = bf.u = apf.l = apf.u = kd.l = kd.u = matrix(NA,nr=tt,nc=3)
-st = 3:4
+st = 3
 for(i in 1:tt)
 {
-  for(j in 1:2)
+  for(j in 1)
   {
-    bf.m[i,j] = wtd.quantile(exp(out$state[st[j],,i]),out$weight[,i],normwt=T,probs=.5)
-    apf.m[i,j] = wtd.quantile(exp(out2$state[st[j],,i]),out$weight[,i],normwt=T,probs=.5)
-    kd.m[i,j] = wtd.quantile(exp(out3$theta[j,,i]),out$weight[,i],normwt=T,probs=.5)
-    bf.l[i,j] = wtd.quantile(exp(out$state[st[j],,i]),out$weight[,i],normwt=T,probs=.025)
-    apf.l[i,j] = wtd.quantile(exp(out2$state[st[j],,i]),out$weight[,i],normwt=T,probs=.025)
-    kd.l[i,j] = wtd.quantile(exp(out3$theta[j,,i]),out$weight[,i],normwt=T,probs=.025)
-    bf.u[i,j] = wtd.quantile(exp(out$state[st[j],,i]),out$weight[,i],normwt=T,probs=.975)
-    apf.u[i,j] = wtd.quantile(exp(out2$state[st[j],,i]),out$weight[,i],normwt=T,probs=.975)
-    kd.u[i,j] = wtd.quantile(exp(out3$theta[j,,i]),out$weight[,i],normwt=T,probs=.975)
+    bf.m[i,j] = wtd.quantile(theta2u(out$state[st[j],,i],thetal[j],thetau[j]),out$weight[,i],normwt=T,probs=.5)
+    apf.m[i,j] = wtd.quantile(theta2u(out2$state[st[j],,i],thetal[j],thetau[j]),out$weight[,i],normwt=T,probs=.5)
+    kd.m[i,j] = wtd.quantile(theta2u(out3$theta[j,,i],thetal[j],thetau[j]),out$weight[,i],normwt=T,probs=.5)
+    bf.l[i,j] = wtd.quantile(theta2u(out$state[st[j],,i],thetal[j],thetau[j]),out$weight[,i],normwt=T,probs=.025)
+    apf.l[i,j] = wtd.quantile(theta2u(out2$state[st[j],,i],thetal[j],thetau[j]),out$weight[,i],normwt=T,probs=.025)
+    kd.l[i,j] = wtd.quantile(theta2u(out3$theta[j,,i],thetal[j],thetau[j]),out$weight[,i],normwt=T,probs=.025)
+    bf.u[i,j] = wtd.quantile(theta2u(out$state[st[j],,i],thetal[j],thetau[j]),out$weight[,i],normwt=T,probs=.975)
+    apf.u[i,j] = wtd.quantile(theta2u(out2$state[st[j],,i],thetal[j],thetau[j]),out$weight[,i],normwt=T,probs=.975)
+    kd.u[i,j] = wtd.quantile(theta2u(out3$theta[j,,i],thetal[j],thetau[j]),out$weight[,i],normwt=T,probs=.975)
   }
 }
 
@@ -184,20 +189,20 @@ dev.off()
 
 # Plot 95% credible bounds and medians of parameters over time
 expr = expression(beta,gamma,nu)
-xlabs = c("Time (days)","")
-ylabs = c(paste("J = ",n,sep=""),"")
-msize = 1.75
-labsize = 1.5
-legendsize = 1.0
-pdf(paste(gpath,"PF-params",param,"-",n,".pdf",sep=""),width=10,height=5)
-par(mfrow=c(1,2),mar=c(5,5,3,1)+.1)
-for(j in 1:2)
+xlabs = rep("Time (days)",3)
+ylabs = rep(paste("J = ",n,sep=""),3)
+msize = 2
+labsize = 1.75
+legendsize = 1.25
+pdf(paste(gpath,"PF-params",param,"-",n,".pdf",sep=""))
+par(mar=c(5,5,3,1)+.1)
+for(j in 1)
 {
-  ymin = min(bf.l[,j],apf.l[,j],kd.l[,j],theta[j])
-  ymax = max(bf.u[,j],apf.u[,j],kd.u[,j],theta[j])
+  ymin = min(bf.l[,j],apf.l[,j],kd.l[,j],theta[p])
+  ymax = max(bf.u[,j],apf.u[,j],kd.u[,j],theta[p])
   if(n == 100)
   {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="",ylab=ylabs[j],main=expr[j],cex.lab=labsize,cex.main=msize)
+    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="",ylab=ylabs[j],main=expr[p],cex.lab=labsize,cex.main=msize)
     if(j == 1) legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2),cex=legendsize)
   } else if(n == 10000) {
     plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,xlab=xlabs[j],ylab=ylabs[j],cex.lab=labsize)
@@ -212,6 +217,6 @@ for(j in 1:2)
   lines(0:nt,kd.m[,j],col=3)
   lines(0:nt,kd.l[,j],col=3,lty=2)
   lines(0:nt,kd.u[,j],col=3,lty=2)
-  abline(h=theta[j])
+  abline(h=theta[p])
 }
 dev.off()

@@ -18,7 +18,7 @@ revo = function(x,P,d=1,theta,random=TRUE)
   { 
     is = -1
     ss = -1
-    entered = FALSE # in case of numerical stability
+    entered = FALSE # in case of numerical instability
     while(!(is >= 0 & is <= 1 & ss >= 0 & ss <= 1))
     {
       is = x[1] + tau*x[1]*(theta[1]*x[2]^theta[3] - theta[2]) + random*rnorm(1,0,sqrt(x1var))
@@ -123,7 +123,7 @@ rprior = function(y1,rtheta,b=NULL,varsigma=NULL,sigma=NULL,dpower=2,obsparam=FA
   return(list(x=c(i0,s0),theta=theta0))
 }
 
-# Functions to reparameterize theta to and from the real line
+# Functions to reparameterize theta to [a,b] from the real line and vice versa
 theta2u = function(theta,a,b)
 {
   etheta = exp(theta)

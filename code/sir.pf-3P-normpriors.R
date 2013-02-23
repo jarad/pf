@@ -52,11 +52,11 @@ dev.off()
 
 # Create function to sample from prior distribution of theta
 theta.mean = c(-1.3296, -2.1764, 0.1055)
-theta.var = c(0.1055, 0.0140, 0.0064)
-rtheta = function(){ rnorm(3,theta.mean,theta.var)}
+theta.sd = sqrt(c(0.1055, 0.0140, 0.0064))
+rtheta = function(){ rnorm(3,theta.mean,theta.sd)}
 
 # How many particles?
-n = 100
+n = 1000
 
 # Run bootstrap filter
 dllik_bf = function(y, x){ dllik(y, x, b, varsigma, sigma, dpower)}
@@ -88,10 +88,6 @@ revo_kd = function(x, theta){ revo(x, P, d, exp(theta))}
 rprior_kd = function(){ rprior(sim$y[,1], rtheta, b, varsigma, sigma, dpower)}
 source("kd_pf.R")
 out3 = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, method="stratified", nonuniformity="ess", threshold=0.8, log=F)
-
-# Save data
-save.image(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
-#load(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
 
 # Calculate 2.5%, 50%, and 97.5% quantiles of states over time
 require(Hmisc)
@@ -141,9 +137,9 @@ for(i in 1:tt)
   }
 }
 
-# Save quantiles data
-save.image(paste(dpath,"sir.pf.quant",param,"-",n,".rdata",sep=""))
-#load(paste(dpath,"sir.pf.quant",param,"-",n,".rdata",sep=""))
+# Save data
+save.image(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
+#load(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
 
 # Plot % infected and % susceptible quantiles over time
 pdf(paste(gpath,"PF-states",param,"-",n,".pdf",sep=""),width=10,height=5)
@@ -203,7 +199,7 @@ for(j in 1:3)
     plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="",ylab=ylabs[j],main=expr[j],cex.lab=labsize,cex.main=msize)
     if(j == 1) legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2),cex=legendsize)
   } else if(n == 10000) {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab=xlabs[j],ylab=ylabs[j],cex.lab=labsize)
+    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,xlab=xlabs[j],ylab=ylabs[j],cex.lab=labsize)
   } else {
     plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab=ylabs[j],xlab="",cex.lab=labsize)
   }

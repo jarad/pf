@@ -3,10 +3,10 @@ gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF-D2/"
 dpath = "C:/Users/Danny/My Documents/UCSB - Research/pf/data/D2/"
 
 # Load PF data
-load(paste(dpath,"sir.pf.quant-3P-normpriors-100.rdata",sep=""))
+load(paste(dpath,"sir.pf-2P-normpriors-1000.rdata",sep=""))
 
 # Which parameters unknown, labels
-p = 1:3
+p = 1:2
 expr = expression(beta,gamma,nu)
 parnames = c("beta","gamma","nu")
 all.theta = c(theta,b,varsigma,sigma)[p]
