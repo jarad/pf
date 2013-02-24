@@ -6,9 +6,10 @@
 set.seed(sample(1:1000,1))
 
 # Set graphics and data paths, param label
-gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF-D2/"
-dpath = "C:/Users/Danny/My Documents/UCSB - Research/pf/data/D2/"
+gpath = "C:/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/PF-D1/"
+dpath = "C:/Users/Danny/My Documents/UCSB - Research/pf/data/D1/"
 param = "-2P-normpriors"
+factor = ""
 
 # Set known parameter values
 P = 5000
@@ -16,7 +17,7 @@ d = 5
 b = c(.25, .27, .23, .29)
 varsigma = c(1.07, 1.05, 1.01, .98)
 sigma = c(.0012, .0008, .0010, .0011)
-dpower = 2
+dpower = 1
 
 # Set unknown parameter values
 theta = c(0.2399, 0.1066, 1.2042)
@@ -29,19 +30,21 @@ rinit_sim = function(){ rinit(10/P)}
 nt = 125
 source("ss.sim.R")
 sim = ss.sim(nt, revo_sim, robs_sim, rinit_sim)
-save.image(paste(dpath,"sim-xy.rdata",sep=""))
+save.image(paste(dpath,"sim-xy",factor,".rdata",sep=""))
 
 ###### (*) ######
-dpath = "C:/Users/Danny/My Documents/UCSB - Research/pf/data/D2/"
-load(paste(dpath,"sim-xy.rdata",sep=""))
+dpath = "C:/Users/Danny/My Documents/UCSB - Research/pf/data/D1/"
+factor = "-exp"
+load(paste(dpath,"sim-xy",factor,".rdata",sep=""))
 param = "-2P-normpriors"
+factor = "-exp"
 ################# 
 
 # Plot the data
 y = apply(sim$y,2,function(x) x[which(!is.na(x))])
 J = apply(sim$y,2,function(x) which(!is.na(x)))
 no = dim(sim$y)[1]
-pdf(paste(gpath,"sim-y",param,".pdf",sep=""),width=10,height=5)
+pdf(paste(gpath,"sim-y",factor,".pdf",sep=""),width=10,height=5)
 par(mfrow=c(1,2),mar=c(5,5,4,1)+.1)
 plot(which(J==1),y[J==1],ylim=c(min(y),max(y)),xlim=c(0,nt),
 	xlab="Time (Days)",ylab=expression(y),cex.lab=1.5)
@@ -57,7 +60,7 @@ theta.sd = sqrt(c(0.1055, 0.0140))
 rtheta = function(){ rnorm(2,theta.mean,theta.sd)}
 
 # How many particles?
-n = 1000
+n = 100
 
 # Run bootstrap filter
 dllik_bf = function(y, x){ dllik(y, x, b, varsigma, sigma, dpower)}
@@ -139,21 +142,19 @@ for(i in 1:tt)
 }
 
 # Save quantiles data
-save.image(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
-#load(paste(dpath,"sir.pf",param,"-",n,".rdata",sep=""))
+save.image(paste(dpath,"sir.pf",param,factor,"-",n,".rdata",sep=""))
+#load(paste(dpath,"sir.pf",param,factor,"-",n,".rdata",sep=""))
 
 # Plot % infected and % susceptible quantiles over time
-pdf(paste(gpath,"PF-states",param,"-",n,".pdf",sep=""),width=10,height=5)
+pdf(paste(gpath,"PF-states",param,factor,"-",n,".pdf",sep=""),width=10,height=5)
 par(mfrow=c(1,2),mar=c(5,5,3,1)+0.1)
 ymax = max(bf.ui[-1],apf.ui[-1],kd.ui[-1],sim$x[1,])
 if(n == 100)
 {
-  plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="",ylab=paste("J = ",n,sep=""),main=expression(i),cex.lab=1.5,cex.main=1.75)
+  plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab=paste("J = ",n,sep=""),main=expression(i),cex.lab=1.5,cex.main=1.75)
   legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2))
-} else if(n == 1000){
-  plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="",ylab=paste("J = ",n,sep=""),cex.lab=1.5)
 } else {
-  plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="Time (days)",ylab=paste("J = ",n,sep=""),cex.lab=1.5)
+  plot(0:nt,sim$x[1,],type="l",ylim=c(0,ymax),xlab="",ylab=paste("J = ",n,sep=""),cex.lab=1.5)
 }
 lines(0:nt,bf.mi,col=2)
 lines(0:nt,bf.li,col=2,lty=2)
@@ -189,7 +190,7 @@ ylabs = c(paste("J = ",n,sep=""),"")
 msize = 1.75
 labsize = 1.5
 legendsize = 1.0
-pdf(paste(gpath,"PF-params",param,"-",n,".pdf",sep=""),width=10,height=5)
+pdf(paste(gpath,"PF-params",param,factor,"-",n,".pdf",sep=""),width=10,height=5)
 par(mfrow=c(1,2),mar=c(5,5,3,1)+.1)
 for(j in 1:2)
 {
@@ -197,10 +198,8 @@ for(j in 1:2)
   ymax = max(bf.u[,j],apf.u[,j],kd.u[,j],theta[j])
   if(n == 100)
   {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab="",ylab=ylabs[j],main=expr[j],cex.lab=labsize,cex.main=msize)
+    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,,xlab=xlabs[j],ylab=ylabs[j],main=expr[j],cex.lab=labsize,cex.main=msize)
     if(j == 1) legend("topright",c("Truth","BF","APF","KD","95% bounds"),col=c(1,2,4,3,1),lty=c(1,1,1,1,2),cex=legendsize)
-  } else if(n == 10000) {
-    plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,xlab=xlabs[j],ylab=ylabs[j],cex.lab=labsize)
   } else {
     plot(0:nt,bf.m[,j],type="l",ylim=c(ymin,ymax),col=2,ylab=ylabs[j],xlab="",cex.lab=labsize)
   }
