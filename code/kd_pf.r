@@ -67,7 +67,7 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, ...)
     theta.est = cov.wt(ttheta,weight[,i])
     mn = theta.est$center
     vr = theta.est$cov
-    cl = t(chol(vr, pivot=TRUE))
+    cl = t(chol(vr, pivot=FALSE)) # is this causing problems?
     for (j in 1:n)
     {
       p.theta[,j] = a*theta[,j,i] +(1-a)*mn
