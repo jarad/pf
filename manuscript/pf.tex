@@ -224,7 +224,7 @@ p(\gamma) &= \ln N(\gamma; -2.1764, 0.0140) \\
 p(\nu) &= U_{[0.95,1.3]}(\nu)
 \end{align*}
 
-\noindent where $U_{[a,b]}(.)$ is the pdf of a uniform distribution on the interval $[a,b]$.  $p(i_0,s_0)$ is the joint pdf of the random variables $i_0$ and $s_0$ defined by
+\noindent where $U_{[a,b]}(.)$ is the pdf of a uniform distribution on the interval $[a,b]$ and $\ln N(.;\mu,\sigma^2)$ is the pdf of a log-normal distribution with mean $\mu$ and variance $\sigma^2$ on the log scale.  $p(i_0,s_0)$ is the joint pdf of the random variables $i_0$ and $s_0$ defined by
 \[i_0 = \frac{1}{b_l} \emph{e}^{\frac{y_1-\tau_l}{\varsigma_l}} \qquad s_0 = 1 - i_0 \]
 where $\tau_l \sim N_{(y_1 - \varsigma_l \log b_l,\infty]}(0,\sigma_l^2 / (b_l(0.001)^{\varsigma_l})^2)$ and $l$ corresponds to the syndrome from which the first observation came.  The form of $i_0$ comes from rearranging equation \eqref{eqn:obs}, and the upper bound on the truncation of the distribution of $\tau_l$ ensures that $i_0$ is no greater than 1.
 
