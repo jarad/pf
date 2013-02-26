@@ -63,8 +63,7 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, ...)
     setTxtProgressBar(pb,i)
 
     # Kernel density estimate
-    ttheta = matrix(theta[,,i],ncol=np)
-    theta.est = cov.wt(ttheta,weight[,i])
+    theta.est = cov.wt(t(theta[,,i]),weight[,i])
     mn = theta.est$center
     vr = theta.est$cov
     cl = t(chol(vr, pivot=FALSE)) # is this causing problems?
@@ -81,7 +80,7 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, ...)
     }
     
     p.weights = renormalize(p.weights, log=T)
-    tmp = resample(p.weights,...)    
+    tmp = resample(p.weights,...)
     kk = tmp$indices
 
     for (j in 1:n) 
