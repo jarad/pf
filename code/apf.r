@@ -6,16 +6,17 @@
 #' @param revo a function to propagate the state with argument the state x
 #' @param rprior a function to sample for the prior for the state
 #' @param n the number of particles
+#' @param progress a boolean to display progress bar if TRUE
 #' @param ... arguments passed on to resample
 #' @return a list containing an n x (nt+1) matrix of normalized particles weights, a ns x n x (nt+1) array of state draws, and an n x nt parent matrix
 #' @author Jarad Niemi \email{niemi@@iastate.edu}
 #' @export apf
 #' @references Pitt, M.K.; Shephard, N. (1999). 
 #'   "Filtering Via Simulation: Auxiliary Particle Filters". 
-#'   Journal of the American Statistical Association. 94 (446): 590â€“591.
+#'   Journal of the American Statistical Association. 94 (446): 590–591.
 #' @seealso \code{\link{resample}}
 #'
-apf = function(y, dllik, pstate, revo, rprior, n, ...)
+apf = function(y, dllik, pstate, revo, rprior, n, progress = TRUE, ...)
 {
   require(smcUtils)
 
@@ -40,12 +41,12 @@ apf = function(y, dllik, pstate, revo, rprior, n, ...)
   parent = matrix(NA, n, nt+1)
 
   # Run auxiliary particle filter
-  pb = txtProgressBar(0,nt,style=3)
+  if(progress) pb = txtProgressBar(0,nt,style=3)
   p.state = matrix(NA, ns, n)
   p.weights = numeric(n)
   for (i in 1:nt) 
   {
-    setTxtProgressBar(pb,i)
+    if(progress) setTxtProgressBar(pb,i)
 
     # Look ahead
     for (j in 1:n)

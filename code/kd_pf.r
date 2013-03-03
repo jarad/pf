@@ -7,6 +7,7 @@
 #' @param rprior a function to sample from the prior for the state and fixed parameters returns a list with elements x and theta
 #' @param delta the kernel density smoothing parameter in (0,1) usually, around 0.99
 #' @param n the number of particles
+#' @param progress a boolean to display progress bar if TRUE
 #' @param ... arguments passed on to resample
 #' @return a list containing an n x (nt+1) matrix of normalized particle weights, a np x n x (nt+1) array of theta draws, a ns x n x (nt+1) array of state draws, and an n x nt parent matrix
 #' @author Jarad Niemi \email{niemi@@iastate.edu}
@@ -17,7 +18,7 @@
 #'   2001, 197-217
 #' @seealso \code{\link{resample}}
 #'
-kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, ...)
+kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE, ...)
 {
   require(smcUtils)
 
@@ -54,13 +55,13 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, ...)
   h = sqrt(1-a^2)
 
   # Run particle filter
-  pb = txtProgressBar(0,nt,style=3)
+  if(progress) pb = txtProgressBar(0,nt,style=3)
   p.state = matrix(NA, ns, n)
   p.theta = matrix(NA, np, n)
   p.weights = numeric(n)
   for (i in 1:nt) 
   {
-    setTxtProgressBar(pb,i)
+    if(progress) setTxtProgressBar(pb,i)
 
     # Kernel density estimate
     theta.est = cov.wt(t(theta[,,i]),weight[,i])

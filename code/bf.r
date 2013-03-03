@@ -5,16 +5,17 @@
 #' @param revo a function to propagate the state with argument the state x
 #' @param rprior a function to sample for the prior for the state
 #' @param n the number of particles
+#' @param progress a boolean to display progress bar if TRUE
 #' @param ... arguments passed on to resample
 #' @return a list containing an n x (nt+1) matrix of normalized particles weights, a ns x n x (nt+1) array of state draws, and an n x nt parent matrix
 #' @author Jarad Niemi \email{niemi@@iastate.edu}
 #' @export bf
 #' @references Gordon, N. J.; Salmond, D. J. and Smith, A. F. M. (1993). 
 #'    "Novel approach to nonlinear/non-Gaussian Bayesian state estimation". 
-#'    IEEE Proceedings F on Radar and Signal Processing 140 (2): 107â€“113. 
+#'    IEEE Proceedings F on Radar and Signal Processing 140 (2): 107–113. 
 #' @seealso \code{\link{resample}}
 #'
-bf = function(y, dllik, revo, rprior, n, ...)
+bf = function(y, dllik, revo, rprior, n, progress = TRUE, ...)
 {
   require(smcUtils)
 
@@ -39,10 +40,10 @@ bf = function(y, dllik, revo, rprior, n, ...)
   parent = matrix(NA, n, nt+1)
 
   # Run bootstrap filter
-  pb = txtProgressBar(0,nt,style=3)
+  if(progress) pb = txtProgressBar(0,nt,style=3)
   for (i in 1:nt) 
   {
-    setTxtProgressBar(pb,i)
+    if(progress) setTxtProgressBar(pb,i)
     if (i==1) # No resampling
     {
       kk = 1:n
