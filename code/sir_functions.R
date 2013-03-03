@@ -1,4 +1,4 @@
-# sir_functions.R - functions needed for simulating data and running particle filters for SIR model of a disease epidemic
+# sir_functions.R - functions needed for simulating data, running particle filters, calculating quantiles of filtered distributions, and constructing plots for SIR model of a disease epidemic
 #
 # revo - function that propagates state forward given previous state x and parameters theta
 # Arguments:
@@ -49,9 +49,9 @@ robs = function(x,b,varsigma,sigma,dpower=2)
 {
   L = length(b)
   if(!(L == length(varsigma) & L == length(sigma))) stop("b, varsigma, and sigma must all have same length")
-  l = sample(1:L,1)
+  l = sample(1:L,sample(0:L,1))
   y = rep(NA,L)
-  y[l] = rnorm(1,varsigma[l]*log(b[l]*x[1]),sigma[l]/sqrt(b[l]*x[1]^varsigma[l])^dpower)
+  if(length(l) > 0) y[l] = rnorm(length(l),varsigma[l]*log(b[l]*x[1]),sigma[l]/sqrt(b[l]*x[1]^varsigma[l])^dpower)
   return(y)
 }
 
@@ -66,7 +66,7 @@ rinit = function(i0=.001)
 
 # dllik - function to return the log of the likelihood function given current observation y, current state x, and parameter theta
 # Arguments:
-# y - vector, current observation of length L, the number of syndromes, with all elements NA except for element l, the syndrome from which the current observation arrives
+# y - vector, current observation of length L, the number of syndromes; may have empty elements
 # x - vector, current state (i,s)
 # b - vector of length L, values of b_l's
 # varsigma - vector of length L, values of varsigma_l's
@@ -76,16 +76,20 @@ dllik = function(y,x,b,varsigma,sigma,dpower=2)
 {
   L = length(y)
   if(!(L == length(b) & L == length(varsigma) & L == length(sigma))) stop("b, varsigma, and sigma must all have same length")
-  l = which(!is.na(y))
-  if (!(length(l) == 1)) stop("y must be a vector with all but 1 element NA")
-  h = varsigma[l]*log(b[l]*x[1])
-  s = sigma[l]/sqrt(b[l]*x[1]^varsigma[l])^dpower
-  return(dnorm(y[l],h,s,log=T))
+  if(all(is.na(y)))
+  {
+    return(-100)
+  } else {
+    l = which(!is.na(y))
+    h = varsigma[l]*log(b[l]*x[1])
+    s = sigma[l]/sqrt(b[l]*x[1]^varsigma[l])^dpower
+    return(sum(dnorm(y[l],h,s,log=T)))
+  }
 }
 
 # rprior - function that samples from the prior distribution of the initial states and unknown parameters; returns a list with vector elements initial state vector x and parameter values theta
 # Arguments:
-# y1 - an L-element vector with all elements NA except for element l, the syndrome from which the current observation arrives
+# y1 - an L-element vector with at least 1 element that's not NA, indices corresponding to the syndromes from which the current observations arrive
 # rtheta - a function that takes no arguments and returns sampled values from the prior distribution of beta, gamma, and nu; sampled values are assumed to be already mapped to the real line
 # b - vector of length L, values of b_l's if known; ignored if obsparam TRUE
 # varsigma - vector of length L, values of varsigma_l's if known; ignored if obsparam TRUE
@@ -98,7 +102,8 @@ rprior = function(y1,rtheta,b=NULL,varsigma=NULL,sigma=NULL,dpower=2,obsparam=FA
 {
   L = length(y1)
   l = which(!is.na(y1))
-  if(!(length(l) == 1)) stop("y must be a vector with all but 1 element NA")
+  if(length(l) == 0) stop("y must not be empty")
+  l = l[1]
   theta0 = rtheta()
   if(obsparam)
   {
@@ -134,3 +139,9 @@ u2theta = function(u,a,b)
   U = (u - a) / (b - a)
   return(log(U / (1 - U)))
 }
+
+
+
+
+
+
