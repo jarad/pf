@@ -76,15 +76,9 @@ dllik = function(y,x,b,varsigma,sigma,dpower=2)
 {
   L = length(y)
   if(!(L == length(b) & L == length(varsigma) & L == length(sigma))) stop("b, varsigma, and sigma must all have same length")
-  if(all(is.na(y)))
-  {
-    return(-100)
-  } else {
-    l = which(!is.na(y))
-    h = varsigma[l]*log(b[l]*x[1])
-    s = sigma[l]/sqrt(b[l]*x[1]^varsigma[l])^dpower
-    return(sum(dnorm(y[l],h,s,log=T)))
-  }
+  h = log(b*x[1]^varsigma)
+  s = sigma / sqrt(b*x[1]^varsigma)^dpower
+  return(sum(dnorm(y,h,s,log=T),na.rm=TRUE))
 }
 
 # rprior - function that samples from the prior distribution of the initial states and unknown parameters; returns a list with vector elements initial state vector x and parameter values theta
