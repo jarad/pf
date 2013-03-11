@@ -226,6 +226,86 @@ pf.scat = function(out,wts,cutoff,plabs,truth,file,M=10000,tsize=.65,mr=1,mc=1,m
   dev.off()
 }
 
+# pf.contour - function to plot image/contour plot of 2D kernel density estimate of two parameters at specified time points
+# Arguments:
+# out - 2 by n by tt array of particles (assumed on original scale)
+# wts - n by tt matrix of particle weights
+# cutoff - k length vector of times at which to plot histograms
+# M - number of samples to use to resample particles to get equal weights for constructing histograms
+# plabs - vector of length 2 giving labels for parameters
+# truth - 2 length vector of true parameter values
+# tsize - size of subtitle displaying true parameter values
+# mr - number of rows in plot panel window
+# mc - number of columns in plot panel window
+# mar - corresponds to mar argument in par() for resizing plot windows
+# msize - size of titles of upper-left histogram
+# labsize - size of axis labels on upper-left histogram
+# file - name of outputted pdf file
+# width, height - arguments to pdf()
+# ... - additional arguments passed to resample()
+pf.contour = function(out,wts,cutoff,plabs,truth,file,M=10000,tsize=.65,mr=1,mc=1,mar=c(4,5.2,3,.5)+.1,msize=1.5,labsize=1.5,width=10,height=5,...)
+{
+  require(smcUtils)
+  require(KernSmooth)
+
+  # Check dimensions
+  n = dim(wts)[1]
+  tt = dim(wts)[2]
+  if(n != dim(out)[2] | tt != dim(out)[3]) stop("dimensions of out and wts don't match")
+  nd = length(cutoff)
+  if(nd > tt) stop("Too many cutoff points")
+  if(dim(out)[1] != 2) stop("Incorrect first dimension of out")
+
+  # Resample particles to get equal weights
+  tmps = matrix(NA,nr=M,nc=length(cutoff))
+  for(i in 1:length(cutoff))
+  {
+    tmps[,i] = resample(wts[,cutoff[i]], M, nonuniformity="none",...)$indices
+  }
+
+  # Find minimum and maximum values so scatterplots on same scale
+  xrw1 = matrix(NA,nr=M,nc=length(cutoff))
+  xrw2 = matrix(NA,nr=M,nc=length(cutoff))
+  xmin = Inf; xmax = -Inf; ymin = Inf; ymax = -Inf
+  for(i in 1:length(cutoff))
+  {
+    xrw1[,i] = out[1,tmps[,i],cutoff[i]]
+    xrw2[,i] = out[2,tmps[,i],cutoff[i]]
+    b1 = max(0.01,0.9*min(sd(xrw1[,i]),IQR(xrw1[,i])/1.34)*length(xrw1[,i])^(-.2))
+    b2 = max(0.01,0.9*min(sd(xrw2[,i]),IQR(xrw2[,i])/1.34)*length(xrw2[,i])^(-.2))
+#    b1 = b2 = 0.01
+    kernden = bkde2D(cbind(xrw1[,i],xrw2[,i]),c(b1,b2))
+    xmin = min(xmin,kernden$x1)
+    xmax = max(xmax,kernden$x1)
+    ymin = min(ymin,kernden$x2)
+    ymax = max(ymax,kernden$x2)
+  }
+
+  # Scatterplots over time
+  pdf(file,width=width,height=height)
+  par(mfrow=c(mr,mc),mar=mar)
+  for(i in 1:length(cutoff))
+  {
+    b1 = max(0.01,0.9*min(sd(xrw1[,i]),IQR(xrw1[,i])/1.34)*length(xrw1[,i])^(-.2))
+    b2 = max(0.01,0.9*min(sd(xrw2[,i]),IQR(xrw2[,i])/1.34)*length(xrw2[,i])^(-.2))
+#    b1 = b2 = 0.01
+    kernden = bkde2D(cbind(xrw1[,i],xrw2[,i]),c(b1,b2))
+    if(i == 1)
+    {
+      image(kernden$x1,kernden$x2,-kernden$fhat,xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab=plabs[1],ylab=plabs[2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize)
+      contour(kernden$x1,kernden$x2,-kernden$fhat,add=TRUE,drawlabels=FALSE)
+      mtext(paste("Truth = ",truth[1],sep=""),side=1,cex=tsize)
+      mtext(paste("Truth = ",truth[2],sep=""),side=2,cex=tsize)
+      points(truth[1],truth[2],col=4,pch=20)
+    } else {
+      image(kernden$x1,kernden$x2,-kernden$fhat,xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize)
+      contour(kernden$x1,kernden$x2,-kernden$fhat,add=TRUE,drawlabels=FALSE)
+      points(truth[1],truth[2],col=4,pch=20)
+    }
+  }
+  dev.off()
+}
+
 # Functions to reparameterize theta to [a,b] from the real line and vice versa
 theta2u = function(theta,a,b)
 {
