@@ -7,6 +7,7 @@
 #' @param rprior a function to sample for the prior for the state
 #' @param n the number of particles
 #' @param progress a boolean to display progress bar if TRUE
+#' @param seed a boolean to set the seed before sampling prior state
 #' @param ... arguments passed on to resample
 #' @return a list containing an n x (nt+1) matrix of normalized particles weights, a ns x n x (nt+1) array of state draws, and an n x nt parent matrix
 #' @author Jarad Niemi \email{niemi@@iastate.edu}
@@ -16,7 +17,7 @@
 #'   Journal of the American Statistical Association. 94 (446): 590–591.
 #' @seealso \code{\link{resample}}
 #'
-apf = function(y, dllik, pstate, revo, rprior, n, progress = TRUE, ...)
+apf = function(y, dllik, pstate, revo, rprior, n, progress = TRUE, seed = TRUE, ...)
 {
   require(smcUtils)
 
@@ -31,7 +32,11 @@ apf = function(y, dllik, pstate, revo, rprior, n, progress = TRUE, ...)
 
   # Set up initial state
   state = array(NA, dim=c(ns,n,nt+1))
-  for (j in 1:n) state[,j,1] = rprior()
+  for (j in 1:n)
+  {
+    if(seed) set.seed(j)
+    state[,j,1] = rprior()
+  }
 
   # Initialize weights
   weight = matrix(NA, n, nt+1)

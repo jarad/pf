@@ -8,6 +8,7 @@
 #' @param delta the kernel density smoothing parameter in (0,1) usually, around 0.99
 #' @param n the number of particles
 #' @param progress a boolean to display progress bar if TRUE
+#' @param seed a boolean to set the seed before sampling prior state and parameter
 #' @param ... arguments passed on to resample
 #' @return a list containing an n x (nt+1) matrix of normalized particle weights, a np x n x (nt+1) array of theta draws, a ns x n x (nt+1) array of state draws, and an n x nt parent matrix
 #' @author Jarad Niemi \email{niemi@@iastate.edu}
@@ -18,7 +19,7 @@
 #'   2001, 197-217
 #' @seealso \code{\link{resample}}
 #'
-kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE, ...)
+kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE, seed = TRUE, ...)
 {
   require(smcUtils)
 
@@ -38,6 +39,7 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE,
   theta = array(NA, dim=c(np,n,nt+1))
   for (j in 1:n) 
   {
+    if(seed) set.seed(j)
     tmp = rprior()
     state[,j,1] = tmp$x
     theta[,j,1] = tmp$theta
