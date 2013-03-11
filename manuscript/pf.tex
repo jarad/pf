@@ -236,9 +236,9 @@ p(\nu) &= U_{[0.95,1.3]}(\nu)
 \noindent where $U_{[a,b]}(.)$ is the pdf of a uniform distribution on the interval $[a,b]$.  Using normal priors, $p(\beta)$, $p(\gamma)$, and $p(\nu)$ are given by
 
 \begin{align*}
-p(\beta) &= \ln N(\beta; -1.3296, 0.1055) \\
-p(\gamma) &= \ln N(\gamma; -2.1764, 0.0140) \\
-p(\nu) &= \ln N(\nu; 0.1055, 0.0064)
+\log(\beta) &\sim  N(-1.3296, 0.1055) \\
+\log(\gamma) &\sim N(-2.1764, 0.0140) \\
+\log(\nu) &\sim N(0.1055, 0.0064)
 \end{align*}
 
 \noindent where $\ln N(.;\mu,\sigma^2)$ is the pdf of a log-normal distribution with mean $\mu$ and variance $\sigma^2$ on the log scale.
