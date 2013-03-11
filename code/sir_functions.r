@@ -83,41 +83,26 @@ dllik = function(y,x,b,varsigma,sigma,dpower=2)
 
 # rprior - function that samples from the prior distribution of the initial states and unknown parameters; returns a list with vector elements initial state vector x and parameter values theta
 # Arguments:
-# y1 - an L-element vector with at least 1 element that's not NA, indices corresponding to the syndromes from which the current observations arrive
 # rtheta - a function that takes no arguments and returns sampled values from the prior distribution of beta, gamma, and nu; sampled values are assumed to be already mapped to the real line
-# b - vector of length L, values of b_l's if known; ignored if obsparam TRUE
-# varsigma - vector of length L, values of varsigma_l's if known; ignored if obsparam TRUE
-# sigma - vector of length L, values of sigma_l's if known; ignored if obsparam TRUE
-# dpower - scalar, power of b_l*i^varsigma_l in the denominator of the observation variance
 # obsparam - boolean, if TRUE b_j's, varsigma_j's and sigma_j's assumed unknown and prior samples are included in returned theta
-# rthetaPlus - a function that takes no arguments and returns a list with elements b, varsigma, and sigma, each vectors containing sampled values from the prior distribution of b, varsigma and sigma (on original scale); ignored if obsparam = FALSE
-# tthetaPlus - a function that takes as input a list with elements b, varsigma, and sigma and returns a list of elements by the same name with values mapped to the real line
-rprior = function(y1,rtheta,b=NULL,varsigma=NULL,sigma=NULL,dpower=2,obsparam=FALSE,rthetaPlus=NULL)
+# rthetaPlus - a function that takes no arguments and returns a list with elements b, varsigma, and sigma, each vectors containing sampled values from the prior distribution of b, varsigma and sigma; sampled values are assumed to be already mapped to the real line; ignored if obsparam = FALSE
+rprior = function(rtheta,obsparam=FALSE,rthetaPlus=NULL)
 {
-  L = length(y1)
-  l = which(!is.na(y1))
-  if(length(l) == 0) stop("y must not be empty")
-  l = l[1]
+  .current.seed = .Random.seed
   theta0 = rtheta()
+  i0 = -1
+  while(i0 < 0 | i0 > 1)
+  {
+    .Random.seed = .current.seed
+    i0 = rnorm(1,0.002,0.00255)
+    .Random.seed = .current.seed
+    set.seed(sample(1:1000,1))
+  }
+  s0 = 1 - i0
   if(obsparam)
   {
     addparam = rthetaPlus()
-    b0 = addparam$b
-    varsigma0 = addparam$varsigma
-    sigma0 = addparam$sigma
-    if(!(L == length(b0) & L == length(varsigma0) & L == length(sigma0))) stop("b, varsigma, and sigma must all have length equal to y1")
-    taul = y1[l] - varsigma0[l]*log(b0[l]) - 1
-    while(tauj < y1[l] - varsigma0[l]*log(b0[l])) taul = rnorm(1,0,sigma0[l]/sqrt(b0[l]*.001^varsigma0[l])^dpower)
-    i0 = exp((y1[l] - taul)/varsigma0[l])/b0[l]
-    s0 = 1 - i0
-    addparam = tthetaPlus(addparam)
-    theta0 = c(theta0,addparam$b,addparam$varsigma,addparam$sigma0)
-  } else {
-    if(!(L == length(b) & L == length(varsigma) & L == length(sigma))) stop("b, varsigma, and sigma must all have length equal to y1")
-    taul = y1[l] - varsigma[l]*log(b[l]) - 1
-    while(taul < y1[l] - varsigma[l]*log(b[l])) taul = rnorm(1,0,sigma[l]/sqrt(b[l]*.001^varsigma[l])^dpower)
-    i0 = exp((y1[l] - taul)/varsigma[l])/b[l]
-    s0 = 1 - i0
+    theta0 = c(theta0,addparam$b,addparam$varsigma,addparam$sigma)
   }
   return(list(x=c(i0,s0),theta=theta0))
 }
