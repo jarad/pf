@@ -4,14 +4,9 @@ dpath = "../data/"
 # Load data
 load(paste(dpath,"sim-xy.rdata",sep=""))
 
-# Which parameters unknown?
-p = 1:3
-s = rep(0,3); s[p] = 1
-sinv = rep(1,3); sinv[p] = 0
-
 # pf - function to run particle filter given n number of particles, filt = "BF", "APF", or "KD" for which filter to run, resamp = "multinomial", "residual", "stratified", or "systematic" for which resampling method to use, and prior = "normal" or "uniform" for which prior to use on unknown parameters
 # Returns nothing; saves .rdata data file
-pf <- function(n, filt, resamp, prior, ...)
+pf <- function(n, filt, resamp, prior, progress, ...)
 {
   # Create function to sample from prior distribution of theta and map theta to original scale
   if(prior == "uniform")
@@ -27,54 +22,49 @@ pf <- function(n, filt, resamp, prior, ...)
     ftheta = function(theta,param=1) exp(theta)
   }
 
-  # Get index of first non-empty observation
-  empty = TRUE; ind = 1
-  while(empty) if(all(is.na(sim$y[,ind]))) ind = ind + 1 else empty = FALSE 
-
   # Run one of the particle filters
   if(filt == "BF")
   {
     # Run bootstrap filter
     dllik_bf = function(y, x){ dllik(y, x, b, varsigma, sigma, dpower)}
-    revo_bf = function(x){ revo(x, P, d, s*ftheta(x[p+2],p)+sinv*theta)}
+    revo_bf = function(x){ revo(x, P, d, ftheta(x[3:5],1:3))}
     rprior_bf = function()
     { 
-      myprior = rprior(sim$y[,ind], rtheta, b, varsigma, sigma, dpower)
+      myprior = rprior(rtheta)
       return(c(myprior$x,myprior$theta))
     }
     source("bf.r")
-    out = bf(sim$y, dllik_bf, revo_bf, rprior_bf, n, progress=FALSE, method=resamp, log=F, ...)
+    out = bf(sim$y, dllik_bf, revo_bf, rprior_bf, n, progress=progress, method=resamp, log=F, ...)
   } else if(filt == "APF"){
     # Run auxiliary particle filter
     dllik_apf = function(y, x){ dllik(y, x, b, varsigma, sigma, dpower)}
-    pstate_apf = function(x) { revo(x, P, d, s*ftheta(x[p+2],p)+sinv*theta, FALSE)}
-    revo_apf = function(x){ revo(x, P, d, s*ftheta(x[p+2],p)+sinv*theta)}
+    pstate_apf = function(x) { revo(x, P, d, ftheta(x[3:5],1:3), FALSE)}
+    revo_apf = function(x){ revo(x, P, d, ftheta(x[3:5],1:3))}
     rprior_apf = function()
     { 
-      myprior = rprior(sim$y[,ind], rtheta, b, varsigma, sigma, dpower)
+      myprior = rprior(rtheta)
       return(c(myprior$x,myprior$theta))
     }
     source("apf.r")
-    out = apf(sim$y, dllik_apf, pstate_apf, revo_apf, rprior_apf, n, progress=FALSE, method=resamp, log=F, ...)
+    out = apf(sim$y, dllik_apf, pstate_apf, revo_apf, rprior_apf, n, progress=progress, method=resamp, log=F, ...)
   } else {
     # Run kernel density particle filter
     dllik_kd = function(y, x, theta=NULL){ dllik(y, x, b, varsigma, sigma, dpower)}
-    pstate_kd = function(x, mytheta) { revo(x, P, d, s*ftheta(mytheta,p)+sinv*theta, FALSE)}
-    revo_kd = function(x, mytheta){ revo(x, P, d, s*ftheta(mytheta,p)+sinv*theta)}
-    rprior_kd = function(){ rprior(sim$y[,ind], rtheta, b, varsigma, sigma, dpower)}
+    pstate_kd = function(x, mytheta) { revo(x, P, d, ftheta(mytheta,1:3), FALSE)}
+    revo_kd = function(x, mytheta){ revo(x, P, d, ftheta(mytheta,1:3))}
+    rprior_kd = function(){ rprior(rtheta)}
     source("kd_pf.r")
-    out = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, progress=FALSE, method=resamp, log=F, ...)
+    out = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, progress=progress, method=resamp, log=F, ...)
   }
 
   # Save output
-  pf.out = list(out=out,ftheta=ftheta,p=p)
+  pf.out = list(out=out,ftheta=ftheta)
   save(pf.out, file=paste(dpath,"PF-",filt,"-",prior,"-",resamp,"-",n,".rdata",sep=""))
 }
 
 # Apply pf to combination of pfs
 require(plyr)
-mydata = expand.grid(n = c(100, 1000, 10000), filt = c("BF","APF","KD"), resamp = c("multinomial","residual","stratified","systematic"), prior = c("normal","uniform"), nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
-save(mydata, file=paste(dpath,"filt_instruc.rdata",sep=""))
+mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("BF","APF","KD"), resamp = c("multinomial","residual","stratified","systematic"), prior = c("normal","uniform"), progress=FALSE, nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
 m_ply(mydata,pf)
 
 # Clear objects

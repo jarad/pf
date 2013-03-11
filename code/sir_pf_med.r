@@ -1,5 +1,5 @@
-source("sir_functions.R")
-source("ss_sim.R")
+source("sir_functions.r")
+source("ss_sim.r")
 
 # Initialize .Random.seed
 set.seed(sample(1:1000,1))

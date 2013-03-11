@@ -1,5 +1,5 @@
-source("sir_functions.R")
-source("ss_sim.R")
+source("sir_functions.r")
+source("ss_sim.r")
 
 # Initialize .Random.seed
 set.seed(sample(1:1000,1))
@@ -20,13 +20,13 @@ dpower = 2
 theta = c(0.2399, 0.1066, 1.2042)
 
 # Simulate epidemic
-
 revo_sim = function(x){ revo(x, P, d, theta)}
 robs_sim = function(x){ robs(x, b, varsigma, sigma, dpower)}
 rinit_sim = function(){ rinit(10/P)}
 nt = 125
 sim = ss.sim(nt, revo_sim, robs_sim, rinit_sim)
 save.image(paste(dpath,"sim-xy.rdata",sep=""))
+#load(paste(dpath,"sim-xy.rdata",sep=""))
 
 # Plot the data
 no = dim(sim$y)[1]
