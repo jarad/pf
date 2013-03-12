@@ -26,7 +26,7 @@ pf <- function(n, filt, resamp, prior, progress, ...)
     }
     ftheta = function(theta,param=1) theta2u(theta,thetal[param],thetau[param])
   } else {
-    theta.mean = c(-1.3296, -2.1764, 0.1055, -1.3863, 0, -6.9078)
+    theta.mean = c(-1.3296, -2.1764, 0.1055, -4.9517, 0, -6.9078)
     theta.sd = sqrt(c(0.1055, 0.0140, 0.0064, 4.7209, 0.0059, 1.3801))
     rtheta = function(){ rnorm(3,theta.mean,theta.sd)}
     rthetaPlus = function()

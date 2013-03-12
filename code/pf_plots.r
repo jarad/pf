@@ -148,7 +148,7 @@ pf.plots = function(n, resamp, prior, label, truth=TRUE, ...)
   # Plot % infected and % susceptible quantiles over time
   ymins=c(0,NA)
   ymaxs=c(NA,1)
-  file = paste(gpath,"PF-states",mod,ps,"-",prior,"-",resamp,"-",n,"-",label,".pdf",sep="")
+  file = paste(gpath,"PF-states",mod,"-",prior,"-",resamp,"-",n,"-",label,".pdf",sep="")
   pf.plot(state.quant,1:nt,1,2,ymins=ymins,ymaxs=ymaxs,mlabs=mlabs.st,xlabs=xlabs.st,ylabs=ylabs.st,col=col,lty=lty,labs=labs,col.leg=col.leg,lty.leg=lty.leg,legend=leg,file=file)
 
   # Plot 95% credible bounds and medians of parameters over time
