@@ -23,8 +23,8 @@ mod = ""
 ps = ""
 
 # Y-axis limits 
-ymins.p = c(0.1,0.08,0.8)
-ymaxs.p = c(0.55,0.16,1.45)
+ymins.p = c(0.1,0.08,0.8,0,.75,0)
+ymaxs.p = c(0.55,0.16,1.45,1,1.25,.01)
 
 # pf.plots - function to construct quantile plots
 pf.plots = function(n, resamp, prior, label, truth=TRUE, ...)
@@ -172,6 +172,7 @@ pf.hists = function(n, filt, resamp, prior, ...)
 {
   # Load data
   load(paste(dpath,"sim-xy",mod,".rdata",sep=""))
+  theta = c(theta,b,varsigma,sigma)
   load(paste(dpath,"PF",mod,"-",filt,"-",prior,"-",resamp,"-",n,".rdata",sep=""))
   out = pf.out$out
   ftheta = pf.out$ftheta
@@ -215,7 +216,7 @@ pf.scats = function(n, filt, resamp, prior, ...)
 # Construct scatterplots
 m_ply(mydata,pf.scats)
 
-# pf.scats - function to construct scatterplots of beta v gamma
+# pf.contours - function to construct contour plots of beta v gamma
 pf.contours = function(n, filt, resamp, prior, ...)
 {
   # Load data
