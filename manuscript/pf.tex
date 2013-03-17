@@ -251,98 +251,61 @@ p(\nu) &= U_{[0.95,1.3]}(\nu)
 \centering
 \caption*{$\mbox{uniform priors} \qquad \mbox{systematic resampling}$}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-100-n}
+\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-100}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-1000-n}
+\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-1000}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-10000-n}
+\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-10000}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-20000-n}
+\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-20000}
 \end{minipage}
-\caption{Displays medians (solid lines) and 2.5\%/97.5\% quantiles (dashed lines) of the filtered distributions of the unknown parameters over time.}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown parameters over time.}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{minipage}{1.0\linewidth}
+\caption*{normal priors}
+\includegraphics[width=1.0\textwidth]{Hist-KD-normal-systematic-10000-betagamma}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\caption*{uniform priors}
+\includegraphics[width=1.0\textwidth]{Hist-KD-uniform-systematic-10000-betagamma}
+\end{minipage}
+\caption{Scatterplots of $\beta$ versus $\gamma$ with values taken from their joint filtered distributions at $t = 15, 30, 45,\ldots,120$ days.  The kernel density particle filter was used with $J = 10000$ particles and systematic resampling.}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
-\caption*{$\mbox{normal priors} \qquad $J = 1000$ \mbox{ particles}$}
+\caption*{$\mbox{normal priors}$}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-multinomial-1000-resamp}
+\includegraphics[width=1.0\textwidth]{PF-params-normal-KD-100}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-residual-1000-resamp}
+\includegraphics[width=1.0\textwidth]{PF-params-normal-KD-1000}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-stratified-1000-resamp}
+\includegraphics[width=1.0\textwidth]{PF-params-normal-KD-10000}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-systematic-1000-resamp}
+\includegraphics[width=1.0\textwidth]{PF-params-normal-KD-20000}
 \end{minipage}
-\caption{Displays medians (solid lines) and 2.5\%/97.5\% quantiles (dashed lines) of the filtered distributions of the unknown parameters over time.}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown parameters over time.}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
 \caption*{$\mbox{normal priors} \qquad $J = 10000$ \mbox{ particles}$}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-multinomial-10000-resamp}
+\includegraphics[width=1.0\textwidth]{PF-params-normal-stratified-10000}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-residual-10000-resamp}
+\includegraphics[width=1.0\textwidth]{PF-states-normal-stratified-10000}
 \end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-stratified-10000-resamp}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-systematic-10000-resamp}
-\end{minipage}
-\caption{Displays medians (solid lines) and 2.5\%/97.5\% quantiles (dashed lines) of the filtered distributions of the unknown parameters over time.}
-\end{figure}
-
-\begin{figure}
-\centering
-\begin{minipage}{1.0\linewidth}
-\caption*{normal priors}
-\includegraphics[width=1.0\textwidth]{Hist-contour-KD-normal-stratified-10000-betagamma}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\caption*{uniform priors}
-\includegraphics[width=1.0\textwidth]{Hist-contour-KD-uniform-stratified-10000-betagamma}
-\end{minipage}
-\caption{Contour plots of the joint kernel density estimate of $\beta$ and $\gamma$ at $t = 15, 30, 45,\ldots,120$ days.  The kernel density particle filter was used with $J = 10000$ particles and stratified resampling.}
-\end{figure}
-
-\begin{figure}
-\centering
-\begin{minipage}{1.0\linewidth}
-\caption*{normal priors}
-\includegraphics[width=1.0\textwidth]{Hist-KD-normal-stratified-10000-betagamma}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\caption*{uniform priors}
-\includegraphics[width=1.0\textwidth]{Hist-KD-uniform-stratified-10000-betagamma}
-\end{minipage}
-\caption{Scatterplots of $\beta$ versus $\gamma$ with values taken from their joint filtered distributions at $t = 15, 30, 45,\ldots,120$ days.  The kernel density particle filter was used with $J = 10000$ particles and stratified resampling.}
-\end{figure}
-
-\begin{figure}[ht]
-\centering
-\caption*{$\mbox{normal priors} \qquad \mbox{stratified resampling}$}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-stratified-100-n}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-stratified-1000-n}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-stratified-10000-n}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-stratified-20000-n}
-\end{minipage}
-\caption{Displays medians (solid lines) and 2.5\%/97.5\% quantiles (dashed lines) of the filtered distributions of the unknown parameters over time.}
+\caption{Displays medians 2.5\%/97.5\% quantiles of the filtered distributions of the unknown parameters and states over time.}
 \end{figure}
 
 \section{Extending the model \label{sec:extend}}
@@ -351,36 +314,15 @@ p(\nu) &= U_{[0.95,1.3]}(\nu)
 \centering
 \caption*{$\mbox{normal priors} \qquad \mbox{stratified resampling}$}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-st-normal-stratified-100-n}
+\includegraphics[width=1.0\textwidth]{PF-params-ext-st-normal-stratified-20000}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-st-normal-stratified-1000-n}
+\includegraphics[width=1.0\textwidth]{PF-params-ext-obs-normal-stratified-20000}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-st-normal-stratified-10000-n}
+\includegraphics[width=1.0\textwidth]{PF-states-ext-normal-stratified-20000}
 \end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-st-normal-stratified-20000-n}
-\end{minipage}
-\caption{Displays medians (solid lines) and 2.5\%/97.5\% quantiles (dashed lines) of the filtered distributions of the unknown parameters over time.}
-\end{figure}
-
-\begin{figure}[ht]
-\centering
-\caption*{$\mbox{normal priors} \qquad \mbox{stratified resampling}$}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-obs-normal-stratified-100-n}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-obs-normal-stratified-1000-n}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-obs-normal-stratified-10000-n}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-obs-normal-stratified-20000-n}
-\end{minipage}
-\caption{Displays medians (solid lines) and 2.5\%/97.5\% quantiles (dashed lines) of the filtered distributions of the unknown parameters over time.}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown parameters and states over time.}
 \end{figure}
 
 \section{Discussion \label{sec:discussion}}
