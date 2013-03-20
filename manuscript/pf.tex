@@ -9,6 +9,7 @@
 \graphicspath{{/Users/niemi/Dropbox/SIR_Particle_Filtering/Graphs/}
                        {/Users/niemi/Dropbox/SIR_Particle_Filtering/doesnotexist/}
                        {/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/}
+                       {/data/home/faculty/meiring/Dropbox/SIR_Particle_Filtering/Graphs/}
                        % Add your directories here
 }
 
@@ -297,7 +298,7 @@ Now preferring to run the KD particle filter with 10000 particles using normal p
 \item Systematic resampling may introduce more or less Monte Carlo variability than does multinomial resampling.
 \end{enumerate}
 
-Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered distributions of the unknown parameters as $J$ increases for the four different resampling schemes.  The upper and lower quantiles of the true posterior shown in the graphs within this figure were calculated by taking the average of the quantiles of the filtered distributions under each resampling scheme using 20000 particles.  To evaluate the different resampling approaches, we would like to determine the resampling scheme for which the marginal particle filtered distributions of $\theta$ approach the true posterior the fastest with increasing $J$.  Looking in particular at the panel for $\nu$ at $J = 10000$, multinomial resampling appears to be outperformed by the other three methods.  However, it is difficult to discern which of the remaining three methods performs the best.  
+Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered distributions of the unknown parameters as $J$ increases for the four different resampling schemes.  The upper and lower quantiles of the true posterior shown in the graphs within this figure were calculated by taking the average of the quantiles of the filtered distributions under each resampling scheme using 20000 particles.  To evaluate the different resampling approaches, we would like to determine the resampling scheme for which the marginal particle filtered distributions of $\theta$ approach the true posterior the fastest with increasing $J$.  Looking in particular at the panel for $\nu$ at $J = 10000$, multinomial resampling appears to be outperformed by the other three methods.  However, it is difficult to discern which of the remaining three methods performs the best.
 
 \begin{figure}[ht]
 \centering
