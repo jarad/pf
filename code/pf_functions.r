@@ -34,6 +34,7 @@ pf.quantile = function(out, wts, ftheta, probs=.5, normwt=TRUE)
 # mar - corresponds to mar argument in par() for resizing plot windows
 # ymins - a vector whose jth element corresponds to the minimum y-axis value for the jth plot panel; can have NAs
 # ymaxs - a vector whose jth element corresponds to the maximum y-axis value for the jth plot panel; can have NAs
+# pgon - if TRUE, area below the first quantile and above the last quantile are shaded gray
 # mlabs - a vector of length equal to the second dimension of elements of quantiles giving title labels for each panel
 # xlabs - a vector of length equal to the second dimension of elements of quantiles giving x-axis labels for each panel
 # ylabs - a vector of length equal to the second dimension of elements of quantiles giving y-axis labels for each panel
@@ -48,7 +49,7 @@ pf.quantile = function(out, wts, ftheta, probs=.5, normwt=TRUE)
 # file - name of outputted pdf file
 # width, height - correspond to width and height arguments in pdf()
 # ... - additional arguments to pass into plot()
-pf.plot = function(quantiles, x, mr=1, mc=1, mar=c(5,5,3,1)+.1, ymins, ymaxs, mlabs, xlabs, ylabs, col, lty, legend=TRUE, labs="Truth", col.leg = 1, lty.leg = 1, location="topright", legendsize=1, file, width=10, height=5, ...)
+pf.plot = function(quantiles, x, mr=1, mc=1, mar=c(5,5,3,1)+.1, ymins, ymaxs, pgon=FALSE, mlabs, xlabs, ylabs, col, lty, legend=TRUE, labs="Truth", col.leg = 1, lty.leg = 1, location="topright", legendsize=1, file, width=10, height=5, ...)
 {
   if(!is.list(quantiles)) stop("quantiles must be a list of 3-D arrays")
   nf = length(quantiles)
@@ -70,12 +71,22 @@ pf.plot = function(quantiles, x, mr=1, mc=1, mar=c(5,5,3,1)+.1, ymins, ymaxs, ml
     nq = dim(quantiles[[1]])[3]
     if(length(lty) < nq) stop("lty must have length at least equal to the largest of the 3rd dimensions of the elements of quantiles")
     plot(x,quantiles[[1]][,j,1],type="l",ylim=c(ymins[j],ymaxs[j]),col=col[1],lty=lty[1],xlab=xlabs[j],ylab=ylabs[j],main=mlabs[j],...)
-    if(legend & j == 1) legend(location,labs,col=col.leg,lty=lty.leg,cex=legendsize)
+    if(pgon)
+    {
+      require(graphics)
+      y = quantiles[[1]][,j,1]      
+      polygon(c(x[length(x)],x[1],x[1],x,x[length(x)]),c(ymins[j],ymins[j],y[1],y,y[length(y)]),col="gray")
+    }
     if(nq > 1)
     {
       for(i in 2:nq)
       {
        lines(x,quantiles[[1]][,j,i],col=col[1],lty=lty[i])
+      }
+      if(pgon)
+      {
+        y = quantiles[[1]][,j,nq]
+        polygon(c(x[length(x)],x[1],x[1],x,x[length(x)]),c(ymaxs[j],ymaxs[j],y[1],y,y[length(y)]),col="gray")
       }
     }
     if(nf > 1)
@@ -90,6 +101,19 @@ pf.plot = function(quantiles, x, mr=1, mc=1, mar=c(5,5,3,1)+.1, ymins, ymaxs, ml
         }
       }
     }
+    
+    # Whiten borders
+    y = quantiles[[1]][,j,1]  
+    edgex = max(x,na.rm=T) - min(x,na.rm=T)
+    edgey = max(y,na.rm=T) - min(y,na.rm=T)
+    polygon(c(x[length(x)],x[1],x[1],x[length(x)]),c(ymins[j],ymins[j],ymins[j]-edgey,ymins[j]-edgey),col="white",border=NA) # bottom border
+    polygon(c(x[length(x)],x[1],x[1],x[length(x)]),c(ymaxs[j],ymaxs[j],ymaxs[j]+edgey,ymaxs[j]+edgey),col="white",border=NA) # top border
+    polygon(c(x[length(x)],x[length(x)]+edgex,x[length(x)]+edgex,x[length(x)]),c(ymins[j]-edgey,ymins[j]-edgey,ymaxs[j]+edgey,ymaxs[j]+edgey),col="white",border=NA) # right border
+    polygon(c(x[1],x[1]-edgex,x[1]-edgex,x[1]),c(ymins[j]-edgey,ymins[j]-edgey,ymaxs[j]+edgey,ymaxs[j]+edgey),col="white",border=NA) # left border
+    axis(side=1); axis(side=2) # Put axes back
+
+    # Legend
+    if(legend & j == 1) legend(location,labs,col=col.leg,lty=lty.leg,cex=legendsize,bg="white")
   }
   dev.off()
 }
@@ -165,16 +189,20 @@ pf.hist = function(out,wts,cutoff,ftheta,plabs,truth,file,M=10000,tsize=.65,mr=1
 # M - number of samples to use to resample particles to get equal weights for constructing histograms
 # plabs - vector of length 2 giving labels for parameters
 # truth - 2 length vector of true parameter values
-# tsize - size of subtitle displaying true parameter values
+# xlim - length 2 vector giving xlim argument in plot(); if any elements NA, are calculated by default
+# ylim - length 2 vector giving ylim argument in plot(); if any elements NA, are calculated by default
+# borderx - length 2 vector giving x-coordinates (vertical) line borders; enter NULL if no borders needed
+# bordery - length 2 vector giving y-coordinates (horizontal) line borders; enter NULL if no borders needed
 # mr - number of rows in plot panel window
 # mc - number of columns in plot panel window
 # mar - corresponds to mar argument in par() for resizing plot windows
-# msize - size of titles of upper-left histogram
+# msize - size of titles of plot panels
 # labsize - size of axis labels on upper-left histogram
+# axsize - size of tick labels on axes
 # file - name of outputted pdf file
 # width, height - arguments to pdf()
 # ... - additional arguments passed to resample()
-pf.scat = function(out,wts,cutoff,plabs,truth,file,M=10000,tsize=.65,mr=1,mc=1,mar=c(4,5.2,3,.5)+.1,msize=1.5,labsize=1.5,width=10,height=5,...)
+pf.scat = function(out,wts,cutoff,plabs,truth,file,M=10000,xlim=NA,ylim=NA,borderx=NULL,bordery=NULL,mr=1,mc=1,mar=c(4,5.2,3,.5)+.1,mgp=c(3,1,0),msize=2,labsize=2,axsize=1.25,width=10,height=5,...)
 {
   require(smcUtils)
 
@@ -196,31 +224,65 @@ pf.scat = function(out,wts,cutoff,plabs,truth,file,M=10000,tsize=.65,mr=1,mc=1,m
   # Find minimum and maximum values so scatterplots on same scale
   xrw1 = matrix(NA,nr=M,nc=length(cutoff))
   xrw2 = matrix(NA,nr=M,nc=length(cutoff))
-  xmin = Inf; xmax = -Inf; ymin = Inf; ymax = -Inf
-  for(i in 1:length(cutoff))
+  if(!all(!is.na(xlim)))
   {
-    xrw1[,i] = out[1,tmps[,i],cutoff[i]]
-    xrw2[,i] = out[2,tmps[,i],cutoff[i]]
-    xmin = min(xmin,xrw1[,i])
-    xmax = max(xmax,xrw1[,i])
-    ymin = min(ymin,xrw2[,i])
-    ymax = max(ymax,xrw2[,i])
+    xlim = c(Inf,-Inf)
+    for(i in 1:length(cutoff))
+    {
+      xrw1[,i] = out[1,tmps[,i],cutoff[i]]
+      xlim[1] = min(xlim[1],xrw1[,i])
+      xlim[2] = max(xlim[2],xrw1[,i])
+    }
+  } else {
+    for(i in 1:length(cutoff))
+    {
+      xrw1[,i] = out[1,tmps[,i],cutoff[i]]
+    }
+  }
+  if(!all(!is.na(ylim)))
+  {
+    ylim = c(Inf,-Inf)
+    for(i in 1:length(cutoff))
+    {
+      xrw2[,i] = out[2,tmps[,i],cutoff[i]]
+      ylim[1] = min(ylim[1],xrw2[,i])
+      ylim[2] = max(ylim[2],xrw2[,i])
+    }
+  } else {
+    for(i in 1:length(cutoff))
+    {
+      xrw2[,i] = out[2,tmps[,i],cutoff[i]]
+    }
   }
 
   # Scatterplots over time
   pdf(file,width=width,height=height)
-  par(mfrow=c(mr,mc),mar=mar)
+  par(mfrow=c(mr,mc),mar=mar,mgp=mgp)
   for(i in 1:length(cutoff))
   {
     if(i == 1)
     {
-      plot(xrw1[,i],xrw2[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab=plabs[1],ylab=plabs[2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize)
-      mtext(paste("Truth = ",truth[1],sep=""),side=1,cex=tsize)
-      mtext(paste("Truth = ",truth[2],sep=""),side=2,cex=tsize)
-      points(truth[1],truth[2],col=2,pch=20)
+      if(!is.null(borderx) | !is.null(bordery))
+      {
+        plot(xrw1[,i],xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab=plabs[1],ylab=plabs[2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
+        if(!is.null(borderx)) abline(v=borderx)
+        if(!is.null(bordery)) abline(h=bordery)
+        points(xrw1[,i],xrw2[,i],col="gray")
+      } else {
+        plot(xrw1[,i],xrw2[,i],xlim=xlim,ylim=ylim,xlab=plabs[1],ylab=plabs[2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
+      }
+      points(truth[1],truth[2],col=2,pch=3,cex=2)
     } else {
-      plot(xrw1[,i],xrw2[,i],xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize)
-      points(truth[1],truth[2],col=2,pch=20)
+      if(!is.null(borderx) | !is.null(bordery))
+      {
+        plot(xrw1[,i],xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
+        if(!is.null(borderx)) abline(v=borderx)
+        if(!is.null(bordery)) abline(h=bordery)
+        points(xrw1[,i],xrw2[,i],col="gray")
+      } else {
+        plot(xrw1[,i],xrw2[,i],xlim=xlim,ylim=ylim,xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
+      }
+      points(truth[1],truth[2],col=2,pch=3,cex=2)
     }
   }
   dev.off()

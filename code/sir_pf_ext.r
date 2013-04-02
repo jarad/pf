@@ -26,8 +26,8 @@ pf <- function(n, filt, resamp, prior, progress, ...)
     }
     ftheta = function(theta,param=1) theta2u(theta,thetal[param],thetau[param])
   } else {
-    theta.mean = c(-1.3296, -2.1764, 0.1055, -4.9517, 0, -6.9078)
-    theta.sd = sqrt(c(0.1055, 0.0140, 0.0064, 4.7209, 0.0059, 1.3801))
+    theta.mean = c(-1.3296, -2.1764, 0.1055, -4.9517, -0.0114, -7.0516)
+    theta.sd = c(.3248, .1183, .0800, .3536, .0771, .2803)
     rtheta = function(){ rnorm(3,theta.mean,theta.sd)}
     rthetaPlus = function()
     {
@@ -84,7 +84,7 @@ pf <- function(n, filt, resamp, prior, progress, ...)
 
 # Apply pf to combination of pfs
 require(plyr)
-mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("BF","APF","KD"), resamp = c("multinomial","residual","stratified","systematic"), prior = "normal", progress=FALSE, nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
+mydata = expand.grid(filt = c("BF","APF","KD"), n = c(100, 1000, 10000, 20000, 40000), resamp = "stratified", prior = "normal", progress=FALSE, nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
 m_ply(mydata,pf)
 
 # Clear objects
