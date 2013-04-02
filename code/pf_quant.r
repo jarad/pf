@@ -4,10 +4,11 @@ source("pf_functions.r")
 dpath = "../data/"
 
 # Which model
-mod = ""
+mod = "-ext"
 
 # Which data frame to use
-mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("BF","APF","KD"), resamp = c("multinomial","residual","stratified","systematic"), prior = c("normal","uniform"), nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
+#mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = c("BF","APF","KD"), resamp = "stratified", prior = "normal", nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
+mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = "KD", resamp = "stratified", prior = "normal", nonuniformity = "ess", threshold = 0.8, stringsAsFactors = FALSE)
 
 pf.quant = function(n, filt, resamp, prior, ...)
 {
@@ -18,7 +19,14 @@ pf.quant = function(n, filt, resamp, prior, ...)
 
   # Calculate 2.5%, 50%, and 97.5% quantiles of states over time
   probs = c(.5,.025,.975)
-  state.quant = pf.quantile(out$state[1:2,,], out$weight, function(x,param=1) x, probs)
+  tt = dim(out$state)[3]
+  states = array(NA,dim=c(3,n,tt))
+  states[1:2,,] = out$state[1:2,,]
+  for(i in 1:tt)
+  {
+    states[3,,i] = 1 - apply(out$state[1:2,,i],2,sum)
+  }
+  state.quant = pf.quantile(states, out$weight, function(x,param=1) x, probs)
 
   # Calculate 2.5%, 50%, and 97.5% quantiles of parameters over time
   if("theta" %in% names(out))

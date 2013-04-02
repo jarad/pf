@@ -199,7 +199,7 @@ for(k in 1:length(params))
   load(paste(dpath,"sim-xy.rdata",sep=""))
   abline(h=theta[k])
 }
-params = expression(i,s)
+params = expression(i,s,r)
 for(k in 2:1)
 {
   out = pf.quant.out$state.quant
@@ -210,19 +210,18 @@ for(k in 2:1)
      plot(1:nt,out[-1,k,2],type="l",ylim=c(ymin,1),col=3,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=3)
      lines(1:nt,sim$x[k,-1])
-  } else { # label x axis, title for infected
+  } else { # label x axis, title for infected, recovered
      ymax = max(out[-1,k,3],sim$x[k,1])
      plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=3,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=3)
      lines(1:nt,sim$x[k,-1])
   }
 }
-xl = 1 - apply(out[-1,,2],1,sum)
-xu = 1 - apply(out[-1,,3],1,sum)
+k = 3
 truex = 1 - apply(sim$x[,-1],2,sum)
-ymax = max(xu,truex)
-plot(1:nt,xl,type="l",ylim=c(0,ymax),col=3,xlab="Time (days)",ylab="",main=expression(r),cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-lines(1:nt,xu,col=3)
+ymax = max(out[-1,k,3],truex)
+plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=3,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+lines(1:nt,out[-1,k,3],col=3)
 lines(1:nt,truex)
 dev.off()
 
@@ -234,16 +233,16 @@ cex.lab = 6
 cex.main = 7
 cex.axis = 4
 cex.leg = 4
-pdf(paste(gpath,"PF-ext-KD-stratified-normal-10000.pdf",sep=""),width=30,height=30)
+pdf(paste(gpath,"PF-ext-KD-stratified-normal-40000.pdf",sep=""),width=30,height=30)
 par(mfrow=c(3,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
-load(paste(dpath,"PF-quant-ext-KD-normal-stratified-20000.rdata",sep=""))
+load(paste(dpath,"PF-quant-ext-KD-normal-stratified-40000.rdata",sep=""))
 for(k in 1:length(params))
 {
   out = pf.quant.out$theta.quant
   tt = dim(out)[1]; nt = tt - 1
   if(k == 1) # label y axis, title, legend
   {
-     plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=3,xlab="",ylab="J = 10000",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+     plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=3,xlab="",ylab="J = 40000",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=3)
      legend("topright",legend=c("Truth","KD"),col=c(1,3),lty=rep(1,2),cex=cex.leg)
   } else { # label title only
@@ -254,7 +253,7 @@ for(k in 1:length(params))
   theta = c(theta,b,varsigma,sigma)
   abline(h=theta[k])
 }
-params = expression(i,s)
+params = expression(i,s,r)
 for(k in 2:1)
 {
   out = pf.quant.out$state.quant
@@ -272,11 +271,10 @@ for(k in 2:1)
      lines(1:nt,sim$x[k,-1])
   }
 }
-xl = 1 - apply(out[-1,,2],1,sum)
-xu = 1 - apply(out[-1,,3],1,sum)
+k = 3
 truex = 1 - apply(sim$x[,-1],2,sum)
-ymax = max(xu,truex)
-plot(1:nt,xl,type="l",ylim=c(0,ymax),col=3,xlab="Time (days)",ylab="",main=expression(r),cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-lines(1:nt,xu,col=3)
+ymax = max(out[-1,k,3],truex)
+plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=3,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+lines(1:nt,out[-1,k,3],col=3)
 lines(1:nt,truex)
 dev.off()
