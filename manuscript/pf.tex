@@ -293,7 +293,7 @@ Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered dist
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{PF-KD-normal}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows), color coded by resampling technique.  Normal priors on $\theta$ and the KD particle filter were used for all runs.  Areas shaded gray are outside of 95\% credible bounds calculated by taking the average quantiles of the four resampling techniques.} \label{fig:resamp}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows), color coded by resampling technique.  Normal priors on $\theta$ and the KD particle filter were used for all runs.  Areas shaded gray are outside of 95\% credible bounds calculated by taking the average quantiles of the four resampling techniques at $J = 20000$ particles.} \label{fig:resamp}
 \end{figure}
 
 We prefer to use the stratified or residual resampling schemes since, according to \cite{Douc:Capp:Moul:comp:2005}, we are guaranteed to decrease the Monte Carlo variability in the particle samples relative to multinomial sampling.  Figure \ref{fig:strat} shows the filtered distributions over time of the unknown parameters and the unknown states of the epidemic using stratified resampling.
@@ -327,7 +327,7 @@ Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filter
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{PF-ext-KD-stratified-normal-10000}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters in the extended model over time.  $J = 20000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:ext}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters in the extended model over time.  $J = 10000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:ext}
 \end{figure}
 
 \section{Discussion \label{sec:discussion}}

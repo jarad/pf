@@ -225,7 +225,7 @@ lines(1:nt,out[-1,k,3],col=3)
 lines(1:nt,truex)
 dev.off()
 
-# Figure 5 - Extended model: KD PF for 20000 particles with normal priors and stratified resampling
+# Figure 5 - Extended model: KD PF for 10000 particles with normal priors and stratified resampling
 params = expression(beta,gamma,nu,b,varsigma,sigma)
 ymins = c(0.15,0.075,0.8,0,.75,0)
 ymaxs = c(0.35,0.165,1.45,1,1.25,.0035)
@@ -233,16 +233,16 @@ cex.lab = 6
 cex.main = 7
 cex.axis = 4
 cex.leg = 4
-pdf(paste(gpath,"PF-ext-KD-stratified-normal-40000.pdf",sep=""),width=30,height=30)
+pdf(paste(gpath,"PF-ext-KD-stratified-normal-10000.pdf",sep=""),width=30,height=30)
 par(mfrow=c(3,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
-load(paste(dpath,"PF-quant-ext-KD-normal-stratified-40000.rdata",sep=""))
+load(paste(dpath,"PF-quant-ext-KD-normal-stratified-10000.rdata",sep=""))
 for(k in 1:length(params))
 {
   out = pf.quant.out$theta.quant
   tt = dim(out)[1]; nt = tt - 1
   if(k == 1) # label y axis, title, legend
   {
-     plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=3,xlab="",ylab="J = 40000",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+     plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=3,xlab="",ylab="J = 10000",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=3)
      legend("topright",legend=c("Truth","KD"),col=c(1,3),lty=rep(1,2),cex=cex.leg)
   } else { # label title only
