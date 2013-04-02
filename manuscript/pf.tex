@@ -8,6 +8,7 @@
 
 \graphicspath{{/Users/niemi/Dropbox/SIR_Particle_Filtering/Graphs/}
                        {/Users/niemi/Dropbox/SIR_Particle_Filtering/doesnotexist/}
+                       {/Users/Danny/"My Documents"/"UCSB - Research"/pf/graphs/}
                        {/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/}
                        {/data/home/faculty/meiring/Dropbox/SIR_Particle_Filtering/Graphs/}
                        {./Graphs/}
@@ -253,22 +254,10 @@ First, we examine the performance of the three different particle filtering algo
 
 The bounds for the KD particle filter (green lines), on the other hand, never degenerate because values of $\theta$ are resampled from the normal density kernel at each iteration of the particle filter.  We notice that the bounds become wider and more adequately reflect the uncertainty in the parameters as $J$ increases from 100 to 10000 particles.  They do not change much between $J = 10000$ and $J = 20000$ particles, suggesting that by 10000 particles the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ has converged to the true posterior.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
-%\caption*{$\mbox{uniform priors} \qquad \mbox{systematic resampling}$}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-100}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-1000}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-10000}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-uniform-systematic-20000}
-\end{minipage}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows).  Uniform priors and systematic resampling were used for all particle filter runs.} \label{fig:unisys}
+\includegraphics[width=1.0\textwidth]{PF-systematic-uniform}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows).  Uniform priors and systematic resampling were used for all particle filter runs, and the scale of the plot axes are identical within columns.} \label{fig:unisys}
 \end{figure}
 
 \subsection{Comparison of Priors}
@@ -280,14 +269,14 @@ However, notice in the bottom half of the figure that when uniform priors on $\t
 \begin{figure}
 \centering
 \begin{minipage}{1.0\linewidth}
-\caption*{normal priors}
-\includegraphics[width=1.0\textwidth]{Hist-KD-normal-systematic-10000-betagamma}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
 \caption*{uniform priors}
 \includegraphics[width=1.0\textwidth]{Hist-KD-uniform-systematic-10000-betagamma}
 \end{minipage}
-\caption{Displays scatterplots of $\beta$ versus $\gamma$ at $t = 15, 30, 45,\ldots,120$ days using the kernel density particle filter with $J = 10000$ particles and systematic resampling.  For each panel, 500 particles were sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ and plotted.  Red dots indicates the true value of $\beta$ and $\gamma$ used for simulation.} \label{fig:priors}
+\begin{minipage}{1.0\linewidth}
+\caption*{normal priors}
+\includegraphics[width=1.0\textwidth]{Hist-KD-normal-systematic-10000-betagamma}
+\end{minipage}
+\caption{Displays scatterplots of $\beta$ versus $\gamma$ at $t = 15, 30, 45,\ldots,120$ days using the kernel density particle filter with $J = 10000$ particles and systematic resampling.  For each panel, 500 particles were sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ and plotted.  Red crosses indicate the true values of $\beta$ and $\gamma$ used for simulation ($\beta = 0.2399$ and $\gamma = 0.1066$).  Plot axes are all on the same scale, and horizontal lines indicate the bounds of the uniform prior on $\gamma$.} \label{fig:priors}
 \end{figure}
 
 \subsection{Comparison of Resampling Schemes}
@@ -301,35 +290,17 @@ Now preferring to run the KD particle filter with 10000 particles using normal p
 
 Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered distributions of the unknown parameters as $J$ increases for the four different resampling schemes.  The upper and lower quantiles of the true posterior shown in the graphs within this figure were calculated by taking the average of the quantiles of the filtered distributions under each resampling scheme using 20000 particles.  To evaluate the different resampling approaches, we would like to determine the resampling scheme for which the marginal particle filtered distributions of $\theta$ approach the true posterior the fastest with increasing $J$.  Looking in particular at the panel for $\nu$ at $J = 10000$, multinomial resampling appears to be outperformed by the other three methods.  However, it is difficult to discern which of the remaining three methods performs the best.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
-%\caption*{$\mbox{normal priors}$}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-KD-100}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-KD-1000}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-KD-10000}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-KD-20000}
-\end{minipage}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows), color coded by resampling technique.  Normal priors on $\theta$ and the KD particle filter were used for all runs.  The area outside of the true posterior bounds are shaded gray to ease comparison.} \label{fig:resamp}
+\includegraphics[width=1.0\textwidth]{PF-KD-normal}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows), color coded by resampling technique.  Normal priors on $\theta$ and the KD particle filter were used for all runs.  Areas shaded gray are outside of 95\% credible bounds calculated by taking the average quantiles of the four resampling techniques.} \label{fig:resamp}
 \end{figure}
 
 We prefer to use the stratified or residual resampling schemes since, according to \cite{Douc:Capp:Moul:comp:2005}, we are guaranteed to decrease the Monte Carlo variability in the particle samples relative to multinomial sampling.  Figure \ref{fig:strat} shows the filtered distributions over time of the unknown parameters and the unknown states of the epidemic using stratified resampling.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
-%\caption*{$\mbox{normal priors} \qquad $J = 10000$ \mbox{ particles}$}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-normal-stratified-10000}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-states-normal-stratified-10000}
-\end{minipage}
+\includegraphics[width=1.0\textwidth]{PF-KD-stratified-normal-10000}
 \caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters over time.  $J = 10000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:strat}
 \end{figure}
 
@@ -353,18 +324,9 @@ As with the other three parameters, the prior distributions of $b$, $\varsigma$,
 
 Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of $\theta$ and $x$.  The intervals for $i$, $s$, and $r$ are much wider than in figure \ref{fig:strat}, particularly at the beginning of the epidemic, due to the uncertainty in $b$, $\varsigma$, and $\sigma$.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
-%\caption*{$\mbox{normal priors} \qquad \mbox{stratified resampling}$}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-st-normal-stratified-20000}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-params-ext-obs-normal-stratified-20000}
-\end{minipage}
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-states-ext-normal-stratified-20000}
-\end{minipage}
+\includegraphics[width=1.0\textwidth]{PF-ext-KD-stratified-normal-10000}
 \caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters in the extended model over time.  $J = 20000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:ext}
 \end{figure}
 
