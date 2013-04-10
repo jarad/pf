@@ -201,7 +201,7 @@ Notice from equation \eqref{eqn:state} that the transition density needed to pro
 
 \subsection{Simulation Setup} \label{sec:sim}
 
-An epidemic lasting $T = 125$ days was simulated from our model for a population of size $P = 5000$.  True values of unknown parameters were set to $\beta = 0.2399$, $\gamma = 0.1066$, and $\nu = 1.2042$, and values of known constants for $L = 4$ syndromes are given in table \ref{tab:true}.  Infection was introduced in 10 people in the population at day 0 (i.e. $i_0 = 10/5000$ and $s_0 = 4990/5000$).  Observations arrived daily from the different syndromes asynchronously, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
+An epidemic lasting $T = 125$ days was simulated from our model for a population of size $P = 5000$.  True values of unknown parameters were set to $\beta = 0.2399$, $\gamma = 0.1066$, and $\nu = 1.2042$, and values of known constants for $L = 4$ syndromes are given in table \ref{tab:true}.  Infection was introduced in 10 people in the population at day 0 (i.e. $i_0 = 10/5000$ and $s_0 = 4990/5000$).  Data were observed daily from the different syndromes asynchronously, i.e. at each day we can observe data from 0, 1, or more than 1 syndrome.  The epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
 
 \begin{table}[ht]
 \begin{center}
@@ -220,7 +220,7 @@ $l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
 \end{center}
 \end{table}
 
-The bootstrap filter (BF), auxilliary particle filter (APF), and kernel density particle filter (KD) were each run using $J = 100, 1000, 10000, \mbox{ and } 20000$ particles to obtain weighted sample approximations of $p(x_t,\theta|y_{1:t})$ for $t = 1,\ldots,T$.  For a comparison of resampling schemes, this process was carried out using multinomial, residual, stratified, and then systematic resampling.  For each resampling technique, an effective sample size threshold of 0.8 was used.  For the kernel density particle filter, the tuning parameter $\delta$ was set to 0.99.
+The bootstrap filter (BF), auxilliary particle filter (APF), and kernel density particle filter (KD) were each run using $J = 100, 1000, 10000, \mbox{ and } 20000$ particles to obtain weighted sample approximations of $p(x_t,\theta|y_{1:t})$ for $t = 1,\ldots,T$.  For a comparison of resampling schemes, this process was carried out using multinomial, residual, stratified, and systematic resampling.  For each resampling technique, an effective sample size threshold of 0.8 was used.  For the kernel density particle filter, the tuning parameter $\delta$ was set to 0.99.
 
 $x_0$ and $\theta_0$ were sampled from the prior density given by
 
@@ -230,7 +230,7 @@ $x_0$ and $\theta_0$ were sampled from the prior density given by
 \[p\left(i_0\right) = N_{[0,1]}\left(i_0;0.002,0.00255^2\right) \qquad s_0 = 1 - i_0 \]
 The prior on $i_0$ and $s_0$ comes from the thought that a very small percentage of the population is infected during the initial stage of an epidemic.  Also, $s_0 = 1 - i_0$ before any infected individuals have recovered from illness, and thus $i_0$ and $s_0$ can be sampled jointly.
 
-To investigate the impact of different prior distributions of $\theta$ on the performance of the particle filters, the particle filters described above were run using both uniform and normal priors on $\theta$.  Using uniform priors, $p(\beta)$, $p(\gamma)$, and $p(\nu)$ are given by
+To investigate the impact of different prior distributions of $\theta$ on performance, the particle filters described above were run using both uniform and normal priors on $\theta$.  Using uniform priors, $p(\beta)$, $p(\gamma)$, and $p(\nu)$ are given by
 
 \begin{align*}
 p(\beta) &= U_{[0.14, 0.50]}(\beta) \\
@@ -246,13 +246,13 @@ p(\nu) &= U_{[0.95,1.3]}(\nu)
 \log(\nu) &\sim N(0.1055, 0.0800^2)
 \end{align*}
 
-\noindent The normal priors are specified on the log scale so that $\beta$, $\gamma$, and $\nu$ are constrained to be positive.  The mean and variance of the log of the unknown parameters were chosen so that random draws on the original scale would fall within the uniform bounds with 95\% probability.
+\noindent The normal priors are specified on the log scale so that $\beta$, $\gamma$, and $\nu$ are constrained to be positive.  The mean and variance of the log of the unknown parameters were chosen so that random draws on the original scale would fall within the uniform bounds with 95\% probability.  To aid comparison of the particle filters, the same prior draws were used for the BF, APF, and KD particle filters, as long as $J$ and the type of prior (normal or uniform) were kept constant.
 
 \subsection{Comparison of Particle Filters}
 
-First, we examine the performance of the three different particle filtering algorithms using uniform priors on $\theta$ and systematic resampling, since this choice of prior and resampling scheme was used in \citet{skvortsov2012monitoring}.  Figure \ref{fig:unisys} shows 95\% credible bounds of the marginal posterior distributions of the unknown parameters over time as $J$ increases.  The bounds for the BF (red lines) and APF (blue lines) start out wide and then eventually degenerate toward a single value because of the elimination of unique particles during resampling.  Although the time of complete degeneracy increases as $J$ gets larger, the bounds become uninformative during the second half of the epidemic even for $J = 20000$.
+First, we examine the performance of the three different particle filtering algorithms using uniform priors on $\theta$ and systematic resampling, since this choice of prior and resampling scheme was used in \citet{skvortsov2012monitoring}.  Figure \ref{fig:unisys} shows 95\% credible bounds of the marginal posterior distributions of the unknown parameters over time as $J$ increases.  The bounds for the BF (red lines) and APF (blue lines) start out wide and then eventually degenerate toward a single value because of the elimination of unique particles during resampling.  Although the time of degeneracy increases as $J$ gets larger, the bounds become uninformative during the second half of the epidemic even for $J = 20000$.  The bounds for the KD particle filter (green lines), on the other hand, never degenerate because values of $\theta$ are resampled from the normal density kernel at each iteration of the particle filter.  
 
-The bounds for the KD particle filter (green lines), on the other hand, never degenerate because values of $\theta$ are resampled from the normal density kernel at each iteration of the particle filter.  We notice that the bounds become wider and more adequately reflect the uncertainty in the parameters as $J$ increases from 100 to 10000 particles.  They do not change much between $J = 10000$ and $J = 20000$ particles, suggesting that by 10000 particles the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ has converged to the true posterior.
+Not only does the KD particle filter outperform the BF and APF in terms of avoiding degeneracy, but it runs more efficiently as well.  Notice that the bounds for the KD particle filter become wider as $J$ increases, but they do not change much between $J = 10000$ and $J = 20000$ particles.  This suggests that by 10000 particles the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ has converged to the true posterior.  Thus, even though the bounds of the APF approximately match that of the KD particle filter for the first 25 days of the epidemic at 20000 particles, the KD particle filter provides roughly the same measure of uncertainty using only 10000 particles.
 
 \begin{figure}
 \centering
@@ -262,9 +262,9 @@ The bounds for the KD particle filter (green lines), on the other hand, never de
 
 \subsection{Comparison of Priors}
 
-Next, we investigate the effect of normal versus uniform priors on $\theta$ for the KD particle filter using 10000 particles and systematic resampling.  Figure \ref{fig:priors} shows scatterplots of $\beta$ versus $\gamma$ taken from their joint filtered distribution at every $15^{\mbox{th}}$ day.  We see from both the top and bottom halves of the figure that even though $\beta$ and $\gamma$ are sampled independently at $t = 0$, they become highly correlated during the climb of the epidemic and lose this correlation as the epidemic phases out.  This is because we are accumulating information about both the spread of disease and the recovery time as more people get sick, but only about the recovery time as the epidemic declines.
-
-However, notice in the bottom half of the figure that when uniform priors on $\theta$ are used, some particles are pushed up against the top and bottom of the graphs for $t = 15, 30, \mbox{ and } 45$.  This indicates that the uniform bounds on $\gamma$ may be too restrictive, and the positive correlation between $\beta$ and $\gamma$ during the first half of the epidemic appears to have caused a constriction of the sampled values of $\beta$ as well.  Using normal priors relaxes this constraint on the sample space of $\theta$ imposed by the uniform priors and allows the filtered distribution of $\theta$ to evolve over time more freely.
+Next, we investigate the effect of normal versus uniform priors on $\theta$ for the KD particle filter using 10000 particles and systematic resampling.  Figure \ref{fig:priors} shows scatterplots of $\beta$ versus $\gamma$ taken from their joint filtered distribution at $t = 15, 30, 45, 60$.  Notice in the top half of the figure that when uniform priors on $\theta$ are used, some particles are pushed up against the top and bottom of the graphs for $t = 15 \mbox{ and } 30$, indicating that the uniform bounds on $\gamma$ are too restrictive.  This problem does not present itself with $\beta$ because during the first half of the epidemic more people are getting sick than recovering from illness.  Hence, we learn more about $\beta$, the rate of spread of disease, than $\gamma$, the recovery time.
+ 
+We see from both the top and bottom rows of the figure that even though $\beta$ and $\gamma$ are sampled independently at $t = 0$, they become correlated during the climb of the epidemic, suggesting that knowledge of $\beta$ provides information about $\gamma$ and vice versa.  However, when uniform priors are used we lose some of this correlation by $t = 60$ while the correlation remains strong under normal priors. The loss of correlation in the top row of the figure appears to be an artifact of the truncation of sampled $\gamma$ values that result from the over-restrictive uniform bounds.  We prefer to use normal priors in order to relax the constraint on the sample space of $\theta$ and allow the filtered distribution of $\theta$ to evolve over time more freely.
 
 \begin{figure}
 \centering
@@ -276,58 +276,51 @@ However, notice in the bottom half of the figure that when uniform priors on $\t
 \caption*{normal priors}
 \includegraphics[width=1.0\textwidth]{Hist-KD-normal-systematic-10000-betagamma}
 \end{minipage}
-\caption{Displays scatterplots of $\beta$ versus $\gamma$ at $t = 15, 30, 45,\ldots,120$ days using the kernel density particle filter with $J = 10000$ particles and systematic resampling.  For each panel, 500 particles were sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ and plotted.  Red crosses indicate the true values of $\beta$ and $\gamma$ used for simulation ($\beta = 0.2399$ and $\gamma = 0.1066$).  Plot axes are all on the same scale, and horizontal lines indicate the bounds of the uniform prior on $\gamma$.} \label{fig:priors}
+\caption{Displays scatterplots of $\beta$ versus $\gamma$ at $t = 15, 30, 45, 60$ days using the kernel density particle filter with $J = 10000$ particles and systematic resampling.  For each panel, 500 particles were sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ and plotted.  Red crosses indicate the true values of $\beta$ and $\gamma$ used for simulation ($\beta = 0.2399$ and $\gamma = 0.1066$).  Plot axes are all on the same scale, and dashed horizontal lines indicate the bounds of the uniform prior on $\gamma$.  Uniform bounds on $\beta$ are not shown because they lay outside the range of the x-axis.} \label{fig:priors}
 \end{figure}
 
 \subsection{Comparison of Resampling Schemes}
 
 Now preferring to run the KD particle filter with 10000 particles using normal priors on the unknown parameters, we turn to a comparison of different techniques for the resampling step of the particle filtering algorithm.  Resampling is meant to rebalance the weights of the particles in order to avoid degeneracy.  The four resampling methods used in this paper - multinomial, residual, stratified, and systematic - achieve this at the cost of increasing the Monte Carlo variability of the particle sample.  That is, additional variance is introduced into the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ due to resampling of particles.  \citet{Douc:Capp:Moul:comp:2005} explains these four methods in detail and determines the following:
+
 \begin{enumerate}
-\item Multinomial resampling introduces more Monte Carlo variability than does residual and stratified resampling.
-\item Residual and stratified resampling introduce the same amount of Monte Carlo variability.
+\item Multinomial resampling introduces more Monte Carlo variability than do residual and stratified resampling.
+\item Residual and stratified resampling introduce the same amount of Monte Carlo variability on average.
 \item Systematic resampling may introduce more or less Monte Carlo variability than does multinomial resampling.
 \end{enumerate}
 
-Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered distributions of the unknown parameters as $J$ increases for the four different resampling schemes.  The upper and lower quantiles of the true posterior shown in the graphs within this figure were calculated by taking the average of the quantiles of the filtered distributions under each resampling scheme using 20000 particles.  To evaluate the different resampling approaches, we would like to determine the resampling scheme for which the marginal particle filtered distributions of $\theta$ approach the true posterior the fastest with increasing $J$.  Looking in particular at the panel for $\nu$ at $J = 10000$, multinomial resampling appears to be outperformed by the other three methods.  However, it is difficult to discern which of the remaining three methods performs the best.
+Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered distributions of the unknown parameters as $J$ increases for the four different resampling schemes.  Ideally, the resampling scheme that performed the best would stand out in that the marginal particle filtered distribution of $\theta$ approaches the true posterior (approximated by the white area in the plots) the fastest with increasing $J$.  Noticing in particular at the panel for $\nu$ at $J = 10000$, multinomial resampling appears to be outperformed by the other three methods.  However, it is difficult to discern which of the remaining three methods performs the best.  We prefer to use stratified resampling since, according to \cite{Douc:Capp:Moul:comp:2005}, systematic resampling can perform worse than multinomial in certain cases and stratified resampling is guaranteed to decrease the Monte Carlo variability in the particle samples, on average, relative to multinomial sampling.
 
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{PF-KD-normal}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows), color coded by resampling technique.  Normal priors on $\theta$ and the KD particle filter were used for all runs.  Areas shaded gray are outside of 95\% credible bounds calculated by taking the average quantiles of the four resampling techniques at $J = 20000$ particles.} \label{fig:resamp}
-\end{figure}
-
-We prefer to use the stratified or residual resampling schemes since, according to \cite{Douc:Capp:Moul:comp:2005}, we are guaranteed to decrease the Monte Carlo variability in the particle samples relative to multinomial sampling.  Figure \ref{fig:strat} shows the filtered distributions over time of the unknown parameters and the unknown states of the epidemic using stratified resampling.
-
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{PF-KD-stratified-normal-10000}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters over time.  $J = 10000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:strat}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows), color coded by resampling technique.  Normal priors on $\theta$ and the KD particle filter were used for all runs.  Plot axes are identical within columns, and areas shaded gray are outside of 95\% credible bounds calculated by taking the average quantiles of the four resampling techniques at $J = 20000$ particles.} \label{fig:resamp}
 \end{figure}
 
 \section{Extending the model \label{sec:extend}}
 
-We now turn our focus to extending the model to include the $b_l$'s, $\varsigma_l$'s, and $\sigma_l$'s as unknown parameters.  We consider data coming from just $L = 1$ syndrome and let $\theta = (\beta, \gamma, \nu, b, \varsigma, \sigma)'$, dropping the subscript $l$ for convenience.  Data are simulated from the model with true values set at $b = 0.25$, $\varsigma = 1$, $\sigma = 0.001$, and the remaining parameters set at the same values as in section \ref{sec:sim}.  Again, we let the epidemic run for $T = 125$ days in a population of size $P = 5000$ with infection introduced in 10 people at day 0.  Either 1 or 0 observations were recorded each day, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
+We now turn our focus to extending the model to include the $b_l$'s, $\varsigma_l$'s, and $\sigma_l$'s as unknown parameters.  We consider data coming from just $L = 1$ syndrome and let $\theta = (\beta, \gamma, \nu, b, \varsigma, \sigma)'$, dropping the subscript $l$ for convenience.  Data were simulated from the model with true values set at $b = 0.25$, $\varsigma = 1$, $\sigma = 0.001$, and the remaining parameters set at the same values as in section \ref{sec:sim}.  Again, we let the epidemic run for $T = 125$ days in a population of size $P = 5000$ with infection introduced in 10 people at day 0.  Date were observed daily from either 1 or 0 syndromes, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
 
-The KD particle filter with tuning parameter $\delta$ set to 0.99 was run with $J = 20000$ particles, and stratified resampling was used with an effective sample size threshold of 0.8.  $x_0$ and $\theta$ were sampled from the prior density given by
+The KD particle filter with tuning parameter $\delta$ set to 0.99 was run with $J = 10000$ particles, and stratified resampling was used with an effective sample size threshold of 0.8.  $x_0$ and $\theta$ were sampled from the prior density given by
 
 \[p\left(x_0,\theta\right) = p\left(\beta\right)p\left(\gamma\right)p\left(\nu\right)p\left(b\right)p\left(\varsigma\right)p\left(\sigma\right)p\left(i_0,s_0\right)\]
 
 \noindent where $p(i_0,s_0)$, $p(\beta)$, $p(\varsigma)$, and $p(\sigma)$ are defined the same way as in section \ref{sec:sim}.  $p(b)$, $p(\varsigma)$, and $p(\sigma)$ are defined by
 
 \begin{align*}
-\log(b) &\sim  N(-4.9517, 2.1728^2) \\
-\log(\varsigma) &\sim N(0, 0.0768^2) \\
-\log(\sigma) &\sim N(-6.9078, 1.1748^2)
+\log(b) &\sim  N(-1.609, 0.3536^2) \\
+\log(\varsigma) &\sim N(-0.0114, 0.0771^2) \\
+\log(\sigma) &\sim N(-7.0516, 0.2803^2)
 \end{align*}
 
-As with the other three parameters, the prior distributions of $b$, $\varsigma$, and $\sigma$ are defined on the log scale so that they are constrained to be positive.  The choice of prior mean and standard deviation on the log scale were made such that random draws of $b$, $\varsigma$, and $\sigma$ on the original scale would be within $(0.0001, 0.5000)$, $(0.85, 1.15)$, and $(0.0001, 0.0100)$, respectively, with 95\% probability.
+As with the other three parameters, the prior distributions of $b$, $\varsigma$, and $\sigma$ are defined on the log scale so that they are constrained to be positive.  The choice of prior mean and standard deviation on the log scale were made such that random draws of $b$, $\varsigma$, and $\sigma$ on the original scale would be within $(0.1, 0.4)$, $(0.85, 1.15)$, and $(0.0005, 0.0015)$, respectively, with 95\% probability.  For comparison purposes, the KD particle filter with 10000 particles was also run assuming $b$, $\varsigma$, and $\sigma$ known. 
 
-Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of $\theta$ and $x$.  The intervals for $i$, $s$, and $r$ are much wider than in figure \ref{fig:strat}, particularly at the beginning of the epidemic, due to the uncertainty in $b$, $\varsigma$, and $\sigma$.
+Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of $\theta$ and $x$ for both the extended model and the original model that assumes $b$, $\varsigma$, and $\sigma$ known.  The intervals for $s$, $i$, and $r$ are wider for the extended model (green lines) than for the original model due to the uncertainty in $b$, $\varsigma$, and $\sigma$.
 
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{PF-ext-KD-stratified-normal-10000}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters in the extended model over time.  $J = 10000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:ext}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters of the extended model (green) over time compared with that of the model assuming $b$, $\varsigma$, and $\sigma$ known.  $J = 10000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:ext}
 \end{figure}
 
 \section{Discussion \label{sec:discussion}}

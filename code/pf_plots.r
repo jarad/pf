@@ -64,7 +64,8 @@ for(i in 1:length(ns))
 dev.off()
 
 # Figure 2 - Create scatterplots of beta v gamma over time
-mydata = expand.grid(n = 10000, filt = "KD", resamp = "systematic", prior = c("normal","uniform"), stringsAsFactors=FALSE)
+mydata = expand.grid(n = c(1000,10000), filt = "KD", resamp = "systematic", prior = c("normal","uniform"), stringsAsFactors=FALSE)
+mod = ""
 # pf.scats - function to construct scatterplots of beta v gamma
 pf.scats = function(n, filt, resamp, prior, ...)
 {
@@ -83,7 +84,7 @@ pf.scats = function(n, filt, resamp, prior, ...)
   myout[2,,] = gammas
   file = paste(gpath,"Hist",mod,"-",filt,"-",prior,"-",resamp,"-",n,"-betagamma.pdf",sep="")
   cutoff = seq(16,61,len=4)
-  pf.scat(myout,pf.out$out$weight,cutoff,expr[1:2],theta[1:2],file,M=500,xlim=c(.17,.33),ylim=c(.07,.17),borderx=c(.14,.5),bordery=c(.09,.143),mr=1,mc=4,width=80,height=20,method="stratified")
+  pf.scat(myout,pf.out$out$weight,cutoff,expr[1:2],theta[1:2],file,M=500,xlim=c(.17,.33),ylim=c(.07,.17),borderx=c(.14,.5),bordery=c(.09,.143),mr=1,mc=4,width=20,height=5,method="stratified")
 }
 
 # Construct scatterplots
@@ -245,7 +246,7 @@ for(k in 1:length(params))
      plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=3,xlab="",ylab="J = 10000",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=3)
      myexpr = expression(paste("Known ",b,", ",varsigma,", ",sigma,sep=""))
-     legend("topright",legend=c("Truth",myexpr,"Ext. Model"),col=c("gray",2,3),lty=rep(1,3),cex=cex.leg)
+     legend("topright",legend=c("Truth",myexpr,"Ext. Model"),col=c(1,2,3),lty=c(2,1,1),cex=cex.leg)
   } else { # label title only
      plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=3,xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=3)

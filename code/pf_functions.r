@@ -202,7 +202,7 @@ pf.hist = function(out,wts,cutoff,ftheta,plabs,truth,file,M=10000,tsize=.65,mr=1
 # file - name of outputted pdf file
 # width, height - arguments to pdf()
 # ... - additional arguments passed to resample()
-pf.scat = function(out,wts,cutoff,plabs,truth,file,M=10000,xlim=NA,ylim=NA,borderx=NULL,bordery=NULL,mr=1,mc=1,mar=c(22,32,13,1)+.1,mgp=c(20,5,0),msize=18,labsize=18,axsize=10,ptsize=10,width=10,height=5,...)
+pf.scat = function(out,wts,cutoff,plabs,truth,file,M=10000,xlim=NA,ylim=NA,borderx=NULL,bordery=NULL,mr=1,mc=1,mar=c(7,10,5,1)+.1,mgp=c(6,1,0),msize=5,labsize=5,axsize=3,ptsize=3,width=10,height=5,...)
 {
   require(smcUtils)
 
@@ -265,8 +265,8 @@ pf.scat = function(out,wts,cutoff,plabs,truth,file,M=10000,xlim=NA,ylim=NA,borde
       if(!is.null(borderx) | !is.null(bordery))
       {
         plot(xrw1[,i],xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab=plabs[1],ylab=plabs[2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
-        if(!is.null(borderx)) abline(v=borderx)
-        if(!is.null(bordery)) abline(h=bordery)
+        if(!is.null(borderx)) abline(v=borderx,lty=2)
+        if(!is.null(bordery)) abline(h=bordery,lty=2)
         points(xrw1[,i],xrw2[,i],col="gray",pch=20,cex=ptsize)
       } else {
         plot(xrw1[,i],xrw2[,i],xlim=xlim,ylim=ylim,xlab=plabs[1],ylab=plabs[2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize,pch=20,cex=ptsize)
@@ -276,8 +276,8 @@ pf.scat = function(out,wts,cutoff,plabs,truth,file,M=10000,xlim=NA,ylim=NA,borde
       if(!is.null(borderx) | !is.null(bordery))
       {
         plot(xrw1[,i],xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
-        if(!is.null(borderx)) abline(v=borderx)
-        if(!is.null(bordery)) abline(h=bordery)
+        if(!is.null(borderx)) abline(v=borderx,lty=2)
+        if(!is.null(bordery)) abline(h=bordery,lty=2)
         points(xrw1[,i],xrw2[,i],col="gray",pch=20,cex=ptsize)
       } else {
         plot(xrw1[,i],xrw2[,i],xlim=xlim,ylim=ylim,xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize,pch=20,cex=ptsize)
