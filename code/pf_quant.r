@@ -4,11 +4,11 @@ source("pf_functions.r")
 dpath = "../data/"
 
 # Which model
-mod = "-ext"
+mod = ""
 
 # Which data frame to use
 #mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = c("BF","APF","KD"), resamp = "stratified", prior = "normal", nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
-mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = "KD", resamp = "stratified", prior = "normal", nonuniformity = "ess", threshold = 0.8, stringsAsFactors = FALSE)
+mydata = expand.grid(n = 10000, filt = "KD", resamp = "systematic", prior = "semi-normal", nonuniformity = "ess", threshold = 0.8, stringsAsFactors = FALSE)
 
 pf.quant = function(n, filt, resamp, prior, ...)
 {

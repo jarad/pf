@@ -85,7 +85,7 @@ A key problem that arises in implementing the bootstrap filter is that $w_t^{(j)
 
 The bootstrap filter and the auxiliary particle filter were constructed with the idea that all fixed parameters were known. In order to simultaneously estimate the states and fixed parameters using these methods it is necessary to incorporate the fixed parameters into the state with degenerate evolutions. Due to the resampling step, the number of unique values of the fixed parameters in out particle set will decrease over time, exacerbating the degeneracy problem \citep{Liu:West:comb:2001} \jarad{more references}.
 
-\subsection{Kernel Density Particle Filter}
+\subsection{Kernel Density Particle Filter} \label{sec:kd}
 
 The particle filter introduced by \cite{Liu:West:comb:2001} is a general way of fighting this degeneracy problem by approximating the set of fixed parameter values by a kernel density estimate and then resampling from this approximation at each step in the filter. This enables us to refresh the distribution of $\theta$ to avoid degeneracy and require a lower number of particles to efficiently run the filter. We will refer to this filter as the kernel density particle filter.
 
@@ -238,7 +238,7 @@ p(\gamma) &= U_{[0.09, 0.143]}(\gamma) \\
 p(\nu) &= U_{[0.95,1.3]}(\nu)
 \end{align*}
 
-\noindent where $U_{[a,b]}(.)$ is the pdf of a uniform distribution on the interval $[a,b]$.  The uniform bounds given above are the same as those used in \citet{skvortsov2012monitoring}.  Using normal priors, $p(\beta)$, $p(\gamma)$, and $p(\nu)$ are specified by
+\noindent where $U_{[a,b]}(.)$ is the pdf of a uniform distribution on the interval $[a,b]$.  The uniform bounds given above are the same as those used in \citet{skvortsov2012monitoring}.  Logit transformations were used, as described at the end of section \ref{sec:kd}, on the components of $\theta$ so that the normal kernel could be used in the KD particle filter while constraining $\beta$, $\gamma$, and $\nu$ to be within their respective uniform bounds.  Using normal priors, $p(\beta)$, $p(\gamma)$, and $p(\nu)$ are specified by
 
 \begin{align*}
 \log(\beta) &\sim  N(-1.3296, 0.3248^2) \\
@@ -246,7 +246,7 @@ p(\nu) &= U_{[0.95,1.3]}(\nu)
 \log(\nu) &\sim N(0.1055, 0.0800^2)
 \end{align*}
 
-\noindent The normal priors are specified on the log scale so that $\beta$, $\gamma$, and $\nu$ are constrained to be positive.  The mean and variance of the log of the unknown parameters were chosen so that random draws on the original scale would fall within the uniform bounds with 95\% probability.  To aid comparison of the particle filters, the same prior draws were used for the BF, APF, and KD particle filters, as long as $J$ and the type of prior (normal or uniform) were kept constant.
+\noindent The normal priors are specified on the log scale so that $\beta$, $\gamma$, and $\nu$ are constrained to be positive, and log transformations were used on the components of $\theta$ so that the normal kernel could be used in the KD particle filter while constraining $\beta$, $\gamma$, and $\nu$ to be positive.  The mean and variance of the log of the unknown parameters were chosen so that random draws on the original scale would fall within the uniform bounds with 95\% probability.  To aid comparison of the particle filters, the same prior draws were used for the BF, APF, and KD particle filters, as long as $J$ and the type of prior (normal or uniform) were kept constant.
 
 \subsection{Comparison of Particle Filters}
 
@@ -277,8 +277,12 @@ We see from both the top and bottom rows of the figure that even though $\beta$ 
 \includegraphics[width=1.0\textwidth]{Hist-KD-semi-uniform-systematic-10000-betagamma}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\caption*{normal priors}
+\caption*{normal priors, log transformation}
 \includegraphics[width=1.0\textwidth]{Hist-KD-normal-systematic-10000-betagamma}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\caption*{normal priors}
+\includegraphics[width=1.0\textwidth]{Hist-KD-semi-normal-systematic-10000-betagamma}
 \end{minipage}
 \caption{Displays scatterplots of $\beta$ versus $\gamma$ at $t = 15, 30, 45, 60$ days using the kernel density particle filter with $J = 10000$ particles and systematic resampling.  For each panel, 500 particles were sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ and plotted.  Red crosses indicate the true values of $\beta$ and $\gamma$ used for simulation ($\beta = 0.2399$ and $\gamma = 0.1066$).  Plot axes are all on the same scale, and dashed horizontal lines indicate the bounds of the uniform prior on $\gamma$.  Uniform bounds on $\beta$ are not shown because they lay outside the range of the x-axis.} \label{fig:priors}
 \end{figure}
@@ -328,6 +332,20 @@ Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filter
 \end{figure}
 
 \section{Discussion \label{sec:discussion}}
+
+\section{Appendix \label{sec:appendix}}
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{sim-y}
+\caption{Displays the exponential of the observed syndromic data over time, simulated from the model described in section \ref{sec:sim}.  Different colors represent data from different syndromes.} \label{fig:y}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{sim-y-ext}
+\caption{Displays the exponential of the observed syndromic data over time, simulated from the extended model described in section \ref{sec:extend}} \label{fig:yext}
+\end{figure}
 
 \bibliographystyle{plainnat}
 \bibliography{jarad}
