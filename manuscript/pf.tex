@@ -127,7 +127,7 @@ Practical implementation of any particle filter involves a choice of resampling 
 
 \subsection{Disease Dynamics}
 
-As in \citet{skvortsov2012monitoring}, we consider the modified SIR model with stochastic fluctuations to describe the dynamics of the disease outbreak.  According to this model, we keep track of the number of susceptible, infected, and recovered individuals - denoted by $S$, $I$, and $R$, respectively - over the course of the epidemic.  We require $S + I + R = P$ where $P$ represents the total population size, and we define $s = S/P$, $i = I/P$, and $r = R/P$ so that $s + i + r = 1$.  The dynamics of the epidemic with respect to time, $t$, are then described by the following differential equations:
+As in \citet{skvortsov2012monitoring}, we consider the modified SIR model with stochastic fluctuations \citep{herwaarden1995stochepid, dangerfield2009stochepid, anderson2004sars} to describe the dynamics of the disease outbreak.  According to this model, we keep track of the number of susceptible, infected, and recovered individuals - denoted by $S$, $I$, and $R$, respectively - over the course of the epidemic.  We require $S + I + R = P$ where $P$ represents the total population size, and we define $s = S/P$, $i = I/P$, and $r = R/P$ so that $s + i + r = 1$.  The dynamics of the epidemic with respect to time, $t$, are then described by the following differential equations:
 
 \begin{align}
 \frac{ds}{dt} &= -\beta is^\nu + \epsilon_\beta \label{eqn:dsdt} \\
@@ -136,7 +136,7 @@ As in \citet{skvortsov2012monitoring}, we consider the modified SIR model with s
 
 \noindent Here, $\beta$ represents the contact rate of spread of the disease, $\gamma$ is the recovery time, and $\nu$ is the mixing intensity of the population.  $\beta$, $\gamma$, and $\nu$ are each restricted to be non-negative.  $\epsilon_\beta$ and $\epsilon_\gamma$ are uncorrelated, Gaussian random variables with zero mean and standard deviations $\sigma_\beta$ and $\sigma_\gamma$, respectively.  Note that, by definition, $r$ is completely specified once $s$ and $i$ are known.
 
-As in \citet{skvortsov2012monitoring} once again, we will approximate the standard deviation of the noise terms $\sigma_\beta$ and $\sigma_\gamma$ by the scaling rule \[\sigma_\beta \approx \frac{\sqrt{\beta}}{P} \mbox{, } \sigma_\gamma \approx \frac{\sqrt{\gamma}}{P}\] and use Euler's method to approximate the solution of the differential equations given in \eqref{eqn:dsdt} and \eqref{eqn:didt}.  Letting $s_t$ and $i_t$ be the proportion of the population susceptible to disease and infected by disease at time $t$, respectively, the evolution of the epidemic from time $t$ to time $t + \tau$, $\tau > 0$, is approximated by
+As in \citet{skvortsov2012monitoring} once again, we will approximate the standard deviation of the noise terms $\sigma_\beta$ and $\sigma_\gamma$ by the scaling rule \[\sigma_\beta \approx \frac{\sqrt{\beta}}{P} \mbox{, } \sigma_\gamma \approx \frac{\sqrt{\gamma}}{P}\] \citep{ovaskainen2010extinction, herwaarden1995stochepid, dangerfield2009stochepid} and use Euler's method to approximate the solution of the differential equations given in \eqref{eqn:dsdt} and \eqref{eqn:didt}.  Letting $s_t$ and $i_t$ be the proportion of the population susceptible to disease and infected by disease at time $t$, respectively, the evolution of the epidemic from time $t$ to time $t + \tau$, $\tau > 0$, is approximated by
 
 \begin{align}
 s_{t+\tau} &= s_t - \tau\beta i_ts^\nu_t + \xi_s \label{eqn:s} \\
@@ -147,7 +147,7 @@ i_{t+\tau} &= i_t + \tau i_t(\beta s^\nu_t - \gamma) + \xi_i \label{eqn:i}
 
 \subsection{Model}
 
-When monitoring the epidemic, the true $s$, $i$ and $r$ are unknown and regarded as hidden states of the model.  We instead observe measurements consisting of public health data, medical data such as hospital visits, and non-medical data such as absenteeism from work or school \danny{reference?}.  Thus, we characterize a state-space model of the epidemic by two equations: the observation equation and the state equation.  The observation equation specifies how the observed data depend on the state of the epidemic and other parameters.  We can observe data from multiple syndromes of a disease that arrive asynchronously in time.  That is, at any time $t$, we can observe data from 0, 1, or more than 1 syndrome.
+When monitoring the epidemic, the true $s$, $i$ and $r$ are unknown and regarded as hidden states of the model.  We instead observe data from syndromic surveillance, or the systematic collection and monitoring of public health data by public health agencies \danny{references}. These measurements can consist of medical observations such as hospital visits or occurrence of symptoms as well as non-medical data such as absenteeism from word \danny{references}.  Thus, we characterize a state-space model of the epidemic by two equations: the observation equation and the state equation.  The observation equation specifies how the observed data depend on the state of the epidemic and other parameters.  We can observe data from multiple syndromes of a disease that arrive asynchronously in time.  That is, at any time $t$, we can observe data from 0, 1, or more than 1 syndrome.
 
 Let $z_{l,t}$ represent data coming from syndrome $l$ at time $t$, where $l = 1,2,\ldots,L$ and $t = 1,2,\ldots,T$.  \citet{skvortsov2012monitoring} assumes a power law model relating observations to the proportion of infected individuals by $z_{l,t} = b_li_t^{\varsigma_l} + \tau^*_l$, where $b_l \ge 0$ and $\varsigma_l$ are constants and $\tau^*_l$ is a random component with variance $\sigma_l^2$.  Since $z_{l,t}$ is constrained to be nonnegative, however, we let $y_{l,t} = \log z_{l,t}$ and model the log of the observations by
 
@@ -155,7 +155,7 @@ Let $z_{l,t}$ represent data coming from syndrome $l$ at time $t$, where $l = 1,
 y_{l,t} = \log \left(b_li_t^{\varsigma_l}\right) + \tau_l \qquad \tau_l \sim N\left(0,\sigma_l^2 / (b_li_t^{\varsigma_l})^2\right) \label{eqn:obs}
 \end{equation}
 
-\noindent The variance of $\tau_l$ is obtained by assuming $\tau^*_l \sim N(0,\sigma_l^2)$ and applying the delta method to $z_{l,t}$ \danny{reference?}.  Then, we define $y_t = (y_{1,t},y_{2,t},\ldots,y_{L,t})'$ to be an $L$-length vector with independent elements, each of which could possibly be missing.
+\noindent The variance of $\tau_l$ is obtained by assuming $\tau^*_l \sim N(0,\sigma_l^2)$ and applying the delta method to $z_{l,t}$ \danny{references}.  Then, we define $y_t = (y_{1,t},y_{2,t},\ldots,y_{L,t})'$ to be an $L$-length vector with independent elements, each of which could possibly be missing.
 
 Next, we specify the state evolution equation.  The state equation explains how the unobserved states of the epidemic evolve over time.  Let $x_t = (i_t,s_t)'$ represent the state of the epidemic at time $t$, and let $\theta$ represent any unknown, fixed parameters in the model.  For the time being, we let $\theta = (\beta, \gamma, \nu)'$ and regard the $b_l$'s, $\varsigma_l$'s, and $\sigma_l$'s as known.  Letting $\tau > 0$ be small, the state evolution equation is given according to equations \eqref{eqn:s} and \eqref{eqn:i} by the transition density
 
@@ -250,7 +250,7 @@ p(\nu) &= U_{[0.95,1.3]}(\nu)
 
 \subsection{Comparison of Particle Filters}
 
-First, we examine the performance of the three different particle filtering algorithms using uniform priors on $\theta$ and systematic resampling, since this choice of prior and resampling scheme was used in \citet{skvortsov2012monitoring}.  Figure \ref{fig:unisys} shows 95\% credible bounds of the marginal posterior distributions of the unknown parameters over time as $J$ increases.  The bounds for the BF (red lines) and APF (blue lines) start out wide and then eventually degenerate toward a single value because of the elimination of unique particles during resampling.  Although the time of degeneracy increases as $J$ gets larger, the bounds become uninformative during the second half of the epidemic even for $J = 20000$.  The bounds for the KD particle filter (green lines), on the other hand, never degenerate because values of $\theta$ are resampled from the normal density kernel at each iteration of the particle filter.  
+First, we examine the performance of the three different particle filtering algorithms using uniform priors on $\theta$ and systematic resampling, since this choice of prior and resampling scheme was used in \citet{skvortsov2012monitoring}.  Figure \ref{fig:unisys} shows 95\% credible bounds of the marginal posterior distributions of the unknown parameters over time as $J$ increases.  The bounds for the BF (red lines) and APF (blue lines) start out wide and then eventually degenerate toward a single value because of the elimination of unique particles during resampling.  Although the time of degeneracy increases as $J$ gets larger, the bounds become uninformative during the second half of the epidemic even for $J = 20000$.  The bounds for the KD particle filter (green lines), on the other hand, never degenerate because values of $\theta$ are resampled from the normal density kernel at each iteration of the particle filter.
 
 Not only does the KD particle filter outperform the BF and APF in terms of avoiding degeneracy, but it runs more efficiently as well.  Notice that the bounds for the KD particle filter become wider as $J$ increases, but they do not change much between $J = 10000$ and $J = 20000$ particles.  This suggests that by 10000 particles the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ has converged to the true posterior.  Thus, even though the bounds of the APF approximately match that of the KD particle filter for the first 25 days of the epidemic at 20000 particles, the KD particle filter provides roughly the same measure of uncertainty using only 10000 particles.
 
@@ -263,14 +263,18 @@ Not only does the KD particle filter outperform the BF and APF in terms of avoid
 \subsection{Comparison of Priors}
 
 Next, we investigate the effect of normal versus uniform priors on $\theta$ for the KD particle filter using 10000 particles and systematic resampling.  Figure \ref{fig:priors} shows scatterplots of $\beta$ versus $\gamma$ taken from their joint filtered distribution at $t = 15, 30, 45, 60$.  Notice in the top half of the figure that when uniform priors on $\theta$ are used, some particles are pushed up against the top and bottom of the graphs for $t = 15 \mbox{ and } 30$, indicating that the uniform bounds on $\gamma$ are too restrictive.  This problem does not present itself with $\beta$ because during the first half of the epidemic more people are getting sick than recovering from illness.  Hence, we learn more about $\beta$, the rate of spread of disease, than $\gamma$, the recovery time.
- 
+
 We see from both the top and bottom rows of the figure that even though $\beta$ and $\gamma$ are sampled independently at $t = 0$, they become correlated during the climb of the epidemic, suggesting that knowledge of $\beta$ provides information about $\gamma$ and vice versa.  However, when uniform priors are used we lose some of this correlation by $t = 60$ while the correlation remains strong under normal priors. The loss of correlation in the top row of the figure appears to be an artifact of the truncation of sampled $\gamma$ values that result from the over-restrictive uniform bounds.  We prefer to use normal priors in order to relax the constraint on the sample space of $\theta$ and allow the filtered distribution of $\theta$ to evolve over time more freely.
 
 \begin{figure}
 \centering
 \begin{minipage}{1.0\linewidth}
-\caption*{uniform priors}
+\caption*{uniform priors, logit transformation}
 \includegraphics[width=1.0\textwidth]{Hist-KD-uniform-systematic-10000-betagamma}
+\end{minipage}
+\begin{minipage}{1.0\linewidth}
+\caption*{uniform priors}
+\includegraphics[width=1.0\textwidth]{Hist-KD-semi-uniform-systematic-10000-betagamma}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
 \caption*{normal priors}
@@ -301,7 +305,7 @@ Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered dist
 
 We now turn our focus to extending the model to include the $b_l$'s, $\varsigma_l$'s, and $\sigma_l$'s as unknown parameters.  We consider data coming from just $L = 1$ syndrome and let $\theta = (\beta, \gamma, \nu, b, \varsigma, \sigma)'$, dropping the subscript $l$ for convenience.  Data were simulated from the model with true values set at $b = 0.25$, $\varsigma = 1$, $\sigma = 0.001$, and the remaining parameters set at the same values as in section \ref{sec:sim}.  Again, we let the epidemic run for $T = 125$ days in a population of size $P = 5000$ with infection introduced in 10 people at day 0.  Date were observed daily from either 1 or 0 syndromes, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
 
-The KD particle filter with tuning parameter $\delta$ set to 0.99 was run with $J = 10000$ particles, and stratified resampling was used with an effective sample size threshold of 0.8.  $x_0$ and $\theta$ were sampled from the prior density given by
+The KD particle filter with tuning parameter $\delta$ set to 0.99 was run with $J = 20000$ particles, and stratified resampling was used with an effective sample size threshold of 0.8.  $x_0$ and $\theta$ were sampled from the prior density given by
 
 \[p\left(x_0,\theta\right) = p\left(\beta\right)p\left(\gamma\right)p\left(\nu\right)p\left(b\right)p\left(\varsigma\right)p\left(\sigma\right)p\left(i_0,s_0\right)\]
 
@@ -313,14 +317,14 @@ The KD particle filter with tuning parameter $\delta$ set to 0.99 was run with $
 \log(\sigma) &\sim N(-7.0516, 0.2803^2)
 \end{align*}
 
-As with the other three parameters, the prior distributions of $b$, $\varsigma$, and $\sigma$ are defined on the log scale so that they are constrained to be positive.  The choice of prior mean and standard deviation on the log scale were made such that random draws of $b$, $\varsigma$, and $\sigma$ on the original scale would be within $(0.1, 0.4)$, $(0.85, 1.15)$, and $(0.0005, 0.0015)$, respectively, with 95\% probability.  For comparison purposes, the KD particle filter with 10000 particles was also run assuming $b$, $\varsigma$, and $\sigma$ known. 
+As with the other three parameters, the prior distributions of $b$, $\varsigma$, and $\sigma$ are defined on the log scale so that they are constrained to be positive.  The choice of prior mean and standard deviation on the log scale were made such that random draws of $b$, $\varsigma$, and $\sigma$ on the original scale would be within $(0.1, 0.4)$, $(0.85, 1.15)$, and $(0.0005, 0.0015)$, respectively, with 95\% probability.  For comparison purposes, the KD particle filter with 20000 particles was also run assuming $b$, $\varsigma$, and $\sigma$ known.
 
 Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of $\theta$ and $x$ for both the extended model and the original model that assumes $b$, $\varsigma$, and $\sigma$ known.  The intervals for $s$, $i$, and $r$ are wider for the extended model (green lines) than for the original model due to the uncertainty in $b$, $\varsigma$, and $\sigma$.
 
 \begin{figure}
 \centering
-\includegraphics[width=1.0\textwidth]{PF-ext-KD-stratified-normal-10000}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters of the extended model (green) over time compared with that of the model assuming $b$, $\varsigma$, and $\sigma$ known.  $J = 10000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:ext}
+\includegraphics[width=1.0\textwidth]{PF-ext-KD-stratified-normal-20000}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters of the extended model (green) over time compared with that of the model assuming $b$, $\varsigma$, and $\sigma$ known.  $J = 20000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:ext}
 \end{figure}
 
 \section{Discussion \label{sec:discussion}}
