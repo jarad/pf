@@ -180,7 +180,8 @@ load(paste(dpath,"sim-xy-ext.rdata",sep=""))
 tt = dim(sim$x)[2]; nt = tt - 1
 resampled = rep(0,nt)
 load(paste(dpath,"PF-ext-KD-normal-stratified-",n,".rdata",sep=""))
-for(i in 2:125) resampled[i] = all(parents[,i] == parents[,i+1])
+parents = pf.out$out$parent
+for(i in 1:125) resampled[i] = all(parents[,i] == 1:n)
 spts = which(as.logical(resampled))
 ymins = c(0.15,0.08,0.85,0,.8,0)
 ymaxs = c(0.35,0.15,1.4,.5,1.2,.002)
