@@ -15,6 +15,11 @@ pf <- function(n, filt, resamp, prior, progress, ...)
     thetau = c(0.5000, 0.1430, 1.3000)
     rtheta = function(){ u2theta(runif(3,thetal,thetau),thetal,thetau)}
     ftheta = function(theta,param=1) theta2u(theta,thetal[param],thetau[param])
+  } else if(prior == "semi-uniform") {
+    thetal = c(0.1400, 0.0900, 0.9500)
+    thetau = c(0.5000, 0.1430, 1.3000)
+    rtheta = function(){ runif(3,thetal,thetau)}
+    ftheta = function(theta,param=1) theta
   } else {
     theta.mean = c(-1.3296, -2.1764, 0.1055)
     theta.sd = sqrt(c(0.1055, 0.0140, 0.0064))
@@ -64,7 +69,7 @@ pf <- function(n, filt, resamp, prior, progress, ...)
 
 # Apply pf to combination of pfs
 require(plyr)
-mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("BF","APF","KD"), resamp = c("multinomial","residual","stratified","systematic"), prior = c("normal","uniform"), progress=FALSE, nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
+mydata = expand.grid(n = c(100, 1000, 10000), filt = "KD", resamp = "systematic", prior = "semi-uniform", progress=TRUE, nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
 m_ply(mydata,pf)
 
 # Clear objects
