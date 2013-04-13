@@ -148,7 +148,7 @@ i_{t+\tau} &= i_t + \tau i_t(\beta s^\nu_t - \gamma) + \xi_i \label{eqn:i}
 \subsection{Model}
 
 When monitoring the epidemic, the true $s$, $i$ and $r$ are unknown and regarded as hidden states of the model.  We instead observe data from syndromic surveillance, or the systematic collection and monitoring of public health data by public health agencies \citep{wagner2006biosurveillance, wilson2006synsurveillance}. These measurements can consist of medical observations such as hospital visits or occurrence of symptoms as well as non-medical data such as absenteeism from work and queries from search engines or social media \citep{chew2010twitter, schuster2010searchquery, signorini2011twitter, Gins:Mohe:Pate:Bram:Smol:Bril:dete:2009}.  We fuse information from syndromic surveillance with the disease transmission dynamics described in section \ref{sec:dd} through a state-space model.  In our state-space model of a flu epidemic, the observation equation specifies how the observed data depend on the state of the epidemic and other parameters, while the state equation describes how the epidemic evolves over time.
-  
+
 First, we describe the observation equation.  We can observe data from multiple syndromes of a disease that arrive asynchronously in time.  That is, at any time $t$, we can observe data from 0, 1, or more than 1 syndrome.  Let $z_{l,t}$ represent data coming from syndrome $l$ at time $t$, where $l = 1,2,\ldots,L$ and $t = 1,2,\ldots,T$.  Following \citet{skvortsov2012monitoring} once again, we assume a power law relationship between observations and the proportion of infected individuals given by $z_{l,t} = b_li_t^{\varsigma_l} + \tau^*_l$, where $b_l \ge 0$ and $\varsigma_l$ are constants and $\tau^*_l$ is a random component with variance $\sigma_l^2$ \citep{Gins:Mohe:Pate:Bram:Smol:Bril:dete:2009}.  Since $z_{l,t}$ is constrained to be nonnegative, however, we let $y_{l,t} = \log z_{l,t}$ and model the log of the observations by
 
 \begin{equation}
@@ -262,9 +262,13 @@ Not only does the KD particle filter outperform the BF and APF in terms of avoid
 
 \subsection{Comparison of Priors}
 
-Next, we investigate the effect of normal versus uniform priors on $\theta$ for the KD particle filter using 10000 particles and systematic resampling.  Figure \ref{fig:priors} shows scatterplots of $\beta$ versus $\gamma$ taken from their joint filtered distribution at $t = 15, 30, 45, 60$.  Notice in the top half of the figure that when uniform priors on $\theta$ are used, some particles are pushed up against the top and bottom of the graphs for $t = 15 \mbox{ and } 30$, indicating that the uniform bounds on $\gamma$ are too restrictive.  This problem does not present itself with $\beta$ because during the first half of the epidemic more people are getting sick than recovering from illness.  Hence, we learn more about $\beta$, the rate of spread of disease, than $\gamma$, the recovery time.
+Next, we investigate the effect of normal versus uniform priors on $\theta$ for the KD particle filter using 10000 particles and systematic resampling.  Figure \ref{fig:priors} compare scatterplots of $\beta$ versus $\gamma$ taken from their joint filtered distributions at $t = 15, 30, 45, 60$ when different priors were used on $\theta$.  Notice from the first row of the figure that when uniform priors on $\theta$ are used, some particles are pushed up against the top and bottom of the graphs for $t = 15 \mbox{ and } 30$, indicating that the uniform bounds on $\gamma$ are too restrictive.  This problem does not present itself with $\beta$ because during the first half of the epidemic more people are getting sick than recovering from illness.  Hence, we learn more about $\beta$, the rate of spread of disease, than $\gamma$, the recovery time.
 
-We see from both the top and bottom rows of the figure that even though $\beta$ and $\gamma$ are sampled independently at $t = 0$, they become correlated during the climb of the epidemic, suggesting that knowledge of $\beta$ provides information about $\gamma$ and vice versa.  However, when uniform priors are used we lose some of this correlation by $t = 60$ while the correlation remains strong under normal priors. The loss of correlation in the top row of the figure appears to be an artifact of the truncation of sampled $\gamma$ values that result from the over-restrictive uniform bounds.  We prefer to use normal priors in order to relax the constraint on the sample space of $\theta$ and allow the filtered distribution of $\theta$ to evolve over time more freely.
+We see also from the first row of figure \ref{fig:priors} that even though $\beta$ and $\gamma$ are sampled independently at $t = 0$, they become correlated during the climb of the epidemic, suggesting that knowledge of $\beta$ provides information about $\gamma$ and vice versa.  At time $t = 30$ the points start to form an S-shape, and this feature becomes even more prominent at $t = 45$.  By $t = 60$, when the epidemic is in decline, uncertainty in $\gamma$ decreases as a result of people recovering from illness, and correlation between $\beta$ and $\gamma$ decreases as well.  
+
+Plots from the second row of figure \ref{fig:priors} show results from applying uniform priors to $\theta$ but without using the logit transformation to keep $\beta$, $\gamma$, and $\nu$ within their respective uniform bounds.  Thus, as can be seen at $t = 15$, the normal kernel used in the filter moved some particles outside of the uniform bounds for $\gamma$.  Furthermore, plots at $t = 15$ and $t = 30$ no longer S-shaped and points at $t = 60$ are more strongly correlated than when the logit transformation was used.  Thus, these features are not representative of the course of the epidemic, but rather are artifacts of over-restrictive bounds on $\gamma$ enforced by the logit transformation.
+
+In the third row of the figure, normal priors are used with a log transformation on the components of $\theta$ when running the KD particle filter to force $\beta$, $\gamma$, and $\nu$ to be positive.  As with the plots from the second row, the distribution of points do not appear truncated or S-shaped as they do in the first row where points were restricted to the uniform bounds.  Thus, we prefer to use normal priors in order to relax the constraint on the sample space of $\theta$ and allow the data, rather than the prior bounds, to dictate the evolution of $\theta$.
 
 \begin{figure}
 \centering
@@ -273,18 +277,18 @@ We see from both the top and bottom rows of the figure that even though $\beta$ 
 \includegraphics[width=1.0\textwidth]{Hist-KD-uniform-systematic-10000-betagamma}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
-\caption*{uniform priors}
+\caption*{uniform priors, no transformation}
 \includegraphics[width=1.0\textwidth]{Hist-KD-semi-uniform-systematic-10000-betagamma}
 \end{minipage}
 \begin{minipage}{1.0\linewidth}
 \caption*{normal priors, log transformation}
 \includegraphics[width=1.0\textwidth]{Hist-KD-normal-systematic-10000-betagamma}
 \end{minipage}
-\begin{minipage}{1.0\linewidth}
-\caption*{normal priors}
-\includegraphics[width=1.0\textwidth]{Hist-KD-semi-normal-systematic-10000-betagamma}
-\end{minipage}
-\caption{Displays scatterplots of $\beta$ versus $\gamma$ at $t = 15, 30, 45, 60$ days using the kernel density particle filter with $J = 10000$ particles and systematic resampling.  For each panel, 500 particles were sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ and plotted.  Red crosses indicate the true values of $\beta$ and $\gamma$ used for simulation ($\beta = 0.2399$ and $\gamma = 0.1066$).  Plot axes are all on the same scale, and dashed horizontal lines indicate the bounds of the uniform prior on $\gamma$.  Uniform bounds on $\beta$ are not shown because they lay outside the range of the x-axis.} \label{fig:priors}
+%\begin{minipage}{1.0\linewidth}
+%\caption*{normal priors}
+%\includegraphics[width=1.0\textwidth]{Hist-KD-semi-normal-systematic-10000-betagamma}
+%\end{minipage}
+\caption{Displays scatterplots of $\beta$ versus $\gamma$ at $t = 15, 30, 45, 60$ days using the kernel density particle filter with $J = 10000$ particles and systematic resampling.  Each row corresponds to a specific prior and transformation applied to $\theta$ in the KD particle filter.  For each panel, 500 particles were sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ and plotted.  The sample correlation coefficient, $r$, is displayed in the subtitle of each plot, red crosses indicate the true values of $\beta$ and $\gamma$ used for simulation ($\beta = 0.2399$ and $\gamma = 0.1066$), plot axes are all on the same scale, and dashed horizontal lines indicate the bounds of the uniform prior on $\gamma$.  Uniform bounds on $\beta$ are not shown because they lay outside the range of the x-axis.} \label{fig:priors}
 \end{figure}
 
 \subsection{Comparison of Resampling Schemes}
@@ -323,12 +327,12 @@ The KD particle filter with tuning parameter $\delta$ set to 0.99 was run with $
 
 As with the other three parameters, the prior distributions of $b$, $\varsigma$, and $\sigma$ are defined on the log scale so that they are constrained to be positive.  The choice of prior mean and standard deviation on the log scale were made such that random draws of $b$, $\varsigma$, and $\sigma$ on the original scale would be within $(0.1, 0.4)$, $(0.85, 1.15)$, and $(0.0005, 0.0015)$, respectively, with 95\% probability.  For comparison purposes, the KD particle filter with 20000 particles was also run assuming $b$, $\varsigma$, and $\sigma$ known.
 
-Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of $\theta$ and $x$ for both the extended model and the original model that assumes $b$, $\varsigma$, and $\sigma$ known.  The intervals for $s$, $i$, and $r$ are wider for the extended model (green lines) than for the original model due to the uncertainty in $b$, $\varsigma$, and $\sigma$.
+Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of $\theta$ and $x$ for both the extended model and the original model that assumes $b$, $\varsigma$, and $\sigma$ known.  The intervals for $\beta$, $\gamma$, $\nu$, $s$, $i$, and $r$ are wider for the extended model (green lines) than for the original model.  This is expected due to the added uncertainty in $b$, $\varsigma$, and $\sigma$ in the extended model.
 
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{PF-ext-KD-stratified-normal-20000}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters of the extended model (green) over time compared with that of the model assuming $b$, $\varsigma$, and $\sigma$ known.  $J = 20000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.} \label{fig:ext}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters of the extended model (green) over time compared with that of the model assuming $b$, $\varsigma$, and $\sigma$ known.  $J = 20000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.  Tick marks are shown along the bottom of the plots at time points when no resampling was performed in the particle filter.} \label{fig:ext}
 \end{figure}
 
 \section{Discussion \label{sec:discussion}}
@@ -337,13 +341,13 @@ Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filter
 
 \begin{figure}
 \centering
-\includegraphics[width=1.0\textwidth]{sim-y}
+\includegraphics[width=0.8\textwidth]{sim-y}
 \caption{Displays the exponential of the observed syndromic data over time, simulated from the model described in section \ref{sec:sim}.  Different colors represent data from different syndromes.} \label{fig:y}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width=1.0\textwidth]{sim-y-ext}
+\includegraphics[width=0.8\textwidth]{sim-y-ext}
 \caption{Displays the exponential of the observed syndromic data over time, simulated from the extended model described in section \ref{sec:extend}} \label{fig:yext}
 \end{figure}
 
