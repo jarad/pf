@@ -264,7 +264,7 @@ Not only does the KD particle filter outperform the BF and APF in terms of avoid
 
 Next, we investigate the effect of normal versus uniform priors on $\theta$ for the KD particle filter using 10000 particles and systematic resampling.  Figure \ref{fig:priors} compare scatterplots of $\beta$ versus $\gamma$ taken from their joint filtered distributions at $t = 15, 30, 45, 60$ when different priors were used on $\theta$.  Notice from the first row of the figure that when uniform priors on $\theta$ are used, some particles are pushed up against the top and bottom of the graphs for $t = 15 \mbox{ and } 30$, indicating that the uniform bounds on $\gamma$ are too restrictive.  This problem does not present itself with $\beta$ because during the first half of the epidemic more people are getting sick than recovering from illness.  Hence, we learn more about $\beta$, the rate of spread of disease, than $\gamma$, the recovery time.
 
-We see also from the first row of figure \ref{fig:priors} that even though $\beta$ and $\gamma$ are sampled independently at $t = 0$, they become correlated during the climb of the epidemic, suggesting that knowledge of $\beta$ provides information about $\gamma$ and vice versa.  At time $t = 30$ the points start to form an S-shape, and this feature becomes even more prominent at $t = 45$.  By $t = 60$, when the epidemic is in decline, uncertainty in $\gamma$ decreases as a result of people recovering from illness, and correlation between $\beta$ and $\gamma$ decreases as well.  
+We see also from the first row of figure \ref{fig:priors} that even though $\beta$ and $\gamma$ are sampled independently at $t = 0$, they become correlated during the climb of the epidemic, suggesting that knowledge of $\beta$ provides information about $\gamma$ and vice versa.  At time $t = 30$ the points start to form an S-shape, and this feature becomes even more prominent at $t = 45$.  By $t = 60$, when the epidemic is in decline, uncertainty in $\gamma$ decreases as a result of people recovering from illness, and correlation between $\beta$ and $\gamma$ decreases as well.
 
 Plots from the second row of figure \ref{fig:priors} show results from applying uniform priors to $\theta$ but without using the logit transformation to keep $\beta$, $\gamma$, and $\nu$ within their respective uniform bounds.  Thus, as can be seen at $t = 15$, the normal kernel used in the filter moved some particles outside of the uniform bounds for $\gamma$.  Furthermore, plots at $t = 15$ and $t = 30$ no longer S-shaped and points at $t = 60$ are more strongly correlated than when the logit transformation was used.  Thus, these features are not representative of the course of the epidemic, but rather are artifacts of over-restrictive bounds on $\gamma$ enforced by the logit transformation.
 
@@ -327,7 +327,7 @@ The KD particle filter with tuning parameter $\delta$ set to 0.99 was run with $
 
 As with the other three parameters, the prior distributions of $b$, $\varsigma$, and $\sigma$ are defined on the log scale so that they are constrained to be positive.  The choice of prior mean and standard deviation on the log scale were made such that random draws of $b$, $\varsigma$, and $\sigma$ on the original scale would be within $(0.1, 0.4)$, $(0.85, 1.15)$, and $(0.0005, 0.0015)$, respectively, with 95\% probability.  For comparison purposes, the KD particle filter with 20000 particles was also run assuming $b$, $\varsigma$, and $\sigma$ known.
 
-Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of $\theta$ and $x$ for both the extended model and the original model that assumes $b$, $\varsigma$, and $\sigma$ known.  The intervals for $\beta$, $\gamma$, $\nu$, $s$, $i$, and $r$ are wider for the extended model (green lines) than for the original model.  This is expected due to the added uncertainty in $b$, $\varsigma$, and $\sigma$ in the extended model.
+Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of $\theta$ and $x$ for both the extended model (blue lines) and the original model (red lines) that assumes $b$, $\varsigma$, and $\sigma$ known.  We notice from this figure that the lines for the unknown parameters appear choppier than in earlier plots, with flat periods followed by sharp changes in uncertainty.  This is due to the fact that data are coming from only one syndrome, and so gaps in the data that lead to a lack of resampling of particles contribute to this choppiness (see appendix).  For example, a sharp shift in the distribution of $b$ occurs around $t = 45$ because of an influx of data following a period of no data and scarce resampling of particles, indicated by tick marks along the bottom of the graphs.  Most obvious from this figure is the fact that the intervals for $\beta$, $\gamma$, $\nu$, $s$, $i$, and $r$ are wider for the extended model (green lines) than for the original model.  This is expected due to the added uncertainty in $b$, $\varsigma$, and $\sigma$ in the extended model.  Nonetheless, we are still able to adequately estimate the epidemic curves even with imprecise knowledge of the parameters $b$, $\varsigma$, and $\sigma$ but increasing the number of particles used in the KD particle filter.
 
 \begin{figure}
 \centering
@@ -337,19 +337,21 @@ Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filter
 
 \section{Discussion \label{sec:discussion}}
 
+\clearpage
+
 \section{Appendix \label{sec:appendix}}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.8\textwidth]{sim-y}
+\begin{figure}[ht]
+\includegraphics[width=1.0\textwidth]{sim-y}
 \caption{Displays the exponential of the observed syndromic data over time, simulated from the model described in section \ref{sec:sim}.  Different colors represent data from different syndromes.} \label{fig:y}
 \end{figure}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.8\textwidth]{sim-y-ext}
+\begin{figure}[ht]
+\includegraphics[width=1.0\textwidth]{sim-y-ext}
 \caption{Displays the exponential of the observed syndromic data over time, simulated from the extended model described in section \ref{sec:extend}} \label{fig:yext}
 \end{figure}
+
+\clearpage
 
 \bibliographystyle{plainnat}
 \bibliography{jarad}
