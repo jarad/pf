@@ -25,97 +25,77 @@ pf.quantile = function(out, wts, ftheta, probs=.5, normwt=TRUE)
   return(quantiles)
 }
 
-# pf.plot - function to construct plots of quantiles of particle filtered distributions
+# pf.scat - function to resample particles, compute maximum/minimum values, and compute correlations between two parameters at specified time points; returns a list with components xrw1 and xrw2 that are M x length(cutoff) matrices of resampled particles (row = particle, column = time point), xlim and ylim that are each two element vectors that are the minimum and maximum values over all time points of xrw1 and xrw2, respectively, and r that is a length(cutoff) length vector of correlations between xrw1 and xrw2 at each time point
 # Arguments:
-# quantiles - list of arrays returned by pf.quantile
-# x - x variable, vector of length equal to first dimension of elements of quantiles
-# mr - number of rows in plot panel window
-# mc - number of columns in plot panel window
-# mar - corresponds to mar argument in par() for resizing plot windows
-# ymins - a vector whose jth element corresponds to the minimum y-axis value for the jth plot panel; can have NAs
-# ymaxs - a vector whose jth element corresponds to the maximum y-axis value for the jth plot panel; can have NAs
-# pgon - if TRUE, area below the first quantile and above the last quantile are shaded gray
-# mlabs - a vector of length equal to the second dimension of elements of quantiles giving title labels for each panel
-# xlabs - a vector of length equal to the second dimension of elements of quantiles giving x-axis labels for each panel
-# ylabs - a vector of length equal to the second dimension of elements of quantiles giving y-axis labels for each panel
-# col - a vector of length equal to the length of quantiles; gives the color to be used for each particle filter
-# lty - a vector length equal to the third dimension of elements of quantiles; gives the line type to be used for each quantile
-# legend - TRUE/FALSE, should a legend be added to the upper left-most plot?
-# labs - a vector giving labels for the legend
-# col.leg - a vector giving colors for legend labels
-# lty.leg - a vector giving line types for legend labels
-# location - gives location for the legend; corresponds to first argument in legend()
-# legendsize - scalar, gives size of legend labels
-# file - name of outputted pdf file
-# width, height - correspond to width and height arguments in pdf()
-# ... - additional arguments to pass into plot()
-pf.plot = function(quantiles, x, mr=1, mc=1, mar=c(5,5,3,1)+.1, ymins, ymaxs, pgon=FALSE, mlabs, xlabs, ylabs, col, lty, legend=TRUE, labs="Truth", col.leg = 1, lty.leg = 1, location="topright", legendsize=1, file, width=10, height=5, ...)
+# out - 2 by n by tt array of particles (assumed on original scale)
+# wts - n by tt matrix of particle weights
+# cutoff - k length vector of times at which to plot histograms
+# M - number of samples to use to resample particles to get equal weights for constructing histograms
+# xlim - length 2 vector giving xlim argument in plot(); if any elements NA, are calculated by default
+# ylim - length 2 vector giving ylim argument in plot(); if any elements NA, are calculated by default
+# ... - additional arguments passed to resample()
+pf.scat = function(out, wts, cutoff, M=500, xlim=NA, ylim=NA, ...)
 {
-  if(!is.list(quantiles)) stop("quantiles must be a list of 3-D arrays")
-  nf = length(quantiles)
-  if(nf < 1) stop("quantiles must have at least 1 element")
-  np = dim(quantiles[[1]])[2]
-  tt = dim(quantiles[[1]])[1]
-  nt = tt - 1
-  if(length(x) != tt) stop("x should be of length equal to first dimension of elements of quantiles")
-  if(!(length(col) == nf)) stop("length of col should match length of quantiles")
-  for(i in 1:np)
-  {
-    if(is.na(ymins[i])) ymins[i] = min(sapply(quantiles, function(x) min(x[,i,],na.rm=TRUE)))
-    if(is.na(ymaxs[i])) ymaxs[i] = max(sapply(quantiles, function(x) max(x[,i,],na.rm=TRUE)))
-  }
-  pdf(file, width, height)
-  par(mfrow=c(mr,mc),mar=mar)
-  for(j in 1:np)
-  {
-    nq = dim(quantiles[[1]])[3]
-    if(length(lty) < nq) stop("lty must have length at least equal to the largest of the 3rd dimensions of the elements of quantiles")
-    plot(x,quantiles[[1]][,j,1],type="l",ylim=c(ymins[j],ymaxs[j]),col=col[1],lty=lty[1],xlab=xlabs[j],ylab=ylabs[j],main=mlabs[j],...)
-    if(pgon)
-    {
-      require(graphics)
-      y = quantiles[[1]][,j,1]      
-      polygon(c(x[length(x)],x[1],x[1],x,x[length(x)]),c(ymins[j],ymins[j],y[1],y,y[length(y)]),col="gray")
-    }
-    if(nq > 1)
-    {
-      for(i in 2:nq)
-      {
-       lines(x,quantiles[[1]][,j,i],col=col[1],lty=lty[i])
-      }
-      if(pgon)
-      {
-        y = quantiles[[1]][,j,nq]
-        polygon(c(x[length(x)],x[1],x[1],x,x[length(x)]),c(ymaxs[j],ymaxs[j],y[1],y,y[length(y)]),col="gray")
-      }
-    }
-    if(nf > 1)
-    {
-      for(k in 2:nf)
-      {
-        nq = dim(quantiles[[k]])[3]
-        if(length(lty) < nq) stop("lty must have length at least equal to the largest of the 3rd dimensions of the elements of quantiles")
-        for(i in 1:nq)
-        {
-          lines(x,quantiles[[k]][,j,i],col=col[k],lty=lty[i])
-        }
-      }
-    }
-    
-    # Whiten borders
-    y = quantiles[[1]][,j,1]  
-    edgex = max(x,na.rm=T) - min(x,na.rm=T)
-    edgey = max(y,na.rm=T) - min(y,na.rm=T)
-    polygon(c(x[length(x)],x[1],x[1],x[length(x)]),c(ymins[j],ymins[j],ymins[j]-edgey,ymins[j]-edgey),col="white",border=NA) # bottom border
-    polygon(c(x[length(x)],x[1],x[1],x[length(x)]),c(ymaxs[j],ymaxs[j],ymaxs[j]+edgey,ymaxs[j]+edgey),col="white",border=NA) # top border
-    polygon(c(x[length(x)],x[length(x)]+edgex,x[length(x)]+edgex,x[length(x)]),c(ymins[j]-edgey,ymins[j]-edgey,ymaxs[j]+edgey,ymaxs[j]+edgey),col="white",border=NA) # right border
-    polygon(c(x[1],x[1]-edgex,x[1]-edgex,x[1]),c(ymins[j]-edgey,ymins[j]-edgey,ymaxs[j]+edgey,ymaxs[j]+edgey),col="white",border=NA) # left border
-    axis(side=1); axis(side=2) # Put axes back
+  require(smcUtils)
 
-    # Legend
-    if(legend & j == 1) legend(location,labs,col=col.leg,lty=lty.leg,cex=legendsize,bg="white")
+  # Check dimensions
+  n = dim(wts)[1]
+  tt = dim(wts)[2]
+  if(n != dim(out)[2] | tt != dim(out)[3]) stop("dimensions of out and wts don't match")
+  nd = length(cutoff)
+  if(nd > tt) stop("Too many cutoff points")
+  if(dim(out)[1] != 2) stop("Incorrect first dimension of out")
+
+  # Resample particles to get equal weights
+  tmps = matrix(NA,nr=M,nc=length(cutoff))
+  for(i in 1:length(cutoff))
+  {
+    tmps[,i] = resample(wts[,cutoff[i]], M, nonuniformity="none", ...)$indices
   }
-  dev.off()
+
+  # Find minimum and maximum values so scatterplots on same scale
+  xrw1 = matrix(NA,nr=M,nc=length(cutoff))
+  xrw2 = matrix(NA,nr=M,nc=length(cutoff))
+  if(!all(!is.na(xlim)))
+  {
+    xlim = c(Inf,-Inf)
+    for(i in 1:length(cutoff))
+    {
+      xrw1[,i] = out[1,tmps[,i],cutoff[i]]
+      xlim[1] = min(xlim[1],xrw1[,i])
+      xlim[2] = max(xlim[2],xrw1[,i])
+    }
+  } else {
+    for(i in 1:length(cutoff))
+    {
+      xrw1[,i] = out[1,tmps[,i],cutoff[i]]
+    }
+  }
+  if(!all(!is.na(ylim)))
+  {
+    ylim = c(Inf,-Inf)
+    for(i in 1:length(cutoff))
+    {
+      xrw2[,i] = out[2,tmps[,i],cutoff[i]]
+      ylim[1] = min(ylim[1],xrw2[,i])
+      ylim[2] = max(ylim[2],xrw2[,i])
+    }
+  } else {
+    for(i in 1:length(cutoff))
+    {
+      xrw2[,i] = out[2,tmps[,i],cutoff[i]]
+    }
+  }
+
+  # Compute correlation between particles at every cutoff point
+  r = rep(NA,length(cutoff))
+  for(i in 1:length(cutoff))
+  {
+    r[i] = cor(xrw1[,i],xrw2[,i])
+  }  
+
+  # Return re-weighted particles, correlations, and min/max values of particles
+  return(list(xrw1=xrw1,xrw2=xrw2,xlim=xlim,ylim=ylim,r=r))
 }
 
 # pf.hist - function to plot histograms of unknown parameters at specified time points for particle filtered samples
@@ -179,207 +159,4 @@ pf.hist = function(out,wts,cutoff,ftheta,plabs,truth,file,M=10000,tsize=.65,mr=1
     }
     dev.off()
   }
-}
-
-# pf.scat - function to plot scatterplots of two parameters at specified time points
-# Arguments:
-# out - 2 by n by tt array of particles (assumed on original scale)
-# wts - n by tt matrix of particle weights
-# cutoff - k length vector of times at which to plot histograms
-# M - number of samples to use to resample particles to get equal weights for constructing histograms
-# plabs - vector of length 2 giving labels for parameters
-# truth - 2 length vector of true parameter values
-# xlim - length 2 vector giving xlim argument in plot(); if any elements NA, are calculated by default
-# ylim - length 2 vector giving ylim argument in plot(); if any elements NA, are calculated by default
-# borderx - length 2 vector giving x-coordinates (vertical) line borders; enter NULL if no borders needed
-# bordery - length 2 vector giving y-coordinates (horizontal) line borders; enter NULL if no borders needed
-# mr - number of rows in plot panel window
-# mc - number of columns in plot panel window
-# mar - corresponds to mar argument in par() for resizing plot windows
-# msize - size of titles of plot panels
-# labsize - size of axis labels on upper-left histogram
-# axsize - size of tick labels on axes
-# file - name of outputted pdf file
-# width, height - arguments to pdf()
-# ... - additional arguments passed to resample()
-pf.scat = function(out,wts,cutoff,plabs,truth,file,M=10000,xlim=NA,ylim=NA,borderx=NULL,bordery=NULL,corr=TRUE,mr=1,mc=1,mar=c(7,10,5,1)+.1,mgp=c(6,1,0),msize=5,labsize=5,axsize=3,ptsize=3,ptsty=20,width=10,height=5,...)
-{
-  require(smcUtils)
-
-  # Check dimensions
-  n = dim(wts)[1]
-  tt = dim(wts)[2]
-  if(n != dim(out)[2] | tt != dim(out)[3]) stop("dimensions of out and wts don't match")
-  nd = length(cutoff)
-  if(nd > tt) stop("Too many cutoff points")
-  if(dim(out)[1] != 2) stop("Incorrect first dimension of out")
-
-  # Resample particles to get equal weights
-  tmps = matrix(NA,nr=M,nc=length(cutoff))
-  for(i in 1:length(cutoff))
-  {
-    tmps[,i] = resample(wts[,cutoff[i]], M, nonuniformity="none",...)$indices
-  }
-
-  # Find minimum and maximum values so scatterplots on same scale
-  xrw1 = matrix(NA,nr=M,nc=length(cutoff))
-  xrw2 = matrix(NA,nr=M,nc=length(cutoff))
-  if(!all(!is.na(xlim)))
-  {
-    xlim = c(Inf,-Inf)
-    for(i in 1:length(cutoff))
-    {
-      xrw1[,i] = out[1,tmps[,i],cutoff[i]]
-      xlim[1] = min(xlim[1],xrw1[,i])
-      xlim[2] = max(xlim[2],xrw1[,i])
-    }
-  } else {
-    for(i in 1:length(cutoff))
-    {
-      xrw1[,i] = out[1,tmps[,i],cutoff[i]]
-    }
-  }
-  if(!all(!is.na(ylim)))
-  {
-    ylim = c(Inf,-Inf)
-    for(i in 1:length(cutoff))
-    {
-      xrw2[,i] = out[2,tmps[,i],cutoff[i]]
-      ylim[1] = min(ylim[1],xrw2[,i])
-      ylim[2] = max(ylim[2],xrw2[,i])
-    }
-  } else {
-    for(i in 1:length(cutoff))
-    {
-      xrw2[,i] = out[2,tmps[,i],cutoff[i]]
-    }
-  }
-
-  # Scatterplots over time
-  pdf(file,width=width,height=height)
-  par(mfrow=c(mr,mc),mar=mar,mgp=mgp)
-  for(i in 1:length(cutoff))
-  {
-    if(i == 1)
-    {
-      if(!is.null(borderx) | !is.null(bordery))
-      {
-        plot(xrw1[,i],xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab=plabs[1],ylab=plabs[2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
-        if(!is.null(borderx)) abline(v=borderx,lty=2)
-        if(!is.null(bordery)) abline(h=bordery,lty=2)
-        points(xrw1[,i],xrw2[,i],col="gray70",pch=ptsty,cex=ptsize)
-	if(corr) mtext(line=-1.8,cex=1.7,paste("r = ",round(cor(xrw1[,i],xrw2[,i]),3),sep=""))
-      } else {
-        plot(xrw1[,i],xrw2[,i],xlim=xlim,ylim=ylim,xlab=plabs[1],ylab=plabs[2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize,col="gray70",pch=ptsty,cex=ptsize)
-	if(corr) mtext(line=-1.8,cex=1.7,paste("r = ",round(cor(xrw1[,i],xrw2[,i]),3),sep=""))
-      }
-      points(truth[1],truth[2],col=2,pch=3,cex=1.5*ptsize)
-    } else {
-      if(!is.null(borderx) | !is.null(bordery))
-      {
-        plot(xrw1[,i],xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
-        if(!is.null(borderx)) abline(v=borderx,lty=2)
-        if(!is.null(bordery)) abline(h=bordery,lty=2)
-        points(xrw1[,i],xrw2[,i],col="gray70",pch=ptsty,cex=ptsize)
-	if(corr) mtext(line=-1.8,cex=1.7,paste("r = ",round(cor(xrw1[,i],xrw2[,i]),3),sep=""))
-      } else {
-        plot(xrw1[,i],xrw2[,i],xlim=xlim,ylim=ylim,xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize,col="gray70",pch=ptsty,cex=ptsize)
-	if(corr) mtext(line=-1.8,cex=1.7,paste("r = ",round(cor(xrw1[,i],xrw2[,i]),3),sep=""))
-      }
-      points(truth[1],truth[2],col=2,pch=3,cex=1.5*ptsize)
-    }
-  }
-  dev.off()
-}
-
-# pf.contour - function to plot image/contour plot of 2D kernel density estimate of two parameters at specified time points
-# Arguments:
-# out - 2 by n by tt array of particles (assumed on original scale)
-# wts - n by tt matrix of particle weights
-# cutoff - k length vector of times at which to plot histograms
-# M - number of samples to use to resample particles to get equal weights for constructing histograms
-# plabs - vector of length 2 giving labels for parameters
-# truth - 2 length vector of true parameter values
-# tsize - size of subtitle displaying true parameter values
-# mr - number of rows in plot panel window
-# mc - number of columns in plot panel window
-# mar - corresponds to mar argument in par() for resizing plot windows
-# msize - size of titles of upper-left histogram
-# labsize - size of axis labels on upper-left histogram
-# file - name of outputted pdf file
-# width, height - arguments to pdf()
-# ... - additional arguments passed to resample()
-pf.contour = function(out,wts,cutoff,plabs,truth,file,M=10000,tsize=.65,mr=1,mc=1,mar=c(4,5.2,3,.5)+.1,msize=1.5,labsize=1.5,width=10,height=5,...)
-{
-  require(smcUtils)
-  require(KernSmooth)
-
-  # Check dimensions
-  n = dim(wts)[1]
-  tt = dim(wts)[2]
-  if(n != dim(out)[2] | tt != dim(out)[3]) stop("dimensions of out and wts don't match")
-  nd = length(cutoff)
-  if(nd > tt) stop("Too many cutoff points")
-  if(dim(out)[1] != 2) stop("Incorrect first dimension of out")
-
-  # Resample particles to get equal weights
-  tmps = matrix(NA,nr=M,nc=length(cutoff))
-  for(i in 1:length(cutoff))
-  {
-    tmps[,i] = resample(wts[,cutoff[i]], M, nonuniformity="none",...)$indices
-  }
-
-  # Find minimum and maximum values so scatterplots on same scale
-  xrw1 = matrix(NA,nr=M,nc=length(cutoff))
-  xrw2 = matrix(NA,nr=M,nc=length(cutoff))
-  xmin = Inf; xmax = -Inf; ymin = Inf; ymax = -Inf
-  for(i in 1:length(cutoff))
-  {
-    xrw1[,i] = out[1,tmps[,i],cutoff[i]]
-    xrw2[,i] = out[2,tmps[,i],cutoff[i]]
-    b1 = max(0.01,0.9*min(sd(xrw1[,i]),IQR(xrw1[,i])/1.34)*length(xrw1[,i])^(-.2))
-    b2 = max(0.01,0.9*min(sd(xrw2[,i]),IQR(xrw2[,i])/1.34)*length(xrw2[,i])^(-.2))
-#    b1 = b2 = 0.01
-    kernden = bkde2D(cbind(xrw1[,i],xrw2[,i]),c(b1,b2))
-    xmin = min(xmin,kernden$x1)
-    xmax = max(xmax,kernden$x1)
-    ymin = min(ymin,kernden$x2)
-    ymax = max(ymax,kernden$x2)
-  }
-
-  # Scatterplots over time
-  pdf(file,width=width,height=height)
-  par(mfrow=c(mr,mc),mar=mar)
-  for(i in 1:length(cutoff))
-  {
-    b1 = max(0.01,0.9*min(sd(xrw1[,i]),IQR(xrw1[,i])/1.34)*length(xrw1[,i])^(-.2))
-    b2 = max(0.01,0.9*min(sd(xrw2[,i]),IQR(xrw2[,i])/1.34)*length(xrw2[,i])^(-.2))
-#    b1 = b2 = 0.01
-    kernden = bkde2D(cbind(xrw1[,i],xrw2[,i]),c(b1,b2))
-    if(i == 1)
-    {
-      image(kernden$x1,kernden$x2,-kernden$fhat,xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab=plabs[1],ylab=plabs[2],main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize)
-      contour(kernden$x1,kernden$x2,-kernden$fhat,add=TRUE,drawlabels=FALSE)
-      mtext(paste("Truth = ",truth[1],sep=""),side=1,cex=tsize)
-      mtext(paste("Truth = ",truth[2],sep=""),side=2,cex=tsize)
-      points(truth[1],truth[2],col=4,pch=20)
-    } else {
-      image(kernden$x1,kernden$x2,-kernden$fhat,xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize)
-      contour(kernden$x1,kernden$x2,-kernden$fhat,add=TRUE,drawlabels=FALSE)
-      points(truth[1],truth[2],col=4,pch=20)
-    }
-  }
-  dev.off()
-}
-
-# Functions to reparameterize theta to [a,b] from the real line and vice versa
-theta2u = function(theta,a,b)
-{
-  etheta = exp(theta)
-  return((b*etheta + a) / (1 + etheta))
-}
-u2theta = function(u,a,b)
-{
-  U = (u - a) / (b - a)
-  return(log(U / (1 - U)))
 }

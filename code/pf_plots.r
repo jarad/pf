@@ -4,9 +4,9 @@ source("pf_functions.r")
 gpath = "../graphs/"
 dpath = "../data/"
 
-# Figure 1 - Compare particle filters over different # particles for systematic resampling, uniform priors
-filts = c("BF","APF","KD")
-ns = c(100,1000,10000,20000)
+## Figure 1 - Compare particle filters over different # particles for systematic resampling, uniform priors
+
+# Set graphical parameters
 params = expression(beta,gamma,nu)
 ymins = c(0.15,0.075,0.8)
 ymaxs = c(0.35,0.165,1.45)
@@ -15,6 +15,12 @@ cex.lab = 6
 cex.main = 7
 cex.axis = 4
 cex.leg = 4
+
+# 4 by 3 figure of plot panels (rows = num particles, cols = params)
+filts = c("BF","APF","KD")
+ns = c(100,1000,10000,20000)
+
+# Construct plots
 pdf(paste(gpath,"PF-systematic-uniform.pdf",sep=""),width=30,height=40)
 par(mfrow=c(4,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
 for(i in 1:length(ns))
@@ -63,39 +69,75 @@ for(i in 1:length(ns))
 }
 dev.off()
 
-# Figure 2 - Create scatterplots of beta v gamma over time
-mydata = expand.grid(n = 10000, filt = "KD", resamp = "systematic", prior = c("normal","uniform","semi-uniform"), stringsAsFactors=FALSE)
-mod = ""
-# pf.scats - function to construct scatterplots of beta v gamma
-pf.scats = function(n, filt, resamp, prior, ...)
-{
-  # Load data
-  load(paste(dpath,"sim-xy",mod,".rdata",sep=""))
-  load(paste(dpath,"PF",mod,"-",filt,"-",prior,"-",resamp,"-",n,".rdata",sep=""))
-  if(filt == "KD") out = pf.out$out$theta else out = pf.out$out$state[-(1:2),,]
-  ftheta = pf.out$ftheta
-  betas = ftheta(out[1,,],1)
-  gammas = ftheta(out[2,,],2)
+## Figure 2 - Create scatterplots of beta v gamma over time
 
-  # Scatterplot
-  expr = expression(beta,gamma)
+# Set graphical parameters
+xlim=c(.17,.33); ylim=c(.07,.17)
+borderx=c(.14,.5); bordery=c(.09,.143)
+msize=5; labsize=5; axsize=3; ptsize=3
+ptsty=20; ptcol="gray70"; rline = -2.3; rsize = 1.8
+
+# Load simulated data to get true values of beta and gamma
+load(paste(dpath,"sim-xy.rdata",sep=""))
+
+# Panel 1 - uniform prior draws, logit transformation
+# Panel 2 - uniform prior draws, no transformation
+# Panel 3 - normal prior draws, log transformation
+priors = c("uniform","semi-uniform","normal")
+for(k in 1:length(priors))
+{
+  # Load particle filtered data
+  load(paste(dpath,"PF-KD-",priors[k],"-systematic-10000.rdata",sep=""))
+
+  # Resample particles at cutoff points to have equal weights
+  cutoff = seq(16, 61, len=4)
+  betas = pf.out$ftheta(pf.out$out$theta[1,,],1)
+  gammas = pf.out$ftheta(pf.out$out$theta[2,,],2)
   myout = array(NA,dim=c(2,dim(betas)[1],dim(betas)[2]))
   myout[1,,] = betas
   myout[2,,] = gammas
-  file = paste(gpath,"Hist",mod,"-",filt,"-",prior,"-",resamp,"-",n,"-betagamma.pdf",sep="")
-  cutoff = seq(16,61,len=4)
-  pf.scat(myout,pf.out$out$weight,cutoff,expr[1:2],theta[1:2],file,M=500,xlim=c(.17,.33),ylim=c(.07,.17),borderx=c(.14,.5),bordery=c(.09,.143),mr=1,mc=4,width=20,height=5,method="stratified")
+  myscat = pf.scat(myout,pf.out$out$weight,cutoff)
+
+  # Scatterplots over time
+  file = paste(gpath,"Hist-KD-",priors[k],"-systematic-10000-betagamma.pdf",sep="")
+  pdf(file,width=20,height=5)
+  par(mfrow=c(1,4),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
+  for(i in 1:length(cutoff))
+  {
+    if(i == 1)
+    {
+      if(priors[k] == "uniform")
+      {
+        plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab=expression(beta),ylab=expression(gamma),main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
+      } else {
+        plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab=expression(beta),ylab=expression(gamma),cex.lab=labsize,cex.axis=axsize)
+      }
+      abline(v=borderx,lty=2)
+      abline(h=bordery,lty=2)
+      points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
+      mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
+      points(theta[1],theta[2],col=2,pch=3,cex=1.5*ptsize)
+    } else {
+      if(priors[k] == "uniform")
+      {
+        plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,axes=FALSE)
+      } else {
+        plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",axes=FALSE)
+      }
+      box()
+      abline(v=borderx,lty=2)
+      abline(h=bordery,lty=2)
+      points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
+      mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
+      points(theta[1],theta[2],col=2,pch=3,cex=1.5*ptsize)
+    }
+  }
+  dev.off()
 }
 
-# Construct scatterplots
-require(plyr)
-m_ply(mydata,pf.scats)
+## Figure 3 - Compare resampling schemes over different # particles using normal priors, kernel density PF
 
-# Figure 3 - Compare resampling schemes over different # particles using normal priors, kernel density PF
-require(graphics)
-resamps = c("multinomial","residual","stratified","systematic")
-ns = c(100,1000,10000,20000)
-params = expression(beta,gamma,nu)
+# Set graphical parameters
 ymins = c(0.15,0.075,0.8)
 ymaxs = c(0.35,0.165,1.45)
 cols = c(2,3,4,5)
@@ -103,6 +145,14 @@ cex.lab = 6
 cex.main = 7
 cex.axis = 4
 cex.leg = 4
+
+# 4 by 3 figure of panels (rows = num particles, cols = params)
+require(graphics)
+resamps = c("multinomial","residual","stratified","systematic")
+ns = c(100,1000,10000,20000)
+params = expression(beta,gamma,nu)
+
+# Construct plot
 pdf(paste(gpath,"PF-KD-normal.pdf",sep=""),width=30,height=40)
 par(mfrow=c(4,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
 for(i in 1:length(ns))
