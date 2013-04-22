@@ -254,7 +254,7 @@ First, we examine the performance of the three different particle filtering algo
 
 Not only does the KD particle filter outperform the BF and APF in terms of avoiding degeneracy, but it runs more efficiently as well.  Notice that the bounds for the KD particle filter become wider as $J$ increases, but they do not change much between $J = 10000$ and $J = 20000$ particles.  This suggests that by 10000 particles the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ has converged to the true posterior.  Thus, even though the bounds of the APF approximately match that of the KD particle filter for the first 25 days of the epidemic at 20000 particles, the KD particle filter provides roughly the same measure of uncertainty using only 10000 particles.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=1.0\textwidth]{PF-systematic-uniform}
 \caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows).  Uniform priors and systematic resampling were used for all particle filter runs, and the scale of the plot axes are identical within columns.} \label{fig:unisys}
@@ -270,25 +270,37 @@ Plots from the second row of figure \ref{fig:priors} show results from applying 
 
 In the third row of the figure, normal priors are used with a log transformation on the components of $\theta$ when running the KD particle filter to force $\beta$, $\gamma$, and $\nu$ to be positive.  As with the plots from the second row, the distribution of points do not appear truncated or S-shaped as they do in the first row where points were restricted to the uniform bounds.  Thus, we prefer to use normal priors in order to relax the constraint on the sample space of $\theta$ and allow the data, rather than the prior bounds, to dictate the evolution of $\theta$.
 
-\begin{figure}
-\centering
+\begin{figure}[ht]
+
 \begin{minipage}{1.0\linewidth}
-\caption*{uniform priors, logit transformation}
 \includegraphics[width=1.0\textwidth]{Hist-KD-uniform-systematic-10000-betagamma}
+\vspace{-1.0cm}
+\caption*{uniform prior draws, logit transformation}
 \end{minipage}
+
+\vspace{0.5cm}
+
 \begin{minipage}{1.0\linewidth}
-\caption*{uniform priors, no transformation}
 \includegraphics[width=1.0\textwidth]{Hist-KD-semi-uniform-systematic-10000-betagamma}
+\vspace{-1.0cm}
+\caption*{uniform prior draws, no transformation}
 \end{minipage}
+
+\vspace{0.5cm}
+
 \begin{minipage}{1.0\linewidth}
-\caption*{normal priors, log transformation}
 \includegraphics[width=1.0\textwidth]{Hist-KD-normal-systematic-10000-betagamma}
+\vspace{-1.0cm}
+\caption*{normal prior draws, log transformation}
 \end{minipage}
-%\begin{minipage}{1.0\linewidth}
-%\caption*{normal priors}
-%\includegraphics[width=1.0\textwidth]{Hist-KD-semi-normal-systematic-10000-betagamma}
-%\end{minipage}
+
 \caption{Displays scatterplots of $\beta$ versus $\gamma$ at $t = 15, 30, 45, 60$ days using the kernel density particle filter with $J = 10000$ particles and systematic resampling.  Each row corresponds to a specific prior and transformation applied to $\theta$ in the KD particle filter.  For each panel, 500 particles were sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ and plotted.  The sample correlation coefficient, $r$, is displayed in the subtitle of each plot, red crosses indicate the true values of $\beta$ and $\gamma$ used for simulation ($\beta = 0.2399$ and $\gamma = 0.1066$), plot axes are all on the same scale, and dashed horizontal lines indicate the bounds of the uniform prior on $\gamma$.  Uniform bounds on $\beta$ are not shown because they lay outside the range of the x-axis.} \label{fig:priors}
+
+\end{figure}
+
+\begin{figure}[ht]
+\includegraphics[width=1.0\textwidth]{Hist-KD-systematic-10000-betagamma-corrs}
+\caption{Displays the sample correlation coefficient between $\beta$ and $\gamma$ over time for the different prior distributions and transformations applied to $\theta$.  For each time $t$, values of $\beta$ and $\gamma$ were taken from 500 particles sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$} \label{fig:corr}
 \end{figure}
 
 \subsection{Comparison of Resampling Schemes}
@@ -303,7 +315,7 @@ Now preferring to run the KD particle filter with 10000 particles using normal p
 
 Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered distributions of the unknown parameters as $J$ increases for the four different resampling schemes.  Ideally, the resampling scheme that performed the best would stand out in that the marginal particle filtered distribution of $\theta$ approaches the true posterior (approximated by the white area in the plots) the fastest with increasing $J$.  Noticing in particular at the panel for $\nu$ at $J = 10000$, multinomial resampling appears to be outperformed by the other three methods.  However, it is difficult to discern which of the remaining three methods performs the best.  We prefer to use stratified resampling since, according to \cite{Douc:Capp:Moul:comp:2005}, systematic resampling can perform worse than multinomial in certain cases and stratified resampling is guaranteed to decrease the Monte Carlo variability in the particle samples, on average, relative to multinomial sampling.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=1.0\textwidth]{PF-KD-normal}
 \caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows), color coded by resampling technique.  Normal priors on $\theta$ and the KD particle filter were used for all runs.  Plot axes are identical within columns, and areas shaded gray are outside of 95\% credible bounds calculated by taking the average quantiles of the four resampling techniques at $J = 20000$ particles.} \label{fig:resamp}
@@ -329,27 +341,13 @@ As with the other three parameters, the prior distributions of $b$, $\varsigma$,
 
 Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of $\theta$ and $x$ for both the extended model (blue lines) and the original model (red lines) that assumes $b$, $\varsigma$, and $\sigma$ known.  We notice from this figure that the lines for the unknown parameters appear choppier than in earlier plots, with flat periods followed by sharp changes in uncertainty.  This is due to the fact that data are coming from only one syndrome, and so gaps in the data that lead to a lack of resampling of particles contribute to this choppiness (see appendix).  For example, a sharp shift in the distribution of $b$ occurs around $t = 45$ because of an influx of data following a period of no data and scarce resampling of particles, indicated by tick marks along the bottom of the graphs.  Most obvious from this figure is the fact that the intervals for $\beta$, $\gamma$, $\nu$, $s$, $i$, and $r$ are wider for the extended model (green lines) than for the original model.  This is expected due to the added uncertainty in $b$, $\varsigma$, and $\sigma$ in the extended model.  Nonetheless, we are still able to adequately estimate the epidemic curves even with imprecise knowledge of the parameters $b$, $\varsigma$, and $\sigma$ but increasing the number of particles used in the KD particle filter.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=1.0\textwidth]{PF-ext-KD-stratified-normal-20000}
 \caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters of the extended model (green) over time compared with that of the model assuming $b$, $\varsigma$, and $\sigma$ known.  $J = 20000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.  Tick marks are shown along the bottom of the plots at time points when no resampling was performed in the particle filter.} \label{fig:ext}
 \end{figure}
 
 \section{Discussion \label{sec:discussion}}
-
-\clearpage
-
-\section{Appendix \label{sec:appendix}}
-
-\begin{figure}[ht]
-\includegraphics[width=1.0\textwidth]{sim-y}
-\caption{Displays the exponential of the observed syndromic data over time, simulated from the model described in section \ref{sec:sim}.  Different colors represent data from different syndromes.} \label{fig:y}
-\end{figure}
-
-\begin{figure}[ht]
-\includegraphics[width=1.0\textwidth]{sim-y-ext}
-\caption{Displays the exponential of the observed syndromic data over time, simulated from the extended model described in section \ref{sec:extend}} \label{fig:yext}
-\end{figure}
 
 \clearpage
 

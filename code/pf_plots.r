@@ -104,13 +104,14 @@ for(k in 1:length(priors))
   par(mfrow=c(1,4),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
   for(i in 1:length(cutoff))
   {
-    if(i == 1)
+    if(priors[k] == "uniform")
     {
-      if(priors[k] == "uniform")
+      if(i == 1)
       {
         plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab=expression(beta),ylab=expression(gamma),main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
       } else {
-        plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab=expression(beta),ylab=expression(gamma),cex.lab=labsize,cex.axis=axsize)
+        plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,axes=FALSE)
+        box()
       }
       abline(v=borderx,lty=2)
       abline(h=bordery,lty=2)
@@ -118,12 +119,7 @@ for(k in 1:length(priors))
       mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
       points(theta[1],theta[2],col=2,pch=3,cex=1.5*ptsize)
     } else {
-      if(priors[k] == "uniform")
-      {
-        plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",main=paste("t = ",cutoff[i]-1,sep=""),cex.main=msize,axes=FALSE)
-      } else {
-        plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",axes=FALSE)
-      }
+      plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",axes=FALSE)
       box()
       abline(v=borderx,lty=2)
       abline(h=bordery,lty=2)
@@ -134,6 +130,51 @@ for(k in 1:length(priors))
   }
   dev.off()
 }
+
+## Figure 2a - plot correlations over time for uniform, semi-uniform, normal priors
+
+# Load data and compute correlations
+load(paste(dpath,"sim-xy.rdata",sep=""))
+tt = nt + 1
+priors = c("uniform","semi-uniform","normal")
+cutoff = 2:tt
+r = matrix(NA,nr=length(cutoff),length(priors))
+for(k in 1:length(priors))
+{
+  # Load particle filtered data
+  load(paste(dpath,"PF-KD-",priors[k],"-systematic-10000.rdata",sep=""))
+
+  # Resample particles at cutoff points to have equal weights
+  betas = pf.out$ftheta(pf.out$out$theta[1,,],1)
+  gammas = pf.out$ftheta(pf.out$out$theta[2,,],2)
+  myout = array(NA,dim=c(2,dim(betas)[1],dim(betas)[2]))
+  myout[1,,] = betas
+  myout[2,,] = gammas
+  myscat = pf.scat(myout,pf.out$out$weight,cutoff)
+ 
+  # Save correlations
+  r[,k] = myscat$r
+}
+
+# Set graphical parameters
+msize=1; labsize=1; axsize=1
+col = c(1,2,4)
+
+# Construct plot
+file = paste(gpath,"Hist-KD-systematic-10000-betagamma-corrs.pdf",sep="")
+pdf(file)
+#par(mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
+for(k in 1:dim(r)[2])
+{
+  if(k == 1)
+  {
+    plot(cutoff-1,r[,k],type="l",main="Correlation Coefficient vs Time",xlab="Time (days)",ylab=expression(r),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
+  } else {
+    lines(cutoff-1,r[,k],col=col[k])
+  }
+  legend("topright",c("Unif draws, logit transf.","Unif draws, no transf.","Normal draws, log transf."),lty=c(1,1,1),col=c(1,2,4))
+}
+dev.off()
 
 ## Figure 3 - Compare resampling schemes over different # particles using normal priors, kernel density PF
 
@@ -223,22 +264,28 @@ for(i in 1:length(ns))
 }
 dev.off()
 
-# Figure 4 - Extended model: KD PF for n particles with normal priors and stratified resampling
-n = 20000
-params = expression(beta,gamma,nu,b,varsigma,sigma)
+## Figure 4 - Extended model: KD PF for n particles with normal priors and stratified resampling
+
+# Load data and get points where resampling done
+n = 40000
 load(paste(dpath,"sim-xy-ext.rdata",sep=""))
 tt = dim(sim$x)[2]; nt = tt - 1
 resampled = rep(0,nt)
 load(paste(dpath,"PF-ext-KD-normal-stratified-",n,".rdata",sep=""))
 parents = pf.out$out$parent
-for(i in 1:125) resampled[i] = all(parents[,i] == 1:n)
+for(i in 1:125) resampled[i] = !all(parents[,i] == 1:n)
 spts = which(as.logical(resampled))
+
+# Set graphical parameters
+params = expression(beta,gamma,nu,b,varsigma,sigma)
 ymins = c(0.15,0.08,0.85,0,.8,0)
 ymaxs = c(0.35,0.15,1.4,.5,1.2,.002)
 cex.lab = 6
 cex.main = 7
 cex.axis = 4
 cex.leg = 4
+
+# Construct plot
 pdf(paste(gpath,"PF-ext-KD-stratified-normal-",n,".pdf",sep=""),width=30,height=30)
 par(mfrow=c(3,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
 for(k in 1:length(params))
@@ -279,13 +326,11 @@ for(k in 2:1)
   tt = dim(out)[1]; nt = tt - 1
   if(k == 2) # label x axis, title
   {
-#     ymin = min(out[-1,k,2],sim$x[k,1])
      plot(1:nt,out[-1,k,2],type="l",ylim=c(ymin,1),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=4)
      lines(1:nt,sim$x[k,-1],col="gray47")
      points(spts,rep(0,length(spts)),pch="|",cex=2)
   } else { # label title only
-#     ymax = max(out[-1,k,3],sim$x[k,1])
      plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=4)
      lines(1:nt,sim$x[k,-1],col="gray47")
@@ -302,7 +347,6 @@ load(paste(dpath,"PF-quant-ext-KD-normal-stratified-",n,".rdata",sep=""))
 out = pf.quant.out$state.quant
 tt = dim(out)[1]; nt = tt - 1
 truex = 1 - apply(sim$x[,-1],2,sum)
-#ymax = max(out[-1,k,3],truex)
 plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
 lines(1:nt,out[-1,k,3],col=4)
 lines(1:nt,truex,col="gray47")
