@@ -300,7 +300,7 @@ In the third row of the figure, normal priors are used with a log transformation
 
 \begin{figure}[ht]
 \includegraphics[width=1.0\textwidth]{Hist-KD-systematic-10000-betagamma-corrs}
-\caption{Displays the sample correlation coefficient between $\beta$ and $\gamma$ over time for the different prior distributions and transformations applied to $\theta$.  For each time $t$, values of $\beta$ and $\gamma$ were taken from 500 particles sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$} \label{fig:corr}
+\caption{Displays the sample correlation coefficient between $\beta$ and $\gamma$ over time - when running the KD particle filter with systematic resampling - for different prior distributions and transformations applied to $\theta$.  For each time $t$, values of $\beta$ and $\gamma$ were taken from 500 particles sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$} \label{fig:corr}
 \end{figure}
 
 \subsection{Comparison of Resampling Schemes}
@@ -344,7 +344,7 @@ Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filter
 \begin{figure}[ht]
 \centering
 \includegraphics[width=1.0\textwidth]{PF-ext-KD-stratified-normal-20000}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters of the extended model (green) over time compared with that of the model assuming $b$, $\varsigma$, and $\sigma$ known.  $J = 20000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.  Tick marks are shown along the bottom of the plots at time points when no resampling was performed in the particle filter.} \label{fig:ext}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters of the extended model (green) over time compared with that of the model assuming $b$, $\varsigma$, and $\sigma$ known.  $J = 20000$ particles for the KD particle filter were used with normal priors on $\theta$ and stratified resampling.  Tick marks are shown along the bottom of the plots at time points when resampling was performed in the particle filter.} \label{fig:ext}
 \end{figure}
 
 \section{Discussion \label{sec:discussion}}
