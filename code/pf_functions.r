@@ -91,7 +91,7 @@ pf.scat = function(out, wts, cutoff, M=500, xlim=NA, ylim=NA, ...)
   r = rep(NA,length(cutoff))
   for(i in 1:length(cutoff))
   {
-    r[i] = cor(xrw1[,i],xrw2[,i])
+    r[i] = cov.wt(cbind(out[1,,cutoff[i]],out[2,,cutoff[i]]),wts[,cutoff[i]],cor=TRUE)$cor[1,2]
   }  
 
   # Return re-weighted particles, correlations, and min/max values of particles
