@@ -17,7 +17,7 @@ cex.axis = 4
 cex.leg = 4
 
 # 4 by 3 figure of plot panels (rows = num particles, cols = params)
-filts = c("BF","APF","KD")
+filts.load = c("BF","APF","KD")
 ns = c(100,1000,10000,20000)
 
 # Construct plots
@@ -29,7 +29,7 @@ for(i in 1:length(ns))
   {
     for(j in 1:length(filts))
     {
-      load(paste(dpath,"PF-quant-",filts[j],"-uniform-systematic-",ns[i],".rdata",sep=""))
+      load(paste(dpath,"PF-quant-",filts.load[j],"-uniform-systematic-",ns[i],".rdata",sep=""))
       out = pf.quant.out$theta.quant
       tt = dim(out)[1]; nt = tt - 1
       if(j == 1) # call plot function
@@ -63,7 +63,7 @@ for(i in 1:length(ns))
     abline(h=theta[k],col="gray47")
     if(k == 1 & i == 1) # add legend
     {
-      legend("topright",legend=c("Truth","BF","APF","KD"),col=c("gray47",cols),lty=c(1,1,1,1),cex=cex.leg)
+      legend("topright",legend=c("Truth","BF","APF","KDPF"),col=c("gray47",cols),lty=c(1,1,1,1),cex=cex.leg)
     }
   }
 }
