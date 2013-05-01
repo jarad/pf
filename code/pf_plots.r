@@ -267,7 +267,9 @@ dev.off()
 ## Figure 4 - Extended model: KD PF for n particles with normal priors and stratified resampling
 
 # Load data and get points where resampling done
-n = 40000
+n = 20000
+nonunif = "-ess"
+thresh = paste("-",100*.8,sep="")
 load(paste(dpath,"sim-xy-ext.rdata",sep=""))
 tt = dim(sim$x)[2]; nt = tt - 1
 resampled = rep(0,nt)
@@ -310,7 +312,7 @@ for(k in 1:length(params))
   abline(h=theta[k],col="gray47")
   if(k %in% 1:3)
   {
-    load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,".rdata",sep=""))
+    load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
     out = pf.quant.out$theta.quant
     tt = dim(out)[1]; nt = tt - 1
     lines(1:nt,out[-1,k,2],col=2)
@@ -336,7 +338,7 @@ for(k in 2:1)
      lines(1:nt,sim$x[k,-1],col="gray47")
      points(spts,rep(0,length(spts)),pch="|",cex=2)
   }
-  load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,".rdata",sep=""))
+  load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
   out = pf.quant.out$state.quant
   tt = dim(out)[1]; nt = tt - 1
   lines(1:nt,out[-1,k,2],col=2)
@@ -351,7 +353,7 @@ plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",m
 lines(1:nt,out[-1,k,3],col=4)
 lines(1:nt,truex,col="gray47")
 points(spts,rep(0,length(spts)),pch="|",cex=2)
-load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,".rdata",sep=""))
+load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
 out = pf.quant.out$state.quant
 tt = dim(out)[1]; nt = tt - 1
 lines(1:nt,out[-1,k,2],col=2)

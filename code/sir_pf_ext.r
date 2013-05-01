@@ -6,7 +6,7 @@ load(paste(dpath,"sim-xy-ext.rdata",sep=""))
 
 # pf - function to run particle filter given n number of particles, filt = "BF", "APF", or "KD" for which filter to run, resamp = "multinomial", "residual", "stratified", or "systematic" for which resampling method to use, and prior = "normal" or "uniform" for which prior to use on unknown parameters
 # Returns nothing; saves .rdata data file
-pf <- function(n, filt, resamp, prior, progress, ...)
+pf <- function(n, filt, resamp, prior, nonunif = "ess", thresh = 0.8, progress = TRUE)
 {
   # Create function to sample from prior distribution of theta and map theta to original scale
   if(prior == "uniform")
@@ -54,7 +54,7 @@ pf <- function(n, filt, resamp, prior, progress, ...)
       return(c(myprior$x,myprior$theta))
     }
     source("bf.r")
-    out = bf(sim$y, dllik_bf, revo_bf, rprior_bf, n, progress=progress, method=resamp, log=F, ...)
+    out = bf(sim$y, dllik_bf, revo_bf, rprior_bf, n, progress=progress, method=resamp, log=F, nonuniformity = nonunif, threshold = thresh)
   } else if(filt == "APF"){
     # Run auxiliary particle filter
     dllik_apf = function(y, x){ dllik(y, x[1:2], ftheta(x[6],4), ftheta(x[7],5), ftheta(x[8],6), dpower)}
@@ -66,7 +66,7 @@ pf <- function(n, filt, resamp, prior, progress, ...)
       return(c(myprior$x,myprior$theta))
     }
     source("apf.r")
-    out = apf(sim$y, dllik_apf, pstate_apf, revo_apf, rprior_apf, n, progress=progress, method=resamp, log=F, ...)
+    out = apf(sim$y, dllik_apf, pstate_apf, revo_apf, rprior_apf, n, progress=progress, method=resamp, log=F, nonuniformity = nonunif, threshold = thresh)
   } else {
     # Run kernel density particle filter
     dllik_kd = function(y, x, mytheta){ dllik(y, x, ftheta(mytheta[4],4), ftheta(mytheta[5],5), ftheta(mytheta[6],6), dpower)}
@@ -74,17 +74,17 @@ pf <- function(n, filt, resamp, prior, progress, ...)
     revo_kd = function(x, mytheta){ revo(x, P, d, ftheta(mytheta[1:3],1:3))}
     rprior_kd = function() rprior(rtheta, obsparam=TRUE, rthetaPlus=rthetaPlus)
     source("kd_pf.r")
-    out = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, progress=progress, method=resamp, log=F, ...)
+    out = kd_pf(sim$y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, progress=progress, method=resamp, log=F, nonuniformity = nonunif, threshold = thresh)
   }
 
   # Save output
   pf.out = list(out=out,ftheta=ftheta)
-  save(pf.out, file=paste(dpath,"PF-ext-",filt,"-",prior,"-",resamp,"-",n,".rdata",sep=""))
+  save(pf.out, file=paste(dpath,"PF-ext-",filt,"-",prior,"-",resamp,"-",n,"-",nonunif,"-",100*thresh,".rdata",sep=""))
 }
 
 # Apply pf to combination of pfs
 require(plyr)
-mydata = expand.grid(filt = "KD", n = c(100, 1000, 10000, 20000, 40000), resamp = "stratified", prior = "normal", progress=FALSE, nonuniformity="ess", threshold=0.8, stringsAsFactors=FALSE)
+mydata = expand.grid(filt = "KD", n = c(100, 1000, 10000, 20000, 40000), resamp = "stratified", prior = "normal", progress=FALSE, stringsAsFactors=FALSE)
 m_ply(mydata,pf)
 
 # Clear objects

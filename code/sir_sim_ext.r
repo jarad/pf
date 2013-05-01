@@ -1,30 +1,23 @@
-source("sir_functions.r")
-source("ss_sim.r")
-
-# Initialize .Random.seed
-set.seed(sample(1:1000,1))
-
 # Set data and graphics path
-gpath = "../graphs/"
 dpath = "../data/"
+gpath = "../graphs/"
 
-# Set known parameter values
-P = 5000
-d = 5
+# Load simulated data from original model
+load(paste(dpath,"sim-xy.rdata",sep=""))
+
+# Alter parameters in observation equation
 b = .25
 varsigma = 1
 sigma = 0.001
-dpower = 2
 
-# Set unknown parameter values
-theta = c(0.2399, 0.1066, 1.2042)
+# Generate new observations
+y = matrix(NA,nr=1,nc=nt)
+for(i in 1:nt) y[1,i] = robs_sim(sim$x[1,i+1])
 
-# Simulate epidemic
-revo_sim = function(x){ revo(x, P, d, theta)}
-robs_sim = function(x){ robs(x, b, varsigma, sigma, dpower)}
-rinit_sim = function(){ rinit(10/P)}
-nt = 125
-sim = ss.sim(nt, revo_sim, robs_sim, rinit_sim)
+# Replace old observations with new ones
+sim$y = y
+
+# Save data
 save.image(paste(dpath,"sim-xy-ext.rdata",sep=""))
 #load((paste(dpath,"sim-xy-ext.rdata",sep=""))
 

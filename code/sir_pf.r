@@ -6,7 +6,7 @@ load(paste(dpath,"sim-xy.rdata",sep=""))
 
 # pf - function to run particle filter given n number of particles, filt = "BF", "APF", or "KD" for which filter to run, resamp = "multinomial", "residual", "stratified", or "systematic" for which resampling method to use, and prior = "normal" or "uniform" for which prior to use on unknown parameters
 # Returns nothing; saves .rdata data file
-pf <- function(n, filt, resamp, prior, nonunif = "ess", thresh = 0.8, progress)
+pf <- function(n, filt, resamp, prior, nonunif = "ess", thresh = 0.8, progress = TRUE)
 {
   # Create function to sample from prior distribution of theta and map theta to original scale
   if(prior == "uniform")
@@ -73,12 +73,8 @@ pf <- function(n, filt, resamp, prior, nonunif = "ess", thresh = 0.8, progress)
 }
 
 # Apply pf to combination of pfs
-#require(plyr)
-#mydata = expand.grid(n = c(100, 1000, 10000), filt = "KD", resamp = "systematic", prior = "semi-normal", progress=TRUE, stringsAsFactors=FALSE)
-#m_ply(mydata,pf)
-
 require(plyr)
-mydata = expand.grid(n = 10000, filt = "KD", resamp = "stratified", prior = "normal", progress=FALSE, nonunif=c("ess","cov","entropy"), thresh=seq(.05,.95,.05), stringsAsFactors=FALSE)
+mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "normal", progress=FALSE, stringsAsFactors=FALSE)
 m_ply(mydata,pf)
 
 # Clear objects
