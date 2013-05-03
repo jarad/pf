@@ -138,8 +138,8 @@ Following \citet{skvortsov2012monitoring}, we consider the modified SIR model wi
 \noindent Here, $\beta$ represents the contact rate of spread of the disease, $\gamma$ is the recovery time, and $\nu$ is the mixing intensity of the population.  $\beta$, $\gamma$, and $\nu$ are each restricted to be non-negative, and $\epsilon_\beta$ and $\epsilon_\gamma$ are uncorrelated, Gaussian random variables with zero mean and standard deviations $\sigma_\beta$ and $\sigma_\gamma$, respectively.  Note that, by definition, $r$ is completely specified once $s$ and $i$ are known.
 
 The standard deviation of the noise terms $\sigma_\beta$ and $\sigma_\gamma$ are approximated by
-\[\sigma_\beta \approx \frac{\sqrt{\beta}}{P} \mbox{, } \sigma_\gamma \approx \frac{\sqrt{\gamma}}{P}\] 
-This comes from a well-known scaling rule of random fluctuations in the contact rate and recovery time \citep{ovaskainen2010extinction, herwaarden1995stochepid, dangerfield2009stochepid}.  The evolution of the epidemic from time $t$ to $t + \tau$ (for $\tau > 0$) is then approximated using Euler's method \danny{reference?}.  Letting $s_t$ and $i_t$ be the proportion of the population susceptible to disease and infected by disease at time $t$, respectively, we have
+\[\sigma_\beta \approx \frac{\sqrt{\beta}}{P} \mbox{, } \sigma_\gamma \approx \frac{\sqrt{\gamma}}{P}\]
+This comes from a well-known scaling rule of random fluctuations in the contact rate and recovery time \citep{ovaskainen2010extinction, herwaarden1995stochepid, dangerfield2009stochepid}.  The evolution of the epidemic from time $t$ to $t + \tau$ (for $\tau > 0$) is then approximated using Euler's method \citep{atkinson1989numericalanalysis}.  Letting $s_t$ and $i_t$ be the proportion of the population susceptible to disease and infected by disease at time $t$, respectively, we have
 
 \begin{align}
 s_{t+\tau} &= s_t - \tau\beta i_ts^\nu_t + \xi_s \label{eqn:s} \\
@@ -204,7 +204,7 @@ We now compare the performance of the particle filtering algorithms described in
 
 \subsection{Simulation setup} \label{sec:sim}
 
-An epidemic lasting $T = 125$ days was simulated from our model for a population of size $P = 5000$.  True values of unknown parameters were set to $\beta = 0.2399$, $\gamma = 0.1066$, and $\nu = 1.2042$, and values of known constants for $L = 4$ syndromes are given in table \ref{tab:true}.  Infection was introduced in 10 people in the population at day 0 (i.e. $i_0 = 10/5000$ and $s_0 = 4990/5000$).  Data were observed daily from the different syndromes asynchronously, i.e. at each day we can observe data from 0, 1, or more than 1 syndrome.  The epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.  Using these parameter values and initial concentration of infections, the epidemic reaches its peak around $t = 50$ days, affecting roughly 15-20\% of the population.  The true epidemic curve and simulated data are provided in an attached supplement.
+An epidemic lasting $T = 125$ days was simulated from our model for a population of size $P = 5000$.  True values of unknown parameters were set to $\beta = 0.2399$, $\gamma = 0.1066$, and $\nu = 1.2042$, and values of known constants for $L = 4$ syndromes are given in table \ref{tab:true}.  Infection was introduced in 10 people in the population at day 0 (i.e. $i_0 = 10/5000$ and $s_0 = 4990/5000$).  Data were observed daily from the different syndromes asynchronously, i.e. at each day we can observe data from 0, 1, or more than 1 syndrome.  The epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.  Using these parameter values and initial concentration of infections, the epidemic reaches its peak around $t = 50$ days, affecting roughly 17\% of the population (see Figure \ref{fig:data}).
 
 \begin{table}[ht]
 \begin{center}
@@ -223,9 +223,20 @@ $l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
 \end{center}
 \end{table}
 
+\begin{figure}
+\centering
+\begin{minipage}{0.48\linewidth}
+\includegraphics[width=1.0\textwidth]{sim-x}
+\end{minipage}
+\begin{minipage}{0.48\linewidth}
+\includegraphics[width=1.0\textwidth]{sim-y}
+\end{minipage}
+\caption{Displays simulated epidemic curves (left) and syndromic observations (right).} \label{fig:data}
+\end{figure}
+
 \subsection{Particle filter runs} \label{sec:pf}
 
-The bootstrap filter (BF), auxilliary particle filter (APF), and kernel density particle filter (KDPF) were each run on the simulated data using $J = 100, 1000, 10000, \mbox{ and } 20000$ particles to obtain weighted sample approximations of $p(x_t,\theta|y_{1:t})$ for $t = 1,\ldots,T$.  For a comparison of resampling schemes, this process was carried out using multinomial, residual, stratified, and systematic resampling.  For each resampling technique, an effective sample size threshold of 0.8 was used to determine when to resample particles.  For the KDPF, the tuning parameter $\delta$ was set to 0.99 to determine the variance of the normal kernel density approximation of $p(\theta|y_{1:t})$.
+The bootstrap filter (BF), auxilliary particle filter (APF), and kernel density particle filter (KDPF) were each run on the simulated data using $J = 100, 1000, 10000, \mbox{ and } 20000$ particles to obtain weighted sample approximations of $p(x_t,\theta|y_{1:t})$ for $t = 1,\ldots,T$.  For a comparison of resampling schemes, this process was carried out using multinomial, residual, stratified, and systematic resampling.  For each resampling technique, effective sample size was used to determine when to resample particles.  For the KDPF, the tuning parameter $\delta$ was set to 0.99 to determine the variance of the normal kernel density approximation of $p(\theta|y_{1:t})$.
 
 $x_0$ and $\theta_0$ were sampled from the prior density given by
 
@@ -321,11 +332,11 @@ Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered dist
 
 \subsection{A note on when to resample}
 
-Regardless of resampling technique, it is inefficient to resample at every single iteration of the particle filter because particle weights may not be out of balance, and so resampling would be unnecessarily adding Monte Carlo variability to the particle sample.  For all runs in our study, a measure of nonuniformity of particle weights called effective sample size is used to determine when to resample \citep{Liu:Chen:Wong:reje:1998}.  This value can be interpreted as the number of independent particle samples and ranges between 1 and $J$, with $J$ corresponding to all particle weights being equal and 1 corresponding to one particle weight being 1 with the rest 0.  We use a threshold of 0.8 in our runs, meaning that if the number of independent samples is less than 80\% of the total number of particles, resampling is performed.  Other measures of nonuniformity include coefficient of variation and entropy, and future work is needed to determine which choice of nonuniformity measure and threshold level are optimal in certain cases.
+Regardless of resampling technique, it is inefficient to resample at every single iteration of the particle filter because particle weights may not be out of balance, and so resampling would be unnecessarily adding Monte Carlo variability to the particle sample.  As mentioned in Section \ref{sec:pf}, a measure of nonuniformity of particle weights called effective sample size was used to determine when to resample for all runs in our study \citep{Liu:Chen:Wong:reje:1998}.  This value can be interpreted as the number of independent particle samples and ranges between 1 and $J$, with $J$ corresponding to all particle weights being equal and 1 corresponding to one particle weight being 1 with the rest 0.  We use a threshold of 0.8 in our runs, meaning that if the number of independent samples is less than 80\% of the total number of particles, resampling is performed.  Other measures of nonuniformity include coefficient of variation and entropy, and future work is needed to determine which choice of nonuniformity measure and threshold level are optimal in certain cases.
 
-\section{Extending the model \label{sec:extend}}
+\section{Additional Unknown Parameters \label{sec:extend}}
 
-We now turn our focus to extending the model to include the $b_l$'s, $\varsigma_l$'s, and $\sigma_l$'s as unknown parameters.  We consider data coming from just $L = 1$ syndrome and let $\theta = (\beta, \gamma, \nu, b, \varsigma, \sigma)'$, dropping the subscript $l$ for convenience.  Data were simulated from the model with true values set at $b = 0.25$, $\varsigma = 1$, $\sigma = 0.001$, and the remaining parameters set at the same values as in Section \ref{sec:sim}.  As before, we let the epidemic run for $T = 125$ days in a population of size $P = 5000$ with infection introduced in 10 people at day 0.  Data were observed daily from either 1 or 0 syndromes, and the epidemic evolved over time according to equation \eqref{eqn:state} with $\tau = 0.2$ days.
+We now turn our focus to extending the analysis to include the $b_l$'s, $\varsigma_l$'s, and $\sigma_l$'s as unknown parameters (referred to as the extended analysis).  We consider data coming from just $L = 1$ syndrome and let $\theta = (\beta, \gamma, \nu, b, \varsigma, \sigma)'$, dropping the subscript $l$ for convenience.  Using the same simulated epidemic, data were simulated from equation \eqref{eqn:obs} with true values of $b$, $\varsigma$, and $\sigma$ set at $0.25$, $1$, and $0.001$, respectively.  Days at which data from the single syndrome were observed were randomly selected.
 
 The KDPF with tuning parameter $\delta$ set to 0.99 was run with $J = 20000$ particles, and stratified resampling was used with an effective sample size threshold of 0.8.  $x_0$ and $\theta$ were sampled from the prior density given by
 
@@ -339,23 +350,23 @@ The KDPF with tuning parameter $\delta$ set to 0.99 was run with $J = 20000$ par
 \log(\sigma) &\sim N(-7.0516, 0.2803^2)
 \end{align*}
 
-As with the other three parameters, the prior distributions of $b$, $\varsigma$, and $\sigma$ are defined on the log scale so that they are constrained to be positive.  The choice of prior mean and standard deviation on the log scale were made such that random draws of $b$, $\varsigma$, and $\sigma$ on the original scale would be within $(0.1, 0.4)$, $(0.85, 1.15)$, and $(0.0005, 0.0015)$, respectively, with 95\% probability.  For comparison purposes, the KDPF with 20000 particles was also run assuming $b$, $\varsigma$, and $\sigma$ known.
+As with the other three parameters, the prior distributions of $b$, $\varsigma$, and $\sigma$ are defined on the log scale so that they are constrained to be positive.  The choice of prior mean and standard deviation on the log scale were made such that random draws of $b$, $\varsigma$, and $\sigma$ on the original scale would be within $(0.1, 0.4)$, $(0.85, 1.15)$, and $(0.0005, 0.0015)$, respectively, with 95\% probability.  For comparison purposes, the KDPF with 20000 particles was also run assuming $b$, $\varsigma$, and $\sigma$ known (referred to as the original analysis).
 
-Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of the elements of $\theta$ and $x$ for both the extended model (blue lines) and the original model (red lines) that assumes $b$, $\varsigma$, and $\sigma$ known.  We notice from this figure that the lines appear choppier than in earlier plots, with flat periods followed by sharp changes in uncertainty.  This is due to the fact that data are coming from only one syndrome, leading to more time points where no data are available (see supplement for data).  Gaps in the data lead to a lack of resampling of particles and causes more drastic shifts in the posterior distribution of $\theta$ once data arrive.  For example, a sharp shift in the distribution of $b$ occurs around $t = 30$ because of an influx of data following a period of no data and scarce resampling of particles.
+Figure \ref{fig:ext} shows 95\% credible intervals over time for marginal filtered distributions of the elements of $\theta$ and $x$ for both the extended (blue lines) and the original (red lines) analyses.  We notice from this figure that the lines appear choppier than in earlier plots, with flat periods followed by sharp changes in uncertainty.  This is due to the fact that data are coming from only one syndrome, leading to more time points where no data are available.  Gaps in the data lead to a lack of resampling of particles and causes more drastic shifts in the posterior distribution of $\theta$ once data arrive.  For example, a sharp shift in the distribution of $b$ occurs around $t = 30$ because of an influx of data following a period of no data and scarce resampling of particles.  Similarly, we notice a spike in the $s$, $i$, and $r$ curves around $t = 20$ for the same reason.
 
-Most obvious from Figure \ref{fig:ext} is that the intervals for $\beta$, $\gamma$, $\nu$, $s$, $i$, and $r$ are wider for the extended model than for the original model.  This is expected due to the added uncertainty in $b$, $\varsigma$, and $\sigma$ in the extended model.  Nonetheless, we are still able to adequately estimate the epidemic curves even with less data available and imprecise knowledge of the parameters $b$, $\varsigma$, and $\sigma$ by increasing the number of particles used in the KDPF.
+Most obvious from Figure \ref{fig:ext} is that the intervals for $\beta$, $\gamma$, $\nu$, $s$, $i$, and $r$ are wider for the extended analysis than they are for the original.  This is expected due to the added uncertainty in $b$, $\varsigma$, and $\sigma$ in the extended model.  Nonetheless, we are still able to adequately estimate the epidemic curves even with less data available and imprecise knowledge of the parameters $b$, $\varsigma$, and $\sigma$ by increasing the number of particles used in the KDPF.
 
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{PF-ext-KD-stratified-normal-20000}
-\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters of the extended model (blue) over time compared with that of the model assuming $b$, $\varsigma$, and $\sigma$ known.  $J = 20000$ particles for the KDPF were used with normal priors on $\theta$ and stratified resampling.  Tick marks are shown along the bottom of the plots at time points when particles were resampled, with red ticks corresponding to the model assuming $b$, $\varsigma$, and $\sigma$ known and blue ticks corresponding to the extended model.} \label{fig:ext}
+\caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions of the unknown states and parameters from the extended analysis (blue) over time compared with that from the original analysis (red).  $J = 20000$ particles for the KDPF were used with normal priors on $\theta$ and stratified resampling.  Tick marks are shown along the bottom of the plots at time points when data were observed (dark gray) and when particles were resampled (blue and red for the extended and original analyses, respectively).} \label{fig:ext}
 \end{figure}
 
 \section{Discussion \label{sec:discussion}}
 
 \clearpage
 
-\bibliographystyle{plainnat}
+\bibliographystyle{model1-num-names}
 \bibliography{jarad}
 
 \end{document} 
