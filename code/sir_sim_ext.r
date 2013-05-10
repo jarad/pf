@@ -5,6 +5,9 @@ gpath = "../graphs/"
 # Load simulated data from original model
 load(paste(dpath,"sim-xy.rdata",sep=""))
 
+# Create table of data for .csv file
+epid.data = data.frame(seq(0,125,1),cbind(sim$x[2,],sim$x[1,],1-sim$x[2,]-sim$x[1,]),t(cbind(rep(NA,4),exp(sim$y))))
+
 # Alter parameters in observation equation
 b = .25
 varsigma = 1
@@ -19,7 +22,23 @@ sim$y = y
 
 # Save data
 save.image(paste(dpath,"sim-xy-ext.rdata",sep=""))
-#load((paste(dpath,"sim-xy-ext.rdata",sep=""))
+#load(paste(dpath,"sim-xy-ext.rdata",sep=""))
+
+# Add to .csv file of data and save
+epid.data = data.frame(epid.data,c(NA,exp(sim$y[1,])))
+names(epid.data) = c("Day","s","i","r","Syndrome 1","Syndrome 2","Syndrome 3","Syndrome 4","Syndrome 1 (Extended Analysis)")
+write.csv(epid.data,file=paste(dpath,"simdata.csv",sep=""),row.names=FALSE)
+
+# Export epid.data as latex xtable
+epid.data = epid.data[,-1]
+names(epid.data) = c("$s$","$i$","$r$","$z_{1,t}$","$z_{1,t}$","$z_{1,t}$","$z_{1,t}$","$z_{1,t}$ (Extended Analysis)")
+rownames(epid.data) = seq(0,125,1)
+require(xtable)
+caption = "Simulated epidemic and syndromic data"
+label = "tab:data"
+align = "|c|ccc|cccc|c|"
+digits = 6
+print(xtable(epid.data,caption,label,align,digits),type="latex",file="../latex/simdata.txt")
 
 # Plot the data
 no = dim(sim$y)[1]
