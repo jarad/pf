@@ -178,7 +178,7 @@ First, we describe the observation equation.  We can observe data from multiple 
 y_{l,t} = \log \left(b_li_t^{\varsigma_l}\right) + \tau_l \qquad \tau_l \sim N\left(0,\sigma_l^2 / (b_li_t^{\varsigma_l})^2\right) \label{eqn:obs}
 \end{equation}
 
-\noindent The variance of $\tau_l$ is obtained by assuming $\tau^*_l \sim N(0,\sigma_l^2)$ and applying the delta method to $z_{l,t}$ \citep[chap. 5]{casella:berger:2002}.  Then, we define $y_t = (y_{1,t},y_{2,t},\ldots,y_{L,t})'$ to be an $L$-length vector with independent elements, each of which could possibly be missing.
+\noindent The variance of $\tau_l$ is obtained by assuming $\tau^*_l \sim N(0,\sigma_l^2)$ and applying the delta method to $z_{l,t}$ \citep[chap. 5]{Case:Berg:stat:2002}.  Then, we define $y_t = (y_{1,t},y_{2,t},\ldots,y_{L,t})'$ to be an $L$-length vector with independent elements, each of which could possibly be missing.
 
 Next, we specify the state evolution equation.  Let $x_t = (i_t,s_t)'$ represent the state of the epidemic at time $t$, and let $\theta$ represent any unknown, fixed parameters in the model.  For the time being, we let $\theta = (\beta, \gamma, \nu)'$ and regard the $b_l$'s, $\varsigma_l$'s, and $\sigma_l$'s as known.  Letting $\tau > 0$ be small, the state evolution equation follows from equations \eqref{eqn:s} and \eqref{eqn:i} and is expressed as the transition density
 
