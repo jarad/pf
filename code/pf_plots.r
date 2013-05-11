@@ -276,12 +276,12 @@ dpts = which(!is.na(sim$y[1,]))
 resampled = rep(0,nt)
 load(paste(dpath,"PF-ext-KD-normal-stratified-",n,".rdata",sep=""))
 parents = pf.out$out$parent
-for(i in 1:125) resampled[i] = !all(parents[,i] == 1:n)
+for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
 spts.ext = which(as.logical(resampled))
 resampled = rep(0,nt)
 load(paste(dpath,"PF-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
 parents = pf.out$out$parent
-for(i in 1:125) resampled[i] = !all(parents[,i] == 1:n)
+for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
 spts.org = which(as.logical(resampled))
 
 # Set graphical parameters
@@ -312,9 +312,9 @@ for(k in 1:length(params))
   } else { # label title only
      plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=4)
-     points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
-     points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
-     points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
+#     points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
+#     points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
+#     points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
   }
   load(paste(dpath,"sim-xy-ext.rdata",sep=""))
   theta = c(theta,b,varsigma,sigma)
@@ -347,9 +347,9 @@ for(k in 2:1)
      plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=4)
      lines(1:nt,sim$x[k,-1],col="gray47")
-     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+#     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+#     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+#     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
   }
   load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
   out = pf.quant.out$state.quant
@@ -365,9 +365,9 @@ truex = 1 - apply(sim$x[,-1],2,sum)
 plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
 lines(1:nt,out[-1,k,3],col=4)
 lines(1:nt,truex,col="gray47")
-points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+#points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+#points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+#points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
 load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
 out = pf.quant.out$state.quant
 tt = dim(out)[1]; nt = tt - 1

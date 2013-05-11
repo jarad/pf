@@ -32,10 +32,10 @@ save.image(paste(dpath,"sim-xy.rdata",sep=""))
 # Epidemic curves
 pdf(paste(gpath,"sim-x.pdf",sep=""))
 par(mar=c(5,7,4,1)+.1)
-plot(0:nt,1 - sim$x[1,] - sim$x[2,],ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
-points(0:nt,sim$x[2,])
-points(0:nt,sim$x[1,],col=2)
-legend("topright",legend=c("Susceptible","Infected","Recovered"),pch=rep(1,3),col=c(1,2,4),cex=1.5)
+plot(0:nt,1 - sim$x[1,] - sim$x[2,],type="l",ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
+lines(0:nt,sim$x[2,])
+lines(0:nt,sim$x[1,],col=2)
+legend("topright",legend=c("Susceptible","Infected","Recovered"),lty=rep(1,3),col=c(1,2,4),cex=1.5)
 dev.off()
 
 # log scale (y)
@@ -44,7 +44,7 @@ pdf(paste(gpath,"sim-y-log.pdf",sep=""))
 par(mar=c(5,5,4,1)+.1)
 x = which(!is.na(sim$y[1,]))
 y = sim$y[1,x]
-plot(x,y,ylim=c(min(sim$y,na.rm=T),max(sim$y,na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(y),cex.lab=1.5)
+plot(x,y,ylim=c(min(sim$y,na.rm=T),max(sim$y,na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observations on log scale (",y,")",sep="")),cex.lab=1.5)
 if(no > 1)
 {
   for(i in 2:no)
@@ -61,7 +61,7 @@ pdf(paste(gpath,"sim-y.pdf",sep=""))
 par(mar=c(5,7,4,1)+.1)
 x = which(!is.na(sim$y[1,]))
 y = sim$y[1,x]
-plot(x,exp(y),ylim=c(min(exp(sim$y),na.rm=T),max(exp(sim$y),na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(z),main="Simulated Data",cex.lab=2,cex.main=2,cex.axis=1.6)
+plot(x,exp(y),ylim=c(min(exp(sim$y),na.rm=T),max(exp(sim$y),na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observations on original scale (",z,")",sep="")),main="Simulated Data",cex.lab=2,cex.main=2,cex.axis=1.6)
 if(no > 1)
 {
   for(i in 2:no)
