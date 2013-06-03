@@ -171,7 +171,7 @@ i_{t+\tau} &= i_t + \tau i_t(\beta s^\nu_t - \gamma) + \xi_i \label{eqn:i}
 
 \noindent where $\xi_s$ and $\xi_i$ are independent, Gaussian random variables with zero mean and variances $(\beta + \gamma)\tau^2/P^2$ and $\beta\tau^2/P^2$, respectively.  This approximation is more accurate for small $\tau$.
 
-\subsection{Model \label{sec:model}}
+\subsection{Model \label{sec:model2}}
 
 When monitoring an epidemic, the true $s$, $i$ and $r$ are unknown and regarded as hidden states of the model.  We instead observe data from syndromic surveillance, or the systematic collection and monitoring of public health data by public health agencies \citep{wagner2006biosurveillance, wilson2006synsurveillance}.  These measurements can consist of medical observations such as hospital visits and occurrences of symptoms as well as non-medical data such as absenteeism from work and queries from search engines or social media \citep{chew2010twitter, schuster2010searchquery, signorini2011twitter, Gins:Mohe:Pate:Bram:Smol:Bril:dete:2009}.  Thus, we can fuse information from syndromic surveillance with the disease transmission dynamics described in Section \ref{sec:dd} through a state-space model.  In our state-space model of a disease outbreak, the observation equation specifies how the observed data depend on the state of the epidemic and other parameters, while the state equation describes how the epidemic evolves over time.
 
