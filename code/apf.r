@@ -4,10 +4,9 @@
 #' @param dllik a function to evaluate the logarithm of the likelihood with arguments y and x for data and state respectively
 #' @param pstate a function to produce a point estimate of the state at time t+1 given the state at time t, often the expectation
 #' @param revo a function to propagate the state with argument the state x
-#' @param rprior a function to sample for the prior for the state
+#' @param rprior a function to sample for the prior for the state; takes an integer argument corresponding to the particle number to give the user the option to load already sampled prior draws
 #' @param n the number of particles
 #' @param progress a boolean to display progress bar if TRUE
-#' @param seed a boolean to set the seed before sampling prior state
 #' @param ... arguments passed on to resample
 #' @return a list containing an n x (nt+1) matrix of normalized particles weights, a ns x n x (nt+1) array of state draws, and an n x nt parent matrix
 #' @author Jarad Niemi \email{niemi@@iastate.edu}
@@ -27,15 +26,14 @@ apf = function(y, dllik, pstate, revo, rprior, n, progress = TRUE, seed = TRUE, 
 
   # Find dimension of state
   current.seed = .Random.seed
-  ns = length(rprior())
+  ns = length(rprior(1))
   .Random.seed = current.seed
 
   # Set up initial state
   state = array(NA, dim=c(ns,n,nt+1))
   for (j in 1:n)
   {
-    if(seed) set.seed(j)
-    state[,j,1] = rprior()
+    state[,j,1] = rprior(j)
   }
 
   # Initialize weights

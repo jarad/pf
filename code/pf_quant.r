@@ -3,10 +3,10 @@ source("pf_functions.r")
 # Set data path
 dpath = "../data/"
 
-pf.quant = function(n, mod, filt, resamp, prior, nonunif = "", thresh = "")
+pf.quant = function(n, mod.dat, mod.fit, filt, resamp, prior, prior.samp, nonunif = "ess", thresh = 0.8)
 {
   # Load data
-  load(paste(dpath,"PF",mod,"-",filt,"-",prior,"-",resamp,"-",n,nonunif,thresh,".rdata",sep=""))
+  load(paste(dpath,"PF-",mod.dat,"-",mod.fit,"-",filt,"-",prior.samp,"-",prior,"-",resamp,"-",n,"-",nonunif,"-",100*thresh,".rdata",sep=""))
   out = pf.out$out
   ftheta = pf.out$ftheta
 
@@ -31,12 +31,16 @@ pf.quant = function(n, mod, filt, resamp, prior, nonunif = "", thresh = "")
 
   # Save data
   pf.quant.out = list(state.quant=state.quant,theta.quant=theta.quant,probs=probs)
-  save(pf.quant.out, file=paste(dpath,"PF-quant",mod,"-",filt,"-",prior,"-",resamp,"-",n,nonunif,thresh,".rdata",sep=""))
+  save(pf.quant.out, file=paste(dpath,"PF-quant-",mod.dat,"-",mod.fit,"-",filt,"-",prior,"-",prior.samp,"-",resamp,"-",n,"-",nonunif,"-",100*thresh,".rdata",sep=""))
 }
 
 # Calculate quantiles for particle filters run
 require(plyr)
-mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), mod = "-2", filt = "KD", resamp = "stratified", prior = "normal", nonunif = "-ess", thresh = paste("-",100*.8,sep=""), stringsAsFactors=FALSE)
+data1 = expand.grid(mod.dat = "orig", mod.fit = "orig", n = c(100, 1000, 10000, 20000, 40000), filt = c("BF","APF","KD"), resamp = "systematic", prior = "uniform", prior.samp = "uniform", stringsAsFactors=FALSE)
+data2 = data.frame(mod.dat = "orig", mod.fit = "orig", n = c(10000, 20000), filt = "KD", resamp = "systematic", prior = "semi-uniform", prior.samp = "uniform", stringsAsFactors=FALSE)
+data3 = expand.grid(mod.dat = "orig", mod.fit = "orig", n = c(100, 1000, 10000, 20000, 40000), filt = "KD", resamp = c("multinomial","residual","stratified","systematic"), prior = "lognormal", prior.samp = "lognormal", stringsAsFactors=FALSE)
+data4 = expand.grid(mod.dat = "ext", mod.fit = c("ext","orig"), n = c(100, 1000, 10000, 20000, 40000), filt = "KD", resamp = "stratified", prior = "lognormal", prior.samp= "lognormal", stringsAsFactors=FALSE)
+mydata = data.frame(rbind(data1,data2,data3,data4))
 m_ply(mydata,pf.quant)
 
 # Clear objects

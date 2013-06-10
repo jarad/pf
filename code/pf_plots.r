@@ -8,8 +8,8 @@ dpath = "../data/"
 
 # Set graphical parameters
 params = expression(beta,gamma,nu)
-ymins = c(0.15,0.075,0.8)
-ymaxs = c(0.35,0.165,1.45)
+ymins = c(0.15,0.085,0.9)
+ymaxs = c(0.35,0.145,1.35)
 cols = c(2,4,3)
 cex.lab = 6
 cex.main = 7
@@ -21,15 +21,15 @@ filts.load = c("BF","APF","KD")
 ns = c(100,1000,10000,20000)
 
 # Construct plots
-pdf(paste(gpath,"PF-systematic-uniform.pdf",sep=""),width=30,height=40)
+pdf(paste(gpath,"PF-systematic-uniform-",ns[length(ns)],".pdf",sep=""),width=30,height=40)
 par(mfrow=c(4,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
 for(i in 1:length(ns))
 {
   for(k in 1:length(params))
   {
-    for(j in 1:length(filts))
+    for(j in 1:length(filts.load))
     {
-      load(paste(dpath,"PF-quant-",filts.load[j],"-uniform-systematic-",ns[i],".rdata",sep=""))
+      load(paste(dpath,"PF-quant-orig-orig-",filts.load[j],"-uniform-uniform-systematic-",ns[i],"-ess-80.rdata",sep=""))
       out = pf.quant.out$theta.quant
       tt = dim(out)[1]; nt = tt - 1
       if(j == 1) # call plot function
@@ -59,7 +59,7 @@ for(i in 1:length(ns))
         lines(1:nt,out[-1,k,3],col=cols[j])
       }
     }
-    load(paste(dpath,"sim-xy.rdata",sep=""))
+    load(paste(dpath,"sim-orig.rdata",sep=""))
     abline(h=theta[k],col="gray47")
     if(k == 1 & i == 1) # add legend
     {
@@ -78,16 +78,18 @@ msize=5; labsize=5; axsize=3; ptsize=3
 ptsty=20; ptcol="gray70"; rline = -2.3; rsize = 1.8
 
 # Load simulated data to get true values of beta and gamma
-load(paste(dpath,"sim-xy.rdata",sep=""))
+load(paste(dpath,"sim-orig.rdata",sep=""))
 
 # Panel 1 - uniform prior draws, logit transformation
 # Panel 2 - uniform prior draws, no transformation
 # Panel 3 - normal prior draws, log transformation
-priors = c("uniform","semi-uniform","normal")
+n = 10000
+priors = c("uniform","semi-uniform","lognormal")
+prior.samps = c("uniform","uniform","lognormal")
 for(k in 1:length(priors))
 {
   # Load particle filtered data
-  load(paste(dpath,"PF-KD-",priors[k],"-systematic-10000.rdata",sep=""))
+  load(paste(dpath,"PF-orig-orig-KD-",prior.samps[k],"-",priors[k],"-systematic-",n,"-ess-80.rdata",sep=""))
 
   # Resample particles at cutoff points to have equal weights
   cutoff = seq(16, 61, len=4)
@@ -99,7 +101,7 @@ for(k in 1:length(priors))
   myscat = pf.scat(myout,pf.out$out$weight,cutoff)
 
   # Scatterplots over time
-  file = paste(gpath,"Hist-KD-",priors[k],"-systematic-10000-betagamma.pdf",sep="")
+  file = paste(gpath,"Hist-KD-",prior.samps[k],"-",priors[k],"-systematic-",n,"-betagamma.pdf",sep="")
   pdf(file,width=20,height=5)
   par(mfrow=c(1,4),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
   for(i in 1:length(cutoff))
@@ -134,15 +136,17 @@ for(k in 1:length(priors))
 ## Figure 2a - plot correlations over time for uniform, semi-uniform, normal priors
 
 # Load data and compute correlations
-load(paste(dpath,"sim-xy.rdata",sep=""))
+load(paste(dpath,"sim-orig.rdata",sep=""))
+n = 10000
 tt = nt + 1
-priors = c("uniform","semi-uniform","normal")
+priors = c("uniform","semi-uniform","lognormal")
+prior.samps = c("uniform","uniform","lognormal")
 cutoff = 2:tt
 r = matrix(NA,nr=length(cutoff),length(priors))
 for(k in 1:length(priors))
 {
   # Load particle filtered data
-  load(paste(dpath,"PF-KD-",priors[k],"-systematic-10000.rdata",sep=""))
+  load(paste(dpath,"PF-orig-orig-KD-",prior.samps[k],"-",priors[k],"-systematic-",n,"-ess-80.rdata",sep=""))
 
   # Resample particles at cutoff points to have equal weights
   betas = pf.out$ftheta(pf.out$out$theta[1,,],1)
@@ -161,7 +165,7 @@ msize=1; labsize=1; axsize=1
 col = c(1,2,4)
 
 # Construct plot
-file = paste(gpath,"Hist-KD-systematic-10000-betagamma-corrs.pdf",sep="")
+file = paste(gpath,"Hist-KD-systematic-",n,"-betagamma-corrs.pdf",sep="")
 pdf(file)
 #par(mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
 for(k in 1:dim(r)[2])
@@ -179,8 +183,8 @@ dev.off()
 ## Figure 3 - Compare resampling schemes over different # particles using normal priors, kernel density PF
 
 # Set graphical parameters
-ymins = c(0.15,0.075,0.8)
-ymaxs = c(0.35,0.165,1.45)
+ymins = c(0.15,0.085,0.85)
+ymaxs = c(0.35,0.165,1.5)
 cols = c(2,3,4,5)
 cex.lab = 6
 cex.main = 7
@@ -194,19 +198,19 @@ ns = c(100,1000,10000,20000)
 params = expression(beta,gamma,nu)
 
 # Construct plot
-pdf(paste(gpath,"PF-KD-normal.pdf",sep=""),width=30,height=40)
+pdf(paste(gpath,"PF-KD-normal-",ns[length(ns)],".pdf",sep=""),width=30,height=40)
 par(mfrow=c(4,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
 for(i in 1:length(ns))
 {
   for(k in 1:length(params))
   {
     # Calculate average quantiles of 4 resampling methods at most particles
-    load(paste(dpath,"sim-xy.rdata",sep=""))
+    load(paste(dpath,"sim-orig.rdata",sep=""))
     nt = dim(sim$y)[2]
     out.avg = matrix(0,nr=nt,nc=2)
     for(j in 1:length(resamps))
     {
-      load(paste(dpath,"PF-quant-KD-normal-",resamps[j],"-",ns[length(ns)],".rdata",sep=""))
+      load(paste(dpath,"PF-quant-orig-orig-KD-lognormal-lognormal-",resamps[j],"-",ns[length(ns)],"-ess-80.rdata",sep=""))
       out.avg[,1] = out.avg[,1] + pf.quant.out$theta.quant[-1,k,2]
       out.avg[,2] = out.avg[,2] + pf.quant.out$theta.quant[-1,k,3]
     }
@@ -241,7 +245,7 @@ for(i in 1:length(ns))
         y = out.avg[,2]
 	  polygon(c(x[length(x)],x[1],x[1],x,x[length(x)]),c(ymaxs[k],ymaxs[k],y[1],y,y[length(y)]),col="gray",border=NA)
       } else { # lines only
-        load(paste(dpath,"PF-quant-KD-normal-",resamps[j],"-",ns[i],".rdata",sep=""))
+        load(paste(dpath,"PF-quant-orig-orig-KD-lognormal-lognormal-",resamps[j],"-",ns[i],"-ess-80.rdata",sep=""))
         out = pf.quant.out$theta.quant
         tt = dim(out)[1]; nt = tt - 1
         lines(1:nt,out[-1,k,2],col=cols[j])
@@ -268,26 +272,24 @@ dev.off()
 
 # Load data and get points where resampling done
 n = 20000
-nonunif = "-ess"
-thresh = paste("-",100*.8,sep="")
-load(paste(dpath,"sim-xy-ext.rdata",sep=""))
+load(paste(dpath,"sim-ext.rdata",sep=""))
 tt = dim(sim$x)[2]; nt = tt - 1
 dpts = which(!is.na(sim$y[1,]))
 resampled = rep(0,nt)
-load(paste(dpath,"PF-ext-KD-normal-stratified-",n,".rdata",sep=""))
+load(paste(dpath,"PF-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
 parents = pf.out$out$parent
 for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
 spts.ext = which(as.logical(resampled))
 resampled = rep(0,nt)
-load(paste(dpath,"PF-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
+load(paste(dpath,"PF-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
 parents = pf.out$out$parent
 for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
 spts.org = which(as.logical(resampled))
 
 # Set graphical parameters
-params = expression(beta,gamma,nu,b,varsigma,sigma)
-ymins = c(0.15,0.08,0.85,0,.8,0)
-ymaxs = c(0.35,0.15,1.4,.5,1.2,.002)
+params = expression(beta,gamma,nu,b,varsigma,sigma,mu)
+ymins = c(0.10,0.075,0.85,0.05,.75,0.0004,1.99)
+ymaxs = c(0.40,0.15,1.55,.45,1.2,.0016,2.01)
 cex.lab = 6
 cex.main = 7
 cex.axis = 4
@@ -298,7 +300,7 @@ pdf(paste(gpath,"PF-ext-KD-stratified-normal-",n,".pdf",sep=""),width=30,height=
 par(mfrow=c(3,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
 for(k in 1:length(params))
 {
-  load(paste(dpath,"PF-quant-ext-KD-normal-stratified-",n,".rdata",sep=""))
+  load(paste(dpath,"PF-quant-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
   out = pf.quant.out$theta.quant
   tt = dim(out)[1]; nt = tt - 1
   if(k == 1) # label y axis, title, legend
@@ -316,12 +318,12 @@ for(k in 1:length(params))
 #     points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
 #     points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
   }
-  load(paste(dpath,"sim-xy-ext.rdata",sep=""))
-  theta = c(theta,b,varsigma,sigma)
+  load(paste(dpath,"sim-ext.rdata",sep=""))
+  theta = c(theta,b,varsigma,sigma,mu)
   abline(h=theta[k],col="gray47")
   if(k %in% 1:3)
   {
-    load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
+    load(paste(dpath,"PF-quant-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
     out = pf.quant.out$theta.quant
     tt = dim(out)[1]; nt = tt - 1
     lines(1:nt,out[-1,k,2],col=2)
@@ -332,7 +334,7 @@ params = expression(i,s,r)
 ymin = 0; ymax = 1
 for(k in 2:1)
 {
-  load(paste(dpath,"PF-quant-ext-KD-normal-stratified-",n,".rdata",sep=""))
+  load(paste(dpath,"PF-quant-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
   out = pf.quant.out$state.quant
   tt = dim(out)[1]; nt = tt - 1
   if(k == 2) # label x axis, title
@@ -351,26 +353,26 @@ for(k in 2:1)
 #     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
 #     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
   }
-  load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
+  load(paste(dpath,"PF-quant-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
   out = pf.quant.out$state.quant
   tt = dim(out)[1]; nt = tt - 1
   lines(1:nt,out[-1,k,2],col=2)
   lines(1:nt,out[-1,k,3],col=2)
 }
-k = 3
-load(paste(dpath,"PF-quant-ext-KD-normal-stratified-",n,".rdata",sep=""))
-out = pf.quant.out$state.quant
-tt = dim(out)[1]; nt = tt - 1
-truex = 1 - apply(sim$x[,-1],2,sum)
-plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-lines(1:nt,out[-1,k,3],col=4)
-lines(1:nt,truex,col="gray47")
-#points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-#points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-#points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
-load(paste(dpath,"PF-quant-2-KD-normal-stratified-",n,nonunif,thresh,".rdata",sep=""))
-out = pf.quant.out$state.quant
-tt = dim(out)[1]; nt = tt - 1
-lines(1:nt,out[-1,k,2],col=2)
-lines(1:nt,out[-1,k,3],col=2)
+#k = 3
+#load(paste(dpath,"PF-quant-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
+#out = pf.quant.out$state.quant
+#tt = dim(out)[1]; nt = tt - 1
+#truex = 1 - apply(sim$x[,-1],2,sum)
+#plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+#lines(1:nt,out[-1,k,3],col=4)
+#lines(1:nt,truex,col="gray47")
+##points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+##points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+##points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+#load(paste(dpath,"PF-quant-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
+#out = pf.quant.out$state.quant
+#tt = dim(out)[1]; nt = tt - 1
+#lines(1:nt,out[-1,k,2],col=2)
+#lines(1:nt,out[-1,k,3],col=2)
 dev.off()

@@ -1,4 +1,4 @@
-# sir_functions.R - functions needed for simulating data, running particle filters, calculating quantiles of filtered distributions, and constructing plots for SIR model of a disease epidemic
+# sir_functions.R - functions needed for simulating data and running particle filters for SIR model of a disease epidemic
 #
 # revo - function that propagates state forward given previous state x and parameters theta
 # Arguments:
@@ -14,26 +14,19 @@ revo = function(x,P,d=1,theta,random=TRUE)
   tau = 1/d
   x1var = (theta[1] + theta[2])*tau^2 / P^2
   x2var = theta[1]*tau^2 / P^2
+  x1x2cov = -theta[1]*tau^2 / P^2
+  vr = cbind(c(x1var,x1x2cov),c(x1x2cov,x2var))
+  cl = t(chol(vr))
   for(i in 1:d)
   { 
-    is = -1
-    ss = -1
-    entered = FALSE # in case of numerical instability
-    while(!(is >= 0 & is <= 1 & ss >= 0 & ss <= 1))
+    tmp = c(-1,-1)
+    while(!(all(tmp >= 0) & sum(tmp) <= 1))
     {
-      is = x[1] + tau*x[1]*(theta[1]*x[2]^theta[3] - theta[2]) + random*rnorm(1,0,sqrt(x1var))
-      ss = x[2] - tau*theta[1]*x[1]*x[2]^theta[3] + random*rnorm(1,0,sqrt(x2var))
-      if(entered == TRUE & !random)
-      {
-        if(is < 0) is = 0
-        if(ss < 0) ss = 0
-        if(is > 1) is = 1
-        if(ss > 1) ss = 1
-      }
-      entered = TRUE
+      tmp[1] = x[1] + tau*(x[1]*theta[1]*x[2]^theta[3] - x[1]*theta[2])
+      tmp[2] = x[2] - tau*theta[1]*x[1]*x[2]^theta[3]
+      if(random) tmp = tmp + cl%*%rnorm(2)
     }
-    x[1] = is
-    x[2] = ss
+    x[1:2] = tmp
   }
   return(x)
 }
@@ -45,14 +38,14 @@ revo = function(x,P,d=1,theta,random=TRUE)
 # varsigma - vector of length L, the number of syndromes, with elements values of parameters varsigma_l
 # sigma - vector of length L, number of syndromes, with elements values of parameters sigma_l
 # dpower - scalar, power of b_l*i^varsigma_l in the denominator of the observation variance
-robs = function(x,b,varsigma,sigma,dpower=2)
+robs = function(x,b,varsigma,sigma,mu)
 {
   L = length(b)
   if(!(L == length(varsigma) & L == length(sigma))) stop("b, varsigma, and sigma must all have same length")
   l = sample(1:L,sample(0:L,1))
-  y = rep(NA,L)
-  if(length(l) > 0) y[l] = rnorm(length(l),varsigma[l]*log(b[l]*x[1]),sigma[l]/sqrt(b[l]*x[1]^varsigma[l])^dpower)
-  return(y)
+  z = rep(NA,L)
+  if(length(l) > 0) z[l] = rlnorm(length(l),b[l]*x[1]^varsigma[l]+mu[l],sigma[l])
+  return(z)
 }
 
 # rinit - function to initialize values of initial state
@@ -72,38 +65,23 @@ rinit = function(i0=.001)
 # varsigma - vector of length L, values of varsigma_l's
 # sigma - vector of length L, values of sigma_l's
 # dpower - scalar, power of b_l*i^varsigma_l in the denominator of the observation variance
-dllik = function(y,x,b,varsigma,sigma,dpower=2)
+dllik = function(z,x,b,varsigma,sigma,mu)
 {
-  L = length(y)
+  L = length(z)
   if(!(L == length(b) & L == length(varsigma) & L == length(sigma))) stop("b, varsigma, and sigma must all have same length")
-  h = log(b*x[1]^varsigma)
-  s = sigma / sqrt(b*x[1]^varsigma)^dpower
-  return(sum(dnorm(y,h,s,log=T),na.rm=TRUE))
+  h = b*x[1]^varsigma+mu
+  return(sum(dlnorm(z,h,sigma,log=T),na.rm=TRUE))
 }
 
 # rprior - function that samples from the prior distribution of the initial states and unknown parameters; returns a list with vector elements initial state vector x and parameter values theta
 # Arguments:
-# rtheta - a function that takes no arguments and returns sampled values from the prior distribution of beta, gamma, and nu; sampled values are assumed to be already mapped to the real line
-# obsparam - boolean, if TRUE b_j's, varsigma_j's and sigma_j's assumed unknown and prior samples are included in returned theta
-# rthetaPlus - a function that takes no arguments and returns a list with elements b, varsigma, and sigma, each vectors containing sampled values from the prior distribution of b, varsigma and sigma; sampled values are assumed to be already mapped to the real line; ignored if obsparam = FALSE
+# rtheta - a function that takes integer argument particle number and returns a vector of sampled values from the prior distribution of the unknown parameters; sampled values are assumed to be already mapped to the real line
 rprior = function(rtheta,obsparam=FALSE,rthetaPlus=NULL)
 {
-  .current.seed = .Random.seed
   theta0 = rtheta()
   i0 = -1
-  while(i0 < 0 | i0 > 1)
-  {
-    .Random.seed = .current.seed
-    i0 = rnorm(1,0.002,0.00255)
-    .Random.seed = .current.seed
-    set.seed(sample(1:1000,1))
-  }
+  while(i0 < 0 | i0 > 1) i0 = rnorm(1,0.002,0.0005)
   s0 = 1 - i0
-  if(obsparam)
-  {
-    addparam = rthetaPlus()
-    theta0 = c(theta0,addparam$b,addparam$varsigma,addparam$sigma)
-  }
   return(list(x=c(i0,s0),theta=theta0))
 }
 

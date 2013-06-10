@@ -4,11 +4,10 @@
 #' @param dllik a function to evaluate the logarithm of the likelihood with arguments y, x, and theta for data, state, and fixed parameters respectively
 #' @param pstate a function to produce a point estimate of the state at time t+1 given the state at time t and fixed parameters theta, often the expectation
 #' @param revo a function to propagate the state with arguments x, the current state, and theta, the fixed parameters
-#' @param rprior a function to sample from the prior for the state and fixed parameters returns a list with elements x and theta
+#' @param rprior a function to sample from the prior for the state and fixed parameters returns a list with elements x and theta; takes an integer argument corresponding to the particle number to give the user the option to load already sampled prior draws
 #' @param delta the kernel density smoothing parameter in (0,1) usually, around 0.99
 #' @param n the number of particles
 #' @param progress a boolean to display progress bar if TRUE
-#' @param seed a boolean to set the seed before sampling prior state and parameter
 #' @param ... arguments passed on to resample
 #' @return a list containing an n x (nt+1) matrix of normalized particle weights, a np x n x (nt+1) array of theta draws, a ns x n x (nt+1) array of state draws, and an n x nt parent matrix
 #' @author Jarad Niemi \email{niemi@@iastate.edu}
@@ -19,7 +18,7 @@
 #'   2001, 197-217
 #' @seealso \code{\link{resample}}
 #'
-kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE, seed = TRUE, ...)
+kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE, ...)
 {
   require(smcUtils)
 
@@ -29,7 +28,7 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE,
 
   # Find dimension of state
   current.seed = .Random.seed
-  tmp = rprior()
+  tmp = rprior(1)
   ns = length(tmp$x)
   np = length(tmp$theta)
   .Random.seed = current.seed
@@ -39,8 +38,7 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE,
   theta = array(NA, dim=c(np,n,nt+1))
   for (j in 1:n) 
   {
-    if(seed) set.seed(j)
-    tmp = rprior()
+    tmp = rprior(j)
     state[,j,1] = tmp$x
     theta[,j,1] = tmp$theta
   }
@@ -69,7 +67,7 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE,
     theta.est = cov.wt(t(theta[,,i]),weight[,i])
     mn = theta.est$center
     vr = theta.est$cov
-    cl = t(chol(vr, pivot=FALSE)) # is this causing problems?
+    cl = t(chol(vr, pivot=TRUE))
     for (j in 1:n)
     {
       p.theta[,j] = a*theta[,j,i] +(1-a)*mn
@@ -85,10 +83,11 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE,
     p.weights = renormalize(p.weights, log=T)
     tmp = resample(p.weights,...)
     kk = tmp$indices
+    did.resample = !(all(kk == 1:n))
 
     for (j in 1:n) 
     {
-      theta[,j,i+1] = p.theta[,kk[j]] + h*cl%*%rnorm(np)
+      if(did.resample) theta[,j,i+1] = p.theta[,kk[j]] + h*cl%*%rnorm(np) else theta[,j,i+1] = theta[,j,i]
       state[,j,i+1] = revo(state[,kk[j],i], theta[,j,i+1])
       weight[j,i+1] = log(tmp$weights[kk[j]]) + 
                       dllik(y[,i],   state[,   j,i+1], theta[,   j,i+1]) -
