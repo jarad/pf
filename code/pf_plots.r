@@ -18,7 +18,7 @@ cex.leg = 4
 
 # 4 by 3 figure of plot panels (rows = num particles, cols = params)
 filts.load = c("BF","APF","KD")
-ns = c(100,1000,10000,20000)
+ns = c(1000,10000,20000,40000)
 
 # Construct plots
 pdf(paste(gpath,"PF-systematic-uniform-",ns[length(ns)],".pdf",sep=""),width=30,height=40)
@@ -194,7 +194,7 @@ cex.leg = 4
 # 4 by 3 figure of panels (rows = num particles, cols = params)
 require(graphics)
 resamps = c("multinomial","residual","stratified","systematic")
-ns = c(100,1000,10000,20000)
+ns = c(1000,10000,20000,40000)
 params = expression(beta,gamma,nu)
 
 # Construct plot
@@ -342,9 +342,9 @@ for(k in 2:1)
      plot(1:nt,out[-1,k,2],type="l",ylim=c(ymin,1),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=4)
      lines(1:nt,sim$x[k,-1],col="gray47")
-     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+#     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+#     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+#     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
   } else { # label title only
      plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=4)

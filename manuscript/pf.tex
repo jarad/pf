@@ -21,27 +21,31 @@
 
 \noindent {\bf Abstract} \\
 
-This paper studies sequential Monte Carlo, i.e. particle filtering, methods of estimation and compares the performance of different particle filtering algorithms when applied to a stochastic compartmental model of a disease outbreak. As a starting point, we consider the model of \citet{skvortsov2012monitoring} which is nonlinear in both the states and the parameters in both the observation and evolution equations and a multivariate response at each time point with many missing observations. In this paper, we review some developments in the particle filtering methodology to account for simultaneous estimation of outbreak intensity and fixed parameters governing the outbreak. Our results indicate that a version of the particle filter developed by \citet{Liu:West:comb:2001} that uses a normal density kernel to resample values of the fixed parameters outperforms the bootstrap filter and the auxiliary particle filter in terms of efficiency and avoiding particle degeneracy. We also demonstrate that using seemingly non-informative uniform priors on the fixed parameters can actually influence the filtered distribution of the states and fixed parameters over time.  In addition, we show that using multinomial resampling of particles adds extra Monte Carlo variability to the weighted sample approximation of the posterior, as evidenced by wider credible intervals compared with other methods.  Lastly, we add additional uncertainty to the model and perform estimation using the \citet{Liu:West:comb:2001} particle filter with normal priors on the fixed parameters and stratified resampling.
+This paper compares the performance of different particle filtering algorithms (sequential Monte Carlo algorithms) when applied to a stochastic compartmental model of a disease outbreak. As a starting point, we consider a similar model to \citet{skvortsov2012monitoring} which is nonlinear in both the states and the parameters in both the observation and evolution equations, with a multivariate response at each time point. Missing observations are allowed. We review some developments in the particle filtering methodology to account for simultaneous estimation of outbreak intensity and fixed parameters governing the outbreak. Our results indicate that a version of the particle filter developed by \citet{Liu:West:comb:2001} that uses a normal density kernel to resample values of the fixed parameters outperforms the bootstrap filter and the auxiliary particle filter in terms of efficiency and avoiding particle degeneracy. We also demonstrate that using seemingly non-informative uniform priors on the fixed parameters can actually influence the filtered distribution of the states and fixed parameters over time. In addition, we show that using multinomial resampling of particles adds extra Monte Carlo variability to the weighted sample approximation of the posterior, as evidenced by wider credible intervals compared with other methods.  Lastly, we add additional uncertainty to the model and perform estimation using the \citet{Liu:West:comb:2001} particle filter with lognormal priors on the fixed parameters and stratified resampling. \\
+
+\noindent {\bf Keywords} \\
+
+Bayesian estimation; epidemiological modeling; state-space modeling; sequential Monte Carlo; particle filtering.
 
 \section{Introduction} \label{sec:intro}
 
 % Introduce Bayesian framework, MCMC
-In statistical applications where it is necessary to incorporate prior knowledge of unknown quantities, the Bayesian framework is often convenient for performing statistical analysis.  In this case, all inference is conducted through the posterior distribution of the unknown quantities given the observed data.  However, the calculation of the posterior distribution can involve complicated integrals which frequently do not have an explicit analytical form.  Advances in computing have helped alleviate this problem through the use of simulation-based methods such as Markov-chain Monte Carlo (MCMC) \citep{Gelf:Smit:samp:1990}, a technique to generate samples from the posterior distribution through simulation from known statistical densities.
+In statistical applications where prior knowledge/beliefs about unknown quantities is available, the Bayesian framework is often convenient for performing statistical analysis.  In this case, inference is conducted through the posterior distribution of the unknown quantities given the observed data. However, the calculation of the posterior distribution can involve complicated integrals which frequently do not have an explicit analytical form. Advances in computing have helped alleviate this problem through the use of simulation-based methods such as Markov-chain Monte Carlo (MCMC) \citep{Gelf:Smit:samp:1990}, a technique to generate samples from the posterior distribution through simulation from known statistical densities.
 
 % Introduce sequential Monte Carlo
-A drawback of MCMC is that when new data become available, the entire analysis needs to be performed again.  That is, samples from the previous analysis cannot be reused and new samples need to be generated, a process that often times requires significant time and computing power.  This is computationally inefficient and impractical in fields where data are collected sequentially and need to be analyzed in real time such as tracking an aircraft using radar or monitoring the stock market.  Sequential Monte Carlo - or particle filtering - methods allow for performing inference on-line by updating the posterior sample as new data become available.  Furthermore, these methods are flexible, general, easy to implement, and amenable to computing in parallel. For a general introduction, please see \cite{Douc:deFr:Gord:sequ:2001} and \cite{cappe2007overview}.
+A drawback of MCMC is that when new data become available, the entire analysis needs to be performed again. That is, samples from the previous analysis cannot be reused and new samples need to be generated, a process that often times requires significant time and computing power. This is computationally inefficient and impractical in fields where data are collected sequentially and need to be analyzed in real time such as tracking an aircraft using radar or monitoring the stock market. Sequential Monte Carlo - or particle filtering - methods enable on-line inference by updating the posterior sample as new data become available. Furthermore, these methods are flexible, general, easy to implement, and amenable to computing in parallel. For a general introduction, please see \cite{Douc:deFr:Gord:sequ:2001} and \cite{cappe2007overview}.
 
 % Introduce bootstrap filter, degeneracy problem
-The first and most basic particle filter - named the bootstrap filter - was developed by \citet{Gord:Salm:Smit:nove:1993} and \citet{Kita:mont:1996}.  The bootstrap filter uses an iterative algorithm that samples values (i.e. particles) of the unknown quantities from a prior distribution, propagates the particles forward in time using an evolution equation, calculates weights for each particle using a likelihood function based on the data observed up to that time, and resamples the particles based on these weights.  Issues arise with this algorithm mainly in the resampling step, where particles with large weights emit more copies of themselves into the next iteration of the filter while particles with small weights get eliminated.  This can lead to \emph{particle attrition}, or a degeneracy of particles toward a single value.  The problem is exacerbated further when one or more of the unknown quantities are held fixed over time, since, in this case, new values are not generated during propagation.
+The first and most basic particle filter - named the bootstrap filter - was developed by \citet{Gord:Salm:Smit:nove:1993} and \citet{Kita:mont:1996}. The bootstrap filter uses an iterative algorithm that samples values (i.e. particles) of the unknown quantities from a prior distribution, propagates the particles forward in time using an evolution equation, calculates weights for each particle using a likelihood function based on the data observed up to that time, and resamples the particles based on these weights. Issues arise with this algorithm mainly in the resampling step, where particles with large weights emit more copies of themselves into the next iteration of the filter, while particles with small weights get eliminated. This can lead to \emph{particle attrition}, or a degeneracy of particles toward a single value. The problem is exacerbated further when one or more of the unknown quantities are held fixed over time, since, in this case, new values are not generated during propagation.
 
 % Introduce APF, KDPF, more sophisiticated approaches
-One way to fight particle degeneracy is by simply increasing the number of particles.  A more efficient way, however, was developed by \citet{Pitt:Shep:filt:1999} called the auxiliary particle filter.  The auxiliary particle filter attempts to avoid degeneracy by looking ahead at the next data point before the resampling step and then samples particles in areas of higher likelihood.  An algorithm developed by \citet{Liu:West:comb:2001} builds on the auxiliary particle filter and distinguishes fixed parameters from unobserved states that evolve over time.  Their version of the particle filter avoids degeneracy by resampling values from a normal kernel density approximation of the posterior distribution of the fixed parameters.  Further improvements to the efficiency of the algorithm include using a measure of nonuniformity of particle weights to determine when to resample, and \danny{references to more sophisticated methods discussed in the last section}
+One way to fight particle degeneracy is by simply increasing the number of particles. A more efficient way, however, was developed by \citet{Pitt:Shep:filt:1999} called the auxiliary particle filter. The auxiliary particle filter attempts to avoid degeneracy by looking ahead at the next data point before the resampling step and then samples particles in areas of higher likelihood. An algorithm developed by \citet{Liu:West:comb:2001} builds on the auxiliary particle filter and distinguishes fixed parameters from unobserved states that evolve over time. Their version of the particle filter avoids degeneracy by resampling values from a normal kernel density approximation of the posterior distribution of the fixed parameters. Further improvements to the efficiency of the algorithm include using a measure of nonuniformity of particle weights to determine when to resample \citep{Douc:Capp:Moul:comp:2005}, incorporating an MCMC step to refresh values of the fixed parameters \citep{Gilk:Berz:foll:2001}, and taking advantage of a sufficient statistic structure in the model \citep{Fear:mark:2002}.
 
 % Introduce epidemiological modeling, Skvortsov Math. Bio. paper
-Epidemiogical modeling is an area where particle filtering can play an important role.  Models of disease outbreaks can be broken into two parts: a dynamic model of how the epidemic evolves and a measurement model of syndromic data.  Thus, it is easy to conceptualize an epidemic from a Bayesian viewpoint as a filtering problem using a state-space model.  Since many mechanistic models of disease transmission are nonlinear, sequential Monte Carlo is a natural fit.  \citet{skvortsov2012monitoring} analyzed a simulated epidemic in this way using a stochastic compartmental epidemiological model and estimates the state of the epidemic and unknown fixed paremeters using the bootstrap filter.  In this paper, we show this can be done more efficiently by incorporating more recent developments in the particle filtering methodology.
+Epidemiogical modeling is an area where particle filtering can play an important role. Models of disease outbreaks can be broken into two parts: a dynamic model of how the epidemic evolves and a measurement model of syndromic data. Thus, it is easy to conceptualize an epidemic from a Bayesian viewpoint as a filtering problem using a state-space model. Since many mechanistic models of disease transmission are nonlinear and develop in real time, sequential Monte Carlo is a natural fit. For example, \citet{skvortsov2012monitoring} analyzed a simulated epidemic in the form of a stochastic compartmental epidemiological model, using the bootstrap filter to estimate the state of the epidemic and unknown fixed paremeters. In this paper, we show estimation efficiency is improved when incorporating more recent developments in the particle filtering methodology.
 
 % Introduce layout of paper (see main document)
-The rest of the article proceeds as follows. Section \ref{sec:model} contains a description of state-space models and sequential estimation. Section \ref{sec:filtering} describes a variety of particle filtering methodologies including the kernel density approach of \cite{Liu:West:comb:2001}.  In Section \ref{sec:apply}, we introduce the nonlinear dynamic model used in \citet{skvortsov2012monitoring}. In section \ref{sec:results}, we apply the particle filtering methods described in Section \ref{sec:filtering} to the \citet{skvortsov2012monitoring} model.  In Section \ref{sec:extend}, we benefit from the efficiency of these particle filtering methods to estimate a more complicated model.  In Section \ref{sec:discussion}, we conclude with some additional particle filtering methods that may be helpful in certain model structures.
+The rest of the article proceeds as follows. Section \ref{sec:model} contains a description of state-space models and sequential estimation. Section \ref{sec:filtering} describes a variety of particle filtering methodologies including the kernel density approach of \cite{Liu:West:comb:2001}. In Section \ref{sec:apply}, we introduce a nonlinear dynamic model for a disease epidemic similar to the one used in \citet{skvortsov2012monitoring}. In section \ref{sec:results}, we apply the particle filtering methods described in Section \ref{sec:filtering} to the model described in Section \ref{sec:apply}. In Section \ref{sec:extend}, we benefit from the efficiency of these particle filtering methods to estimate a more complicated model. In Section \ref{sec:discussion}, we conclude with some additional particle filtering methods that may be helpful in certain model structures.
 
 \section{State-space models \label{sec:model}}
 
@@ -55,13 +59,13 @@ x_t &\sim p(x_t|x_{t-1},\theta).
 
 Special cases of these state-space models include hidden Markov models \citep{cappe2005inference}, where the state $x_t$ has finite support, and dynamic linear models (DLMs) \citep{West:Harr:baye:1997}, where each distribution is Gaussian with mean a linear function of the states.
 
-\subsection{Sequential estimation}
+\subsection{Sequential estimation \label {sec:sequential}}
 
 When data are collected sequentially, it is often of interest to determine the \emph{filtered distribution}, the distribution of the current state and parameters conditional on the data observed up to that time. This distribution describes all of the available information up to time $t$ about the current state of the system and any fixed parameters. It can be updated recursively using Bayes' rule:
 \begin{equation}
 p(x_t,\theta| y_{1:t}) \propto p(y_t|x_t,\theta)p(x_t,\theta|y_{1:t-1}) \label{eqn:filtered}
 \end{equation}
-where $y_{1:t} = (y_1,\ldots,y_t)$. Only in special cases can $p(x_t,\theta| y_{1:t})$ be evaluated analytically, e.g. in DLMs when $\theta$ is the observation variance \cite[Sec 4.3,][]{petris2009dynamic}. When analytical tractability is not present, we turn to numerical methods including deterministic versions, e.g. extended Kalman filter and the Gaussian sum filter \citep{Alsp:Sore:nonl:1972}, or Monte Carlo versions, i.e. particle filters.
+where $y_{1:t} = (y_1,\ldots,y_t)$. Only in special cases can $p(x_t,\theta| y_{1:t})$ be evaluated analytically, e.g. in DLMs when $\theta$ is the observation variance \cite[Sec 4.3,][]{petris2009dynamic}. When analytical tractability is not present, we turn to numerical methods including deterministic versions, e.g. extended Kalman filter and the Gaussian sum filter \citep{Alsp:Sore:nonl:1972}, or Monte Carlo versions such as particle filters.
 
 \section{Particle filtering \label{sec:filtering}}
 
@@ -69,42 +73,40 @@ Particle filtering is a sequential Monte Carlo inferential technique based on se
 \begin{equation}
 p(x_t,\theta| y_{1:t}) \approx \sum_{j}^J w_t^{(j)} \delta_{(x_t^{(j)},\theta^{(j)})} \label{eqn:approx}
 \end{equation}
-where $w_t^{(j)},j=1,\ldots,J$ are the particle \emph{weights}, $(x_t^{(j)},\theta^{(j)})$ is the particle \emph{location}, and $\delta$ is a Dirac delta function. A variety of techniques have been developed to provide efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now introduce three fundamental particle filtering techniques: bootstrap filter, auxiliary particle filter, and the kernel density filter.
+where $w_t^{(j)},j=1,\ldots,J$ are the particle \emph{weights}, $(x_t^{(j)},\theta^{(j)})$ is the particle \emph{location}, and $\delta$ is a Dirac delta function. A variety of techniques have been developed to provide efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now introduce three fundamental particle filtering techniques: bootstrap filter, auxiliary particle filter, and the kernel density particle filter.
 
-\subsection{Bootstrap filter}
+\subsection{Bootstrap filter \label{sec:bf}}
 
-The first successful version of particle filtering is known as the bootstrap filter \citep{Gord:Salm:Smit:nove:1993}. Since this method and the auxiliary particle filter were developed for the situation when $\theta$ is known, we will (for the moment) drop $\theta$ from the notation. Suppose you have a current approximation as in equation \eqref{eqn:approx}. Then for each particle $j$,
+The first successful version of particle filtering is known as the bootstrap filter \citep{Gord:Salm:Smit:nove:1993}. Since this method and the auxiliary particle filter were developed for the situation when $\theta$ is known, we will (for the moment) drop $\theta$ from the notation. Suppose you have a current approximation as in equation \eqref{eqn:approx}. To move from an approximation of $p(x_t,\theta| y_{1:t})$ to that of $p(x_{t+1},\theta| y_{1:t+1})$, we perform the following steps for each particle $j$:
 
 \begin{enumerate}
-\item Resample: sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{w_t^{(1)},\ldots,w_t^{(j)},\ldots,w_t^{(J)}\}$,
-%\item Resample: sample an index $k\in \{1,\ldots,j,\ldots,J\}$ with probability $w_t^{(j)}$,
-\item Propagate: sample $x_{t+1}^{(j)} \sim p\left(\left. x_{t+1}\right|x_t^{(k)}\right)$, and
-\item Calculate weights: $\tilde{w}_{t+1}^{(j)} = p\left(y_{t+1}\left|x_{t+1}^{(j)}\right.\right)$.
+\item Resample: sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{w_t^{(1)},\ldots,w_t^{(j)},\ldots,w_t^{(J)}\}$ and set $x_t^{(j)} = x_t^{(k)}$ with associated weight $w_t^{(j)} = 1 / J$,
+\item Propagate: sample $x_{t+1}^{(j)} \sim p\left(\left. x_{t+1}\right|x_t^{(j)}\right)$, and
+\item Calculate weights: $\tilde{w}_{t+1}^{(j)} = w_t^{(j)}p\left(y_{t+1}\left|x_{t+1}^{(j)}\right.\right)$.
 \end{enumerate}
 
-\noindent After weights for all particles have been calculated, these weights need to be renormalized via $w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{w}_{t+1}^{(l)} \right.$
+\noindent After weights for all particles have been calculated, these weights need to be renormalized via $w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{w}_{t+1}^{(l)} \right.$. 
 
-This procedure provides an approximation to $p(x_t,\theta| y_{1:t})$ and therefore can be applied recursively provided an initial set of weights $w_0^{(j)}$ and locations $x_0^{(j)}$ for all $j$.  The algorithm as described above uses a multinomial resampling scheme, i.e. when we say `Sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{w_t^{(1)},\ldots,w_t^{(j)},\ldots,w_t^{(J)}\}$'.  This is not the only way to resample the particles, as will be explained later.
+This procedure can be applied recursively provided an initial set of weights $w_0^{(j)}$ and locations $x_0^{(j)}$ for all $j$. The algorithm as described above uses a multinomial resampling scheme, i.e. when we say `sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ \ldots'. This is not the only way to resample the particles. In addition, we can optionally forgo the `Resample' step (hence the necessity of the $w_t^{(j)}$ term in the `Calculate weights' step) to make the algorithm more efficient. More on resampling will be explained later.
 
 \subsection{Auxiliary particle filter}
 
-A key problem that arises in implementing the bootstrap filter is that $w_t^{(j)}$ may be small for samples $x_t^{(j)}$ that are less likely given $y_t$. These samples will likely be eliminated during resampling, resulting in \emph{particle degeneracy}. One way to fight particle degeneracy is to increase the number of particles, $J$, used in the filter. A more efficient method, however, has been developed by \citet{Pitt:Shep:filt:1999} called the auxiliary particle filter.  The idea behind the auxiliary particle filter is to generate particles with higher likelihood given the data by "looking ahead" at $p(x_{t+1}|x_t^{(j)})$ prior to sampling. Given a weighted random sample of particles at time $t$, the auxiliary particle filter approximates $p(x_{t+1}|y_{1:t+1})$ by the following:
+A key problem that arises in implementing the bootstrap filter is that $w_t^{(j)}$ may be small for samples $x_t^{(j)}$ that are less likely given $y_t$. These samples will likely be eliminated during resampling, resulting in \emph{particle degeneracy}. One way to fight particle degeneracy is to increase the number of particles, $J$, used in the filter. A more efficient method, however, has been developed by \citet{Pitt:Shep:filt:1999} called the auxiliary particle filter. The idea behind the auxiliary particle filter is to generate particles with higher likelihood given the data by "looking ahead" at $p(x_{t+1}|x_t^{(j)})$ prior to sampling. Given a weighted random sample of particles at time $t$, the auxiliary particle filter approximates $p(x_{t+1}|y_{1:t+1})$ by the following:
 
 \begin{enumerate}
 \item For each particle $j$, calculate a point estimate of $x_{t+1}^{(j)}$ called $\mu_{t+1}^{(j)}$.  %This is typically taken to be the mean of $p(x_{t+1}|x_t^{(j)})$.
-\item Calculate auxiliary weights and renormalize
+\item Calculate auxiliary weights and renormalize:
 \[ \tilde{g}_{t+1}^{(j)} = w_t^{(j)} p(y_{t+1}|\mu_{t+1}^{(j)}) \qquad g_{t+1}^{(j)} = \tilde{g}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{g}_{t+1}^l\right. \]
 \item For each particle $j=1,\ldots,J$
 	\begin{enumerate}
-    \item Sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{g_{t+1}^{(1)},\ldots,g_{t+1}^{(j)},\ldots,g_{t+1}^{(J)}\}$,
-%	\item Sample an index $k\in\{1,\ldots,j,\ldots,J\}$ with probability $g_{t+1}^{(j)}$.
-	\item Propagate the particle $x_{t+1}^{(j)}\sim p\left(x_{t+1}|x_t^{(k)}\right)$.
-	\item Calculate new weights and renormalize
-\[\tilde{w}_{t+1}^{(j)} = \frac{p\left(y_{t+1}|x_{t+1}^{(j)}\right)}{p\left(y_{t+1}|\mu_{t+1}^{(k)}\right)} \qquad w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{w}_{t+1}^l \right.\]
+    \item Resample: sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{g_{t+1}^{(1)},\ldots,g_{t+1}^{(j)},\ldots,g_{t+1}^{(J)}\}$ and set $x_t^{(j)} = x_t^{(k)}$ with associated weight $w_t^{(j)} = 1 / J$,
+	\item Propagate: sample $x_{t+1}^{(j)} \sim p\left(\left. x_{t+1}\right|x_t^{(j)}\right)$, and
+	\item Calculate weights and renormalize:
+\[\tilde{w}_{t+1}^{(j)} = w_t^{(j)}\frac{p\left(y_{t+1}|x_{t+1}^{(j)}\right)}{p\left(y_{t+1}|\mu_{t+1}^{(k)}\right)} \qquad w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{w}_{t+1}^l \right.\]
 	\end{enumerate}
 \end{enumerate}
 
-The bootstrap filter and the auxiliary particle filter were constructed with the idea that all fixed parameters were known. In order to simultaneously estimate the states and fixed parameters using these methods it is necessary to incorporate the fixed parameters into the state with degenerate evolutions. Due to the resampling step, the number of unique values of the fixed parameters in the particle set will decrease over time resulting in \emph{degeneracy} \citep{Liu:West:comb:2001}.
+The bootstrap filter and the auxiliary particle filter were constructed with the idea that all fixed parameters were known. In order to simultaneously estimate the states and fixed parameters using these methods it is necessary to incorporate the fixed parameters into the state with degenerate evolutions. Due to the resampling step, the number of unique values of the fixed parameters in the particle set will decrease over time resulting in \emph{degeneracy} \citep{Liu:West:comb:2001}. \danny{here}
 
 \subsection{Kernel density particle filter \label{sec:kd}}
 
@@ -249,10 +251,10 @@ $l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
 \begin{figure}
 \centering
 \begin{minipage}{0.48\linewidth}
-\includegraphics[width=1.0\textwidth]{sim-x}
+\includegraphics[width=1.0\textwidth]{sim-orig-epid}
 \end{minipage}
 \begin{minipage}{0.48\linewidth}
-\includegraphics[width=1.0\textwidth]{sim-y}
+\includegraphics[width=1.0\textwidth]{sim-orig-z}
 \end{minipage}
 \caption{Displays simulated epidemic curves (left) and syndromic observations (right).} \label{fig:data}
 \end{figure}
@@ -295,7 +297,7 @@ Not only does the KDPF outperform the BF and APF in terms of avoiding degeneracy
 
 \begin{figure}
 \centering
-\includegraphics[width=1.0\textwidth]{PF-systematic-uniform}
+\includegraphics[width=1.0\textwidth]{PF-systematic-uniform-40000}
 \caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows).  Uniform priors and systematic resampling were used for all particle filter runs, and the scale of the plot axes are identical within columns.} \label{fig:pfs}
 \end{figure}
 
@@ -310,7 +312,7 @@ Ideally, we'd like to apply some transformation to extend $\theta$ to the whole 
 \begin{figure}
 
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{Hist-KD-uniform-systematic-10000-betagamma}
+\includegraphics[width=1.0\textwidth]{Hist-KD-uniform-uniform-systematic-10000-betagamma}
 \vspace{-1.0cm}
 \caption*{uniform prior draws, logit transformation}
 \end{minipage}
@@ -318,7 +320,7 @@ Ideally, we'd like to apply some transformation to extend $\theta$ to the whole 
 \vspace{0.5cm}
 
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{Hist-KD-semi-uniform-systematic-10000-betagamma}
+\includegraphics[width=1.0\textwidth]{Hist-KD-uniform-semi-uniform-systematic-10000-betagamma}
 \vspace{-1.0cm}
 \caption*{uniform prior draws, no transformation}
 \end{minipage}
@@ -326,7 +328,7 @@ Ideally, we'd like to apply some transformation to extend $\theta$ to the whole 
 \vspace{0.5cm}
 
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{Hist-KD-normal-systematic-10000-betagamma}
+\includegraphics[width=1.0\textwidth]{Hist-KD-lognormal-lognormal-systematic-10000-betagamma}
 \vspace{-1.0cm}
 \caption*{normal prior draws, log transformation}
 \end{minipage}
@@ -349,7 +351,7 @@ Figure \ref{fig:resamp} shows 95\% credible bounds of the marginal filtered dist
 
 \begin{figure}
 \centering
-\includegraphics[width=1.0\textwidth]{PF-KD-normal}
+\includegraphics[width=1.0\textwidth]{PF-KD-normal-40000}
 \caption{Displays 2.5\%/97.5\% quantiles of the filtered distributions over time of the unknown parameters (columns) for increasing number of particles (rows), color coded by resampling technique.  Normal priors on $\theta$ and the KDPF particle filter were used for all runs.  Plot axes are identical within columns, and areas shaded gray are outside of 95\% credible bounds calculated by taking the average quantiles of the four resampling techniques at $J = 20000$ particles.} \label{fig:resamp}
 \end{figure}
 

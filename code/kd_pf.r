@@ -67,7 +67,8 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE,
     theta.est = cov.wt(t(theta[,,i]),weight[,i])
     mn = theta.est$center
     vr = theta.est$cov
-    cl = t(chol(vr, pivot=TRUE))
+    cl = try(t(chol(vr)),silent=TRUE)
+    if(class(cl) == "try-error") cl = t(chol(vr, pivot=TRUE))
     for (j in 1:n)
     {
       p.theta[,j] = a*theta[,j,i] +(1-a)*mn
