@@ -44,7 +44,7 @@ pdf(paste(gpath,"sim-orig-z.pdf",sep=""))
 par(mar=c(5,5,4,1)+.1)
 x = which(!is.na(sim$y[1,]))
 z = sim$y[1,x]
-plot(x,z,ylim=c(min(sim$y,na.rm=T),max(sim$y,na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observed data (",z,")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
+plot(x,z,ylim=c(min(sim$y,na.rm=T),max(sim$y,na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observed data (",y[t],")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
 if(no > 1)
 {
   for(i in 2:no)

@@ -26,13 +26,13 @@ save.image(paste(dpath,"sim-ext.rdata",sep=""))
 #load(paste(dpath,"sim-ext.rdata",sep=""))
 
 # Add to .csv file of data and save
-epid.data = data.frame(epid.data,c(NA,exp(sim$y[1,])))
+epid.data = data.frame(epid.data,c(NA,sim$y[1,]))
 names(epid.data) = c("Day","s","i","r","Stream 1","Stream 2","Stream 3","Stream 4","Stream 1 (Extended Analysis)")
 write.csv(epid.data,file=paste(dpath,"simdata.csv",sep=""),row.names=FALSE)
 
 # Export epid.data as latex xtable
 epid.data = epid.data[,-1]
-names(epid.data) = c("$s$","$i$","$r$","$z_{1,t}$","$z_{1,t}$","$z_{1,t}$","$z_{1,t}$","$z_{1,t}$ (Extended Analysis)")
+names(epid.data) = c("$s$","$i$","$r$","$y_{1,t}$","$y_{1,t}$","$y_{1,t}$","$y_{1,t}$","$y_{1,t}$ (Extended Analysis)")
 rownames(epid.data) = seq(0,125,1)
 require(xtable)
 caption = "Simulated epidemic and syndromic data"
@@ -47,7 +47,7 @@ pdf(paste(gpath,"sim-ext-z.pdf",sep=""))
 par(mar=c(5,5,4,1)+.1)
 x = which(!is.na(sim$y[1,]))
 z = sim$y[1,x]
-plot(x,z,ylim=c(min(sim$y,na.rm=T),max(sim$y,na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observed data (",z,")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
+plot(x,z,ylim=c(min(sim$y,na.rm=T),max(sim$y,na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observed data (",y[t],")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
 if(no > 1)
 {
   for(i in 2:no)
