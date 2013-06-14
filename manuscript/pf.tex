@@ -181,14 +181,14 @@ x_{t+\tau}\left|x_t,\theta\right. \sim N_\Omega\left(f_\tau(x_t,\theta),Q_{\tau}
 f_\tau(x_t,\theta) = \left(
 \begin{array}{c}
 i_t +  \tau\beta i_ts^\nu_t - \tau\gamma i_t \\
-s_t - \tau\beta i_ts^{\nu}_t
+s_t - \tau\beta i_ts^{\nu}_t \phantom{- \tau\gamma i_t}\,\,
 \end{array}
 \right)
 \qquad
-Q_\tau(\theta) = \left(
+Q_\tau(\theta) = \frac{\beta \tau^2}{P^2} \left(
 \begin{array}{ccccc}
-(\beta + \gamma)\tau^2/P^2 & -\beta\tau^2/P^2 \\
--\beta\tau^2/P^2 & \beta\tau^2/P^2
+1 + \gamma  & -1 \\
+-1 & 1
 \end{array}
 \right)
 \]
