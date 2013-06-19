@@ -17,19 +17,35 @@
 \newcommand{\jarad}[1]{{\color{red}JARAD: #1}}
 \newcommand{\danny}[1]{{\color{blue}DANNY: #1}}
 
+\journal{Mathematical Biosciences}
+
 \begin{document}
 
-\noindent {\bf Abstract} \\
+\begin{frontmatter}
 
-This paper compares the performance of different particle filtering algorithms (sequential Monte Carlo algorithms) when applied to a stochastic compartmental model of a disease outbreak. As a starting point, we consider a similar model to \citet{skvortsov2012monitoring} which is nonlinear in both the states and the parameters in both the observation and evolution equations, with a multivariate response at each time point. Missing observations are allowed. We review some developments in the particle filtering methodology to account for simultaneous estimation of outbreak intensity and fixed parameters governing the outbreak. Our results indicate that a version of the particle filter developed by \citet{Liu:West:comb:2001} that uses a normal density kernel to resample values of the fixed parameters outperforms the bootstrap filter and the auxiliary particle filter in terms of efficiency and avoiding particle degeneracy. We also demonstrate that using seemingly non-informative uniform priors on the fixed parameters can actually influence the filtered distribution of the states and fixed parameters over time. In addition, we show that using multinomial resampling of particles adds extra Monte Carlo variability to the weighted sample approximation of the posterior, as evidenced by wider credible intervals compared with other methods.  Lastly, we add additional uncertainty to the model and perform estimation using the \citet{Liu:West:comb:2001} particle filter with log-normal priors on the fixed parameters and stratified resampling. \\
+\title{Estimation of a disease epidemic using particle filtering}
 
-\noindent {\bf Keywords} \\
+\author[danny]{Daniel M. Sheinson}
+\author[jarad]{Jarad Niemi}
+\author[wendy]{Wendy Meiring}
 
-Bayesian estimation; epidemiological modeling; state-space modeling; sequential Monte Carlo; particle filtering. \\
+\address[danny]{Corresponding author -- Department of Statistics and Applied Probability, University of Califonia--Santa Barbara, \\
+ Santa Barbara, CA, U.S.A., sheinson@pstat.ucsb.edu, 1-847-609-7824}
+ \address[jarad]{Department of Statistics, Iowa State University, Ames, IA, U.S.A., niemi@iastate.edu}
+ \address[wendy]{Department of Statistics and Applied Probability, University of Califonia--Santa Barbara, \\
+ Santa Barbara, CA, U.S.A., meiring@pstat.ucsb.edu}
 
-\noindent {\bf Abbreviations} \\
+\begin{abstract}
+This paper compares the performance of different particle filtering algorithms (sequential Monte Carlo algorithms) when applied to a stochastic compartmental model of a disease outbreak. As a starting point, we consider a similar model to \citet{skvortsov2012monitoring} which is nonlinear in both the states and the parameters in both the observation and evolution equations, with a multivariate response at each time point. Missing observations are allowed. We review some developments in the particle filtering methodology to account for simultaneous estimation of outbreak intensity and fixed parameters governing the outbreak. Our results indicate that a version of the particle filter developed by \citet{Liu:West:comb:2001} that uses a normal density kernel to resample values of the fixed parameters outperforms the bootstrap filter and the auxiliary particle filter in terms of efficiency and avoiding particle degeneracy. We also demonstrate that using seemingly non-informative uniform priors on the fixed parameters can actually influence the filtered distribution of the states and fixed parameters over time. In addition, we show that using multinomial resampling of particles adds extra Monte Carlo variability to the weighted sample approximation of the posterior, as evidenced by wider credible intervals compared with other methods.  Lastly, we add additional uncertainty to the model and perform estimation using the \citet{Liu:West:comb:2001} particle filter with log-normal priors on the fixed parameters and stratified resampling.
+\end{abstract}
 
-BF - bootstrap filter; APF - auxiliary particle filter; KDPF - kernel density particle filter; MCMC - Markov-chain Monte Carlo; SMC - sequential Monte Carlo
+\begin{keyword}
+Bayesian estimation; epidemiological modeling; state-space modeling; sequential Monte Carlo; particle filtering.
+\end{keyword}
+
+\end{frontmatter}
+
+\let\thefootnote\relax\footnotetext{Abbreviations: BF - bootstrap filter; APF - auxiliary particle filter; KDPF - kernel density particle filter}
 
 \section{Introduction} \label{sec:intro}
 
