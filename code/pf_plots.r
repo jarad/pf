@@ -60,7 +60,7 @@ for(i in 1:length(ns))
       }
     }
     load(paste(dpath,"sim-orig.rdata",sep=""))
-    abline(h=theta[k],col="gray47",lwd=4)
+    abline(h=theta[k],col="gray47",lwd=8)
     if(k == 1 & i == 1) # add legend
     {
       legend("topright",legend=c("Truth","BF","APF","KDPF"),col=c("gray47",cols),lty=c(1,1,1,1),lwd=c(4,1,1,1),cex=cex.leg)
@@ -75,7 +75,7 @@ dev.off()
 xlim=c(.17,.33); ylim=c(.07,.17)
 borderx=c(.14,.5); bordery=c(.09,.143)
 msize=5; labsize=5; axsize=3; ptsize=3
-ptsty=20; ptcol="gray80"; rline = -2.3; rsize = 1.8
+ptsty=20; ptcol="gray75"; rline = -2.3; rsize = 1.8
 
 # Load simulated data to get true values of beta and gamma
 load(paste(dpath,"sim-orig.rdata",sep=""))
@@ -119,7 +119,7 @@ for(k in 1:length(priors))
       abline(h=bordery,lty=2)
       points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
       mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
-      points(theta[1],theta[2],col=2,pch=3,lwd=3,cex=1.5*ptsize)
+      points(theta[1],theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
     } else {
       plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",axes=FALSE)
       box()
@@ -127,7 +127,7 @@ for(k in 1:length(priors))
       abline(h=bordery,lty=2)
       points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
       mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
-      points(theta[1],theta[2],col=2,pch=3,lwd=3,cex=1.5*ptsize)
+      points(theta[1],theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
     }
   }
   dev.off()
@@ -248,8 +248,8 @@ for(i in 1:length(ns))
         load(paste(dpath,"PF-quant-orig-orig-KD-lognormal-lognormal-",resamps[j],"-",ns[i],"-ess-80.rdata",sep=""))
         out = pf.quant.out$theta.quant
         tt = dim(out)[1]; nt = tt - 1
-        lines(1:nt,out[-1,k,2],col=cols[j],lwd=4)
-        lines(1:nt,out[-1,k,3],col=cols[j],lwd=4)
+        lines(1:nt,out[-1,k,2],col=cols[j],lwd=6)
+        lines(1:nt,out[-1,k,3],col=cols[j],lwd=6)
       }
     }
     # Whiten borders
