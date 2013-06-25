@@ -60,10 +60,10 @@ for(i in 1:length(ns))
       }
     }
     load(paste(dpath,"sim-orig.rdata",sep=""))
-    abline(h=theta[k],col="gray47",lwd=8)
+    abline(h=theta[k],col="gray47",lwd=6)
     if(k == 1 & i == 1) # add legend
     {
-      legend("topright",legend=c("Truth","BF","APF","KDPF"),col=c("gray47",cols),lty=c(1,1,1,1),lwd=c(4,1,1,1),cex=cex.leg)
+      legend("topright",legend=c("Truth","BF","APF","KDPF"),col=c("gray47",cols),lty=c(1,1,1,1),lwd=c(6,1,1,1),cex=cex.leg)
     }
   }
 }
@@ -262,7 +262,7 @@ for(i in 1:length(ns))
     box()
     if(k == 1 & i == 1) # add legend
     {
-      legend("topright",legend=resamps,col=cols,lty=rep(1,4),cex=cex.leg,bg="white")
+      legend("topright",legend=resamps,col=cols,lty=rep(1,4),lwd=c(6,6,6,6),cex=cex.leg,bg="white")
     }
   }
 }
