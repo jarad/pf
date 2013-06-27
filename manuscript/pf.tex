@@ -97,46 +97,43 @@ where $w_t^{(j)}$ is the particle \emph{weight} with $\sum_{j=1}^J w_t^{(j)}=1$,
 The first successful version of particle filtering is known as the bootstrap filter (BF) \citep{Gord:Salm:Smit:nove:1993,Kita:mont:1996}. Since this method and the auxiliary particle filter were developed for the situation when $\theta$ is known, we will (for the moment) drop $\theta$ from the notation. Given an approximation to the filtered distribution at time $t$ as in equation \eqref{eqn:approx}, to obtain an approximation to the filtered distribution at time $t+1$, perform the following steps for each particle $j=1,\ldots,J$:
 
 \begin{enumerate}
-\item Resample: sample an index $k\in\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\left\{w_t^{(1)},\ldots,w_t^{(j)},\ldots,w_t^{(J)}\right\}$ and set
-    \[ x_t^{(j)} = x_t^{(k)} \qquad w_t^{(j)} = 1 / J. \]
-\item Propagate: sample $x_{t+1}^{(j)} \sim p\left( x_{t+1}\left|x_t^{(j)}\right.\right)$.
-\item Calculate weights: $\tilde{w}_{t+1}^{(j)} = w_t^{(j)}p\left(y_{t+1}\left|x_{t+1}^{(j)}\right.\right)$.
+\item Resample: sample an index $k\in\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\left\{w_t^{(1)},\ldots,w_t^{(j)},\ldots,w_t^{(J)}\right\}$ and set $w_t^{(j)} = 1 / J.$
+\item Propagate: sample $x_{t+1}^{(j)} \sim p\left( x_{t+1}\left|x_t^{(k)}\right.\right)$.
+\item Calculate weights and renormalize: 
+\[ \tilde{w}_{t+1}^{(j)} = w_t^{(k)}p\left(y_{t+1}\left|x_{t+1}^{(j)}\right.\right) \qquad w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{w}_{t+1}^{(l)} \right. .\]
 \end{enumerate}
 
-\noindent After weights for all particles have been calculated, these weights need to be renormalized via $w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{w}_{t+1}^{(l)} \right.$. This procedure can be applied recursively provided an initial set of weights $w_0^{(j)}$ and locations $x_0^{(j)}$ for all $j$, usually obtained by sampling from the prior. 
+\noindent This procedure can be applied recursively provided an initial set of weights $w_0^{(j)}$ and locations $x_0^{(j)}$ for all $j$, usually obtained by sampling from the prior. 
 
 \subsection{Auxiliary particle filter \label{sec:apf}}
 
-One problem that arises in implementing the BF is that, as $t$ increases, $w_t^{(j)}$ may become small for samples $x_t^{(j)}$ that are less likely given $y_t$. These samples will likely get eliminated during resampling, and thus a greater number of total particles, $J$, is then required to obtain an accurate sample from $p(x_{t+1}|y_{1:t+1})$. An more efficient algorithm in that sense that a more representative sample from $p(x_{t+1}|y_{1:t+1})$ can be obtained for fixed $J$ was developed by \citet{Pitt:Shep:filt:1999} called the auxiliary particle filter (APF). The idea behind the APF is to generate particles with higher likelihood given the data by "looking ahead" at $p(x_{t+1}|x_t^{(j)})$ prior to resampling. Given a weighted random sample of particles at time $t$, the APF approximates $p(x_{t+1}|y_{1:t+1})$ by the following:
+One problem that arises in implementing the BF is that $w_t^{(j)}$ will be small for particles where $p\left(y_{t}\left|x_{t}^{(j)}\right.\right)$ is small and these particles will contribute little to approximation of $p(x_{t}|y_{1:t})$. The auxiliary particle filter (APF) tries to anticipate which particles will have small weight using a look ahead strategy \citet{Pitt:Shep:filt:1999}. Given an approximation to the filtered distribution at time $t$ as in equation \eqref{eqn:approx}, the APF approximates $p(x_{t+1}|y_{1:t+1})$ by the following:
 
 \begin{enumerate}
-\item For each particle $j$, calculate a point estimate of $x_{t+1}^{(j)}$ called $\mu_{t+1}^{(j)}$ where
+\item For each particle $j$, calculate a point estimate of $x_{t+1}^{(j)}$ called $\mu_{t+1}^{(j)}$, e.g.
 \[ \mu_{t+1}^{(j)} = E\left(x_{t+1}\left|x_t^{(j)} \right.\right). \]
 \item Calculate auxiliary weights and renormalize:
 \[ \tilde{g}_{t+1}^{(j)} = w_t^{(j)} p(y_{t+1}|\mu_{t+1}^{(j)}) \qquad g_{t+1}^{(j)} = \tilde{g}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{g}_{t+1}^l.\right. \]
 \item For each particle $j=1,\ldots,J$,
 	\begin{enumerate}
-    \item Resample: sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{g_{t+1}^{(1)},\ldots,g_{t+1}^{(j)},\ldots,g_{t+1}^{(J)}\}$ and set
-         \[ x_t^{(j)} = x_t^{(k)} \qquad w_t^{(j)} = 1 / J \qquad \mu_{t+1}^{(j)} = \mu_{t+1}^{(k)}, \]
-	\item Propagate: sample $x_{t+1}^{(j)} \sim p\left(\left. x_{t+1}\right|x_t^{(j)}\right)$, and
+    \item Resample: sample an index $k\in\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{g_{t+1}^{(1)},\ldots,g_{t+1}^{(j)},\ldots,g_{t+1}^{(J)}\}$ and set $w_t^{(j)} = 1 / J$.
+	\item Propagate: sample $x_{t+1}^{(j)} \sim p\left(x_{t+1}\left|x_t^{(k)}\right.\right)$, and
 	\item Calculate weights and renormalize:
-\[ \tilde{w}_{t+1}^{(j)} = w_t^{(j)}\frac{p\left(y_{t+1}|x_{t+1}^{(j)}\right)}{p\left(y_{t+1}|\mu_{t+1}^{(j)}\right)} \qquad w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{w}_{t+1}^l. \right. \]
+\[ \tilde{w}_{t+1}^{(j)} = w_t^{(j)}\frac{p\left(y_{t+1}\left|x_{t+1}^{(j)}\right.\right)}{p\left(y_{t+1}\left|\mu_{t+1}^{(k)}\right.\right)} \qquad w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{w}_{t+1}^l. \right. \]
 	\end{enumerate}
 \end{enumerate}
 
-\noindent As with the BF, the `Resample' step does not necessarily need to be carried out at every iteration of the algorithm, and we may choose to skip this step if particle weights are not out of balance.
+\noindent The point estimate used in Step 1 can be any point estimate although the expectation is common used. Step 3 is exactly the same as the BF with appropriate modifications to the weight calculation to adjust for the `look ahead' in Step 1. APF weights tend to be more uniform than BF weights which result in a better approximation to $p(x_{t}|y_{1:t})$. 
 
-The BF and the APF were constructed with the idea that all fixed parameters were known. In order to simultaneously estimate the states and fixed parameters using these methods it is necessary to incorporate the fixed parameters into the state with degenerate evolutions. Due to the resampling step, the number of unique values of the fixed parameters in the particle set will decrease over time, resulting in \emph{degeneracy} \citep{Liu:West:comb:2001}.
+The BF and the APF were constructed with the idea that all fixed parameters were known. In order to simultaneously estimate the states and fixed parameters using these methods it is necessary to incorporate the fixed parameters into the state with degenerate evolutions, i.e. $\theta_{t+1}^{(j)}=\theta_t^{(j)}$ \danny{do we need to specify this?}. Due to the resampling step, the number of unique values of the fixed parameters in the particle set will decrease over time, resulting in \emph{degeneracy} in the fixed parameters \citep{Liu:West:comb:2001}.
 
 \subsection{Kernel density particle filter \label{sec:kd}}
 
-The particle filter introduced by \citet{Liu:West:comb:2001} is a general way of fighting this degeneracy problem by approximating the set of fixed parameter values by a kernel density estimate and then resampling from this approximation at each step in the filter. This enables us to refresh the sampled values of $\theta$ to reduce degeneracy and require a lower number of particles to obtain an accurate weighted sample approximation of the filtered distribution of the states and fixed parameters. We will refer to this filter as the kernel density particle filter (KDPF).
+The particle filter introduced by \citet{Liu:West:comb:2001} is a general way of fighting this degeneracy problem by approximating the set of fixed parameter values by a kernel density estimate and then regenerating values from this approximation. We refer to this filter as the kernel density particle filter (KDPF). This filter provides an approximation to $p(x_t,\theta| y_{1:t})$ via equation \eqref{eqn:approx}. To make the notation transparent, we introduce subscripts for our fixed parameters, e.g. $\theta_t^{(j)}$ represents the value for $\theta$ at time $t$ for particle $j$. This does not imply that $\theta$ is dynamic, but rather that the particle can have different values for $\theta$ throughout time.
 
-We now reintroduce the fixed parameters $\theta$ into the notation. The KDPF provides an approximation to $p(x_t,\theta| y_{1:t})$ via equation \eqref{eqn:approx}. To make the notation transparent, we introduce subscripts for our fixed parameters, e.g. $\theta_t^{(j)}$ represents the value for $\theta$ at time $t$ in particle $j$. This does not imply that $\theta$ is dynamic, but rather that the particle can have different values for $\theta$ throughout time.
+Let $\bar{\theta}_t$ and $V_t$ be the weighted sample mean and weighted sample covariance matrix of the posterior sample $\theta_t^{(1)},\ldots,\theta_t^{(J)}$.  The KDPF uses a tuning parameter $\Delta$, the discount factor, and two derived quantities $h^2 = 1 - ((3\Delta - 1)/2\Delta)^2$ and $a^2 = 1 - h^2$ that determine how smooth the kernel density approximation is. Lower values of $\Delta$ result in a smoother approximation, but since we are simply interested in jittering the particles around $\Delta$ is typically taken to be between 0.95 and 0.99 \citep{Liu:West:comb:2001}.
 
-Let $\bar{\theta}_t$ and $V_t$ be the weighted sample mean and weighted sample covariance matrix of the posterior sample $\theta_t^{(1)},\ldots,\theta_t^{(J)}$.  The KDPF uses a tuning parameter $\Delta$, the discount factor, and two derived quantities $h^2 = 1 - ((3\Delta - 1)/2\Delta)^2$ and $a^2 = 1 - h^2$ that determine how sharp the kernel density approximation is. Typically $\Delta$ is taken to be between 0.95 and 0.99 \citep{Liu:West:comb:2001}.
-
-With the KDPF, we move to an approximation of $p(x_{t+1},\theta|y_{1:t+1})$ by the following steps:
+Given an approximation to the filtered distribution at time $t$ as in equation \eqref{eqn:approx}, the KDPF provides approximation of $p(x_{t+1},\theta|y_{1:t+1})$ by the following steps:
 
 \begin{enumerate}
 \item For each particle $j$, calculate a point estimate of $\left(x_{t+1}^{(j)},\theta\right)$ given by $\left(\mu_{t+1}^{(j)},m_t^{(j)}\right)$ where
@@ -148,25 +145,27 @@ With the KDPF, we move to an approximation of $p(x_{t+1},\theta|y_{1:t+1})$ by t
 \[ \tilde{g}_{t+1}^{(j)} = w_t^{(j)} p\left(y_{t+1}\left|\mu_{t+1}^{(j)},m_t^{(j)}\right.\right) \qquad g_{t+1}^{(j)} = \tilde{g}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{g}_{t+1}^l. \right. \]
 \item For each particle $j=1,\ldots,J$,
 	\begin{enumerate}
-    \item Resample: sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{g_{t+1}^{(1)},\ldots,g_{t+1}^{(j)},\ldots,g_{t+1}^{(J)}\}$ and set \[x_t^{(j)} = x_t^{(k)} \qquad w_t^{(j)} = 1 / J \qquad \left(\mu_{t+1}^{(j)},m_t^{(j)}\right) = \left(\mu_{t+1}^{(k)},m_t^{(k)}\right),\]
+    \item Resample: sample an index $k\in\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{g_{t+1}^{(1)},\ldots,g_{t+1}^{(j)},\ldots,g_{t+1}^{(J)}\}$ and set $w_t^{(j)} = 1 / J$.
 	\item Regenerate the fixed parameters:
-	\[ \theta_{t+1}^{(j)} \sim N\left( m_t^{(j)}, h^2V_t \right), \]
+	\[ \theta_{t+1}^{(j)} \sim N\left( m_t^{(k)}, h^2V_t \right), \]
 	\item Propagate:
-	\[ x_{t+1}^{(j)} \sim p\left(x_{t+1}\left|x_t^{(j)},\theta_{t+1}^{(j)}\right.\right), \mbox{ and} \]
+	\[ x_{t+1}^{(j)} \sim p\left(x_{t+1}\left|x_t^{(k)},\theta_{t+1}^{(j)}\right.\right), \mbox{ and} \]
 	\item Calculate weights and renormalize:
-	\[ \tilde{w}_{t+1}^{(j)} = w_t^{(j)}\frac{p\left(y_{t+1}\left|x_{t+1}^{(j)},\theta_{t+1}^{(j)}\right.\right)}{p\left(y_{t+1}\left|\mu_{t+1}^{(j)},m_t^{(j)}\right.\right)}
+	\[ \tilde{w}_{t+1}^{(j)} = w_t^{(j)}\frac{p\left(y_{t+1}\left|x_{t+1}^{(j)},\theta_{t+1}^{(j)}\right.\right)}{p\left(y_{t+1}\left|\mu_{t+1}^{(k)},m_t^{(k)}\right.\right)}
 	\qquad
 	w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/\sum_{l=1}^J \tilde{w}_{t+1}^l. \right. \]
 	\end{enumerate}
 \end{enumerate}
 
-\noindent Again, we may choose to forgo the `Resample' step if particle weights are not out of balance. Furthermore, we may also choose not to regenerate the fixed parameters and instead set $\theta_{t+1}^{(j)} = \theta_t^{(j)}$. This makes sense from an efficiency standpoint, since if we do not resample particles, then there is no elimination of unique fixed parameter values.
+\noindent The KDPF adds the kernel density regeneration to the auxiliary particle filter. 
 
 To use the KDPF with normal kernels it is necessary to parameterize the fixed parameters so that their support is on the real line. This is not a constraint, but rather a practical implementation detail. We typically use logarithms for parameters that have positive support and the logit function for parameters in the interval (0,1). A parameter $\psi$ bounded on the interval (a,b) can first be rebounded to (0,1) through $(\psi-a)/(b-a)$, and then the logit transformation can be applied. We discuss the sensitivity of the performance of the KDPF to the choice of transformation later on.
 
 \subsection{Resampling \label{sec:advice}}
 
-Practical implementation of any particle filter involves a choice of resampling scheme and a decision about when resampling should be performed. Throughout our discussion, we have explicitly used multinomial resampling, but alternative resampling schemes exist including stratified, residual, and systematic resampling. As discussed in Section \ref{sec:resample}, we suggest the use of stratified or residual sampling. In addition, the frequency of resampling should be reduced to decrease the amount of Monte Carlo variability introduced to the particle sample. Typically, a measure of the nonuniformity of particle weights is used including effective sample size, entropy, or coefficient of variation. For a discussion of these topics, please see \cite{Douc:Capp:Moul:comp:2005}.
+Practical implementation of any particle filter involves a choice of resampling scheme and a decision about when resampling should be performed. Throughout our discussion, we have explicitly used multinomial resampling, but alternative resampling schemes exist including stratified, residual, and systematic resampling. As discussed in Section \ref{sec:resample}, we suggest the use of stratified or residual sampling. In addition, the frequency of resampling should be reduced to balance the loss of information due to degeneracy with the loss of information due to the additional Monte Carlo variability introduced during resampling. Typically, a measure of the nonuniformity of particle weights is used including effective sample size, entropy, or coefficient of variation. For a discussion of these topics, please see \cite{Douc:Capp:Moul:comp:2005}.
+
+
 
 \section{Particle filtering in epidemiological models \label{sec:apply}}
 
