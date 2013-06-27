@@ -68,12 +68,13 @@ The rest of the article proceeds as follows. Section \ref{sec:ss} contains a des
 State-space models are a general class of statistical models used for analysis of dynamic data and have been used extensively in modeling disease outbreaks \citep{Mart:Cone:Lope:Lope:baye:2008,watkins2009disease,merl2009statistical,ludkovski2010optimal,skvortsov2012monitoring}.  State space models are constructed using an observation equation, $y_t \sim p_{y,t}(y_t|x_t,\theta)$, and a state evolution equation, $x_t \sim p_{x,t}(x_t|x_{t-1},\theta)$ where $y_t$ is the observed response, $x_t$ is a latent, dynamic state, and $\theta$ is an unknown fixed parameter, all of which could be vectors. The distributions are assumed known conditional on the values of $\theta$ and $x_t$ in the observation equation and $\theta$ and $x_{t-1}$ in the evolution equation. Depending on whether the observations and the states are continuous or discrete, the distributions themselves may be continuous or discrete. The distributions are typically assumed to only vary with $x_t$ and $\theta$ and therefore the $t$ subscript is dropped.
 %The particle filtering methodology discussed in Sections \ref{sec:filtering} and \ref{sec:discussion} apply equally well when the distributions depend on $t$ so long as they are known.
 For simplicity, we will also drop the $x$ and $y$ subscript and instead let the arguments make clear which distribution we are referring to. Thus, the general state-space model is
-\begin{align*}
-y_t &\sim p(y_t|x_t,\theta) \\
-x_t &\sim p(x_t|x_{t-1},\theta).
-\end{align*}
+\[ 
+y_t \sim p(y_t|x_t,\theta) \qquad
+x_t \sim p(x_t|x_{t-1},\theta).
+\]
+A fully specified Bayesian model is obtained by specifying the prior $p(x_0,\theta)$. 
 
-Special cases of these state-space models include hidden Markov models \citep{cappe2005inference}, where the state $x_t$ has finite support, and dynamic linear models (DLMs) \citep{West:Harr:baye:1997}, where each distribution is Gaussian whose mean is a linear function of the states and whose variance does not depend on the mean. 
+Special cases of these state-space models include hidden Markov models \citep{cappe2005inference}, where the state $x_t$ has finite support, and dynamic linear models (DLMs) \citep{West:Harr:baye:1997}, where each distribution is Gaussian whose mean is a linear function of the states and whose variance does not depend on the mean. The disease outbreak models discussed in Section \ref{sec:apply} are specific cases of state-space models, but we introduce these models in generality here because the particle filtering methods discussed in Section \ref{sec:filtering} apply to any model with this form. 
 
 \subsection{Sequential estimation \label {sec:sequential}}
 
@@ -85,26 +86,24 @@ where $y_{1:t} = (y_1,\ldots,y_t)$. Only in special cases can $p(x_t,\theta| y_{
 
 \section{Particle filtering \label{sec:filtering}}
 
-Particle filtering is a sequential Monte Carlo (SMC) inferential technique based on sequential use of importance sampling. It aims to approximate equation \eqref{eqn:filtered} through a weighted Monte Carlo realization from this distribution, i.e.
+Particle filtering is a sequential Monte Carlo (SMC) inferential technique based on repeated use of importance sampling. It aims to approximate the filtered distribution through a weighted Monte Carlo realization from this distribution, i.e.
 \begin{equation}
-p(x_t,\theta| y_{1:t}) \approx \sum_{j}^J w_t^{(j)} \delta_{(x_t^{(j)},\theta^{(j)})} \label{eqn:approx}
+p(x_t,\theta| y_{1:t}) \approx \sum_{j=1}^J w_t^{(j)} \delta_{\left(x_t^{(j)},\theta^{(j)}\right)} \label{eqn:approx}
 \end{equation}
-where $w_t^{(j)},j=1,\ldots,J$ are the particle \emph{weights}, $(x_t^{(j)},\theta^{(j)})$ is the particle \emph{location}, and $\delta$ is a Dirac delta function. A variety of SMC techniques have been developed to provide more efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now introduce three fundamental particle filtering techniques: the bootstrap filter, auxiliary particle filter, and kernel density particle filter. Later, we will compare the efficiency of these techniques.
+where $w_t^{(j)}$ is the particle \emph{weight} with $\sum_{j=1}^J w_t^{(j)}=1$, $(x_t^{(j)},\theta^{(j)})$ is the particle \emph{location}, and $\delta$ is the Dirac delta function. A variety of SMC techniques have been developed to provide more efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now introduce three fundamental particle filtering techniques: the bootstrap filter, auxiliary particle filter, and kernel density particle filter. In Section \ref{sec:results}, we will compare the efficiency of these techniques in the syndromic surveillance context. 
 
 \subsection{Bootstrap filter \label{sec:bf}}
 
-The first successful version of particle filtering is known as the bootstrap filter (BF) \citep{Gord:Salm:Smit:nove:1993}. Since this method and the auxiliary particle filter were developed for the situation when $\theta$ is known, we will (for the moment) drop $\theta$ from the notation. Suppose you have a current approximation as in equation \eqref{eqn:approx}. To move from an approximation of $p(x_t| y_{1:t})$ to that of $p(x_{t+1}| y_{1:t+1})$, we perform the following steps for each particle $j$:
+The first successful version of particle filtering is known as the bootstrap filter (BF) \citep{Gord:Salm:Smit:nove:1993,Kita:mont:1996}. Since this method and the auxiliary particle filter were developed for the situation when $\theta$ is known, we will (for the moment) drop $\theta$ from the notation. Given an approximation to the filtered distribution at time $t$ as in equation \eqref{eqn:approx}, to obtain an approximation to the filtered distribution at time $t+1$, perform the following steps for each particle $j=1,\ldots,J$:
 
 \begin{enumerate}
-\item Resample: sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\{w_t^{(1)},\ldots,w_t^{(j)},\ldots,w_t^{(J)}\}$ and set
-    \[ x_t^{(j)} = x_t^{(k)} \qquad w_t^{(j)} = 1 / J, \]
-\item Propagate: sample $x_{t+1}^{(j)} \sim p\left(\left. x_{t+1}\right|x_t^{(j)}\right)$, and
+\item Resample: sample an index $k\in\{1,\ldots,j,\ldots,J\}$ with associated probabilities $\left\{w_t^{(1)},\ldots,w_t^{(j)},\ldots,w_t^{(J)}\right\}$ and set
+    \[ x_t^{(j)} = x_t^{(k)} \qquad w_t^{(j)} = 1 / J. \]
+\item Propagate: sample $x_{t+1}^{(j)} \sim p\left( x_{t+1}\left|x_t^{(j)}\right.\right)$.
 \item Calculate weights: $\tilde{w}_{t+1}^{(j)} = w_t^{(j)}p\left(y_{t+1}\left|x_{t+1}^{(j)}\right.\right)$.
 \end{enumerate}
 
-\noindent After weights for all particles have been calculated, these weights need to be renormalized via $w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{w}_{t+1}^{(l)} \right.$.
-
-This procedure can be applied recursively provided an initial set of weights $w_0^{(j)}$ and locations $x_0^{(j)}$ for all $j$. The algorithm as described above uses a multinomial resampling scheme, i.e. when we say `sample an index $k$ from the set $\{1,\ldots,j,\ldots,J\}$ \ldots'. This is not the only way to resample the particles, and we compare multinomial resampling with three other techniques in Section \ref{sec:resample}. In addition, we can optionally forgo the `Resample' step (hence the necessity of the $w_t^{(j)}$ term in the `Calculate weights' step) to make the algorithm more efficient. We discuss more about resampling in Section \ref{sec:results}.
+\noindent After weights for all particles have been calculated, these weights need to be renormalized via $w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{w}_{t+1}^{(l)} \right.$. This procedure can be applied recursively provided an initial set of weights $w_0^{(j)}$ and locations $x_0^{(j)}$ for all $j$, usually obtained by sampling from the prior. 
 
 \subsection{Auxiliary particle filter \label{sec:apf}}
 
@@ -165,9 +164,9 @@ With the KDPF, we move to an approximation of $p(x_{t+1},\theta|y_{1:t+1})$ by t
 
 To use the KDPF with normal kernels it is necessary to parameterize the fixed parameters so that their support is on the real line. This is not a constraint, but rather a practical implementation detail. We typically use logarithms for parameters that have positive support and the logit function for parameters in the interval (0,1). A parameter $\psi$ bounded on the interval (a,b) can first be rebounded to (0,1) through $(\psi-a)/(b-a)$, and then the logit transformation can be applied. We discuss the sensitivity of the performance of the KDPF to the choice of transformation later on.
 
-\subsection{General advice \label{sec:advice}}
+\subsection{Resampling \label{sec:advice}}
 
-Practical implementation of any particle filter involves a choice of resampling function and a decision about when resampling should be performed. Throughout our discussion, we have implicitly used multinomial resampling. Alternative resampling functions exist including stratified, residual, and systematic resampling. In addition, the frequency of resampling should be reduced to decrease the amount of Monte Carlo variability added to the particle sample. Typically, a measure of the nonuniformity of particle weights is used including effective sample size, entropy, and coefficient of variation. For a discussion of these topics, please see \cite{Douc:Capp:Moul:comp:2005}.
+Practical implementation of any particle filter involves a choice of resampling scheme and a decision about when resampling should be performed. Throughout our discussion, we have explicitly used multinomial resampling, but alternative resampling schemes exist including stratified, residual, and systematic resampling. As discussed in Section \ref{sec:resample}, we suggest the use of stratified or residual sampling. In addition, the frequency of resampling should be reduced to decrease the amount of Monte Carlo variability introduced to the particle sample. Typically, a measure of the nonuniformity of particle weights is used including effective sample size, entropy, or coefficient of variation. For a discussion of these topics, please see \cite{Douc:Capp:Moul:comp:2005}.
 
 \section{Particle filtering in epidemiological models \label{sec:apply}}
 
