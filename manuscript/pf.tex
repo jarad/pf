@@ -313,6 +313,7 @@ To test this theory, we reran the KDPF but using a log transformation (to ensure
 
 %\danny{perhaps say something about how the prior is introducing bias} This suggests that the more drastic decrease in correlation between $t = 45$ and $t = 60$ in the first row is not driven by the data, but rather is an artifact of the restrictive uniform bounds enforced by the logit transformation.
 
+\danny{the next paragraph needs to be reworked a bit, I think}
 Ideally, we'd like to apply some transformation to extend $\theta$ to the whole real line so that the KDPF operates smoothly, but we don't want the transformation to influence the particles in any way. %The third row of Figure \ref{fig:priors} shows the KDPF run using log-normal priors with a log transformation on the components of $\theta$. As in the second row of Figure \ref{fig:priors}, the distribution of points do not appear truncated or S-shaped. While a majority of the points in the third row of Figure \ref{fig:priors} are within the uniform bounds, some lie outside because the transformation is not overly restrictive. 
 We suggest log-normal priors on positive elements of $\theta$ and because it allows us to use prior knowledge of the epidemic to encourage points to lie in a reasonable range, but is more flexible in the event of model mis-specification either in the likelihood or the prior and allows the data to play a greater role in dictating the evolution of $p(x_t,\theta|y_{1:t})$.
 
