@@ -82,10 +82,11 @@ load(paste(dpath,"sim-orig.rdata",sep=""))
 
 # Panel 1 - uniform prior draws, logit transformation
 # Panel 2 - uniform prior draws, no transformation
-# Panel 3 - normal prior draws, log transformation
+# Panel 3 - uniform prior draws, log transformation
+# Panel 4 - lognormal prior draws, log transformation 
 n = 10000
-priors = c("uniform","semi-uniform","lognormal")
-prior.samps = c("uniform","uniform","lognormal")
+priors = c("uniform","semi-uniform","lognormal","lognormal")
+prior.samps = c("uniform","uniform","uniform","lognormal")
 for(k in 1:length(priors))
 {
   # Load particle filtered data
@@ -185,7 +186,9 @@ dev.off()
 # Set graphical parameters
 ymins = c(0.15,0.085,0.85)
 ymaxs = c(0.35,0.165,1.5)
-cols = c(2,3,4,5)
+require(RColorBrewer)
+cols = brewer.pal(4,"Set1")
+#cols = c(2,3,4,5)
 cex.lab = 6
 cex.main = 7
 cex.axis = 4

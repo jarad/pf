@@ -191,6 +191,8 @@ pf <- function(n, filt, resamp, prior, prior.samp, mod.data, mod.fit, nonunif = 
   save(pf.out, file=paste(dpath,"PF-",mod.data,"-",mod.fit,"-",filt,"-",prior.samp,"-",prior,"-",resamp,"-",n,"-",nonunif,"-",100*thresh,".rdata",sep=""))
 }
 
+pf(10000,"KD","systematic","lognormal","uniform","orig","orig")
+
 # Apply pf to combination of pfs
 require(plyr)
 data1 = expand.grid(mod.dat = "orig", mod.fit = "orig", n = c(100, 1000, 10000, 20000, 40000), filt = c("BF","APF","KD"), resamp = "systematic", prior = "uniform", prior.samp = "uniform", progress=FALSE, stringsAsFactors=FALSE)
