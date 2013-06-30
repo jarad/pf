@@ -5,11 +5,13 @@
 {\bf Highlights} \\
 \
 \begin{itemize}
-\item We simulate an epidemic using an SIR model and generate syndromic data from multiple sources.
-\item We compare the performance of three different particle filtering algorithms on the simulated data.
-\item The algorithm that resamples values of the fixed parameters outperforms the other two algorithms that do not.
-\item Over-restrictive uniform priors influence the estimate of the posterior distribution of the unknown parameters.
-\item Multinomial resampling of particles is outperformed by more sophisticated resampling techniques.
+% 3-5 lines, and each line must not exceed 85 characters
+% i.e up to ......................................................................... here.
+\item We propose a strategy for tracking an epidemic using particle filtering algorithms.
+\item We compare how well three particle filtering algorithms perform using simulated data.
+\item Regenerating fixed parameters using a kernel density estimate improves performance.
+\item We show that bounded priors on fixed parameters can influence our estimates.
+\item Multinomial resampling of particles is outperformed by other resampling techniques.
 \end{itemize}
 
 \end{document}
