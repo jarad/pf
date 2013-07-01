@@ -249,8 +249,6 @@ An epidemic lasting $T = 125$ days was simulated from our model for a population
 
 \begin{table}[hb]
 \begin{center}
-\caption{Values of known constants in model.}
-\label{tab:constants}
 \begin{tabular}{|cccc|}
 \hline
 $l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
@@ -261,6 +259,8 @@ $l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
 4 & 0.29 & 0.98 & 0.0011 \\
 \hline
 \end{tabular}
+\caption{Values of known constants in model.}
+\label{tab:constants}
 \end{center}
 \end{table}
 
@@ -313,7 +313,7 @@ To test this theory, we reran the KDPF using a log transformation (to ensure $\g
 
 %\danny{perhaps say something about how the prior is introducing bias} The third row of Figure \ref{fig:priors} shows the KDPF run using log-normal priors with a log transformation on the components of $\theta$. As in the second row of Figure \ref{fig:priors}, the distribution of points do not appear truncated or S-shaped. While a majority of the points in the third row of Figure \ref{fig:priors} are within the uniform bounds, some lie outside because the transformation is not overly restrictive. This suggests that the more drastic decrease in correlation between $t = 45$ and $t = 60$ in the first row is not driven by the data, but rather is an artifact of the restrictive uniform bounds enforced by the logit transformation.
 
-As demonstrated in the previous section, the KDPF can be effective at avoiding degeneracy and is simple to run in that we only require the ability to sample from a normal kernel to regenerate fixed parameter values. A transformation is needed, however, when fixed parameters have restricted support, and we prefer that this transformation does not influence the filtered distribution in any way. We suggest using log-normal priors on positive elements of $\theta$ as opposed to uniform priors on bounded parameters. This allows us to use prior knowledge of the epidemic to encourage points to lie in a reasonable range while retaining flexibility in the event of model mis-specification either in the likelihood or the prior and lets the data play a greater role in dictating the evolution of $p(x_t,\theta|y_{1:t})$.
+In lieu of a transformation on $\theta$, we could modify the KDPF algorithm to use a different kernel density approximation to $p(\theta|y_{1:t})$ that respects the prior domain of the fixed parameters. This, however, would complicate an algorithm that is simple and easy to implement as well as limit the usefulness of the algorithm when the prior domain is too restrictive. Instead, we prefer to use the normal kernel density estimate to regenerate fixed parameters and apply a transformation to $\theta$ that does not influence the filtered distribution in any way. We suggest using log-normal priors on positive elements of $\theta$ as opposed to uniform priors on bounded parameters. This allows us to use prior knowledge of the epidemic to encourage points to lie in a reasonable range while retaining flexibility in the event of model mis-specification either in the likelihood or the prior and lets the data play a greater role in dictating the evolution of $p(x_t,\theta|y_{1:t})$.
 
 \begin{figure}
 
