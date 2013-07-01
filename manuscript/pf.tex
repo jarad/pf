@@ -85,11 +85,11 @@ where $y_{1:t} = (y_1,\ldots,y_t)$. Only in special cases can $p(x_t,\theta| y_{
 
 \section{Particle filtering \label{sec:filtering}}
 
-Particle filtering is a sequential Monte Carlo (SMC) inferential technique based on repeated use of importance sampling. It aims to approximate the filtered distribution through a weighted Monte Carlo realization from this distribution, i.e.
+Particle filtering is a sequential Monte Carlo (SMC) inferential technique based on repeated use of importance sampling. It aims to approximate the filtered distribution at time $t$ through a weighted Monte Carlo realization from this distribution in terms of $J$ particles, i.e.
 \begin{equation}
 p(x_t,\theta| y_{1:t}) \approx \sum_{j=1}^J w_t^{(j)} \delta_{\left(x_t^{(j)},\theta^{(j)}\right)} \label{eqn:approx}
 \end{equation}
-where $w_t^{(j)}$ is the particle \emph{weight} with $\sum_{j=1}^J w_t^{(j)}=1$, $\left(x_t^{(j)},\theta^{(j)}\right)$ is the particle \emph{location}, and $\delta$ is the Dirac delta function. A variety of SMC techniques have been developed to provide more efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now introduce three fundamental particle filtering techniques: the bootstrap filter, auxiliary particle filter, and kernel density particle filter. In Section \ref{sec:results}, we will compare the efficiency of these techniques in the syndromic surveillance context.
+where $\left(x_t^{(j)},\theta^{(j)}\right)$ is the location of the $j^{\mbox{th}}$ particle at time $t$, $w_t^{(j)}$ is the weight of that particle with $\sum_{j=1}^J w_t^{(j)}=1$, and $\delta$ is the Dirac delta function. A variety of SMC techniques have been developed to provide more efficient approximations to equation \eqref{eqn:filtered} in the sense that with the same computation time a better approximation is achieved. We now review three fundamental particle filtering techniques: the bootstrap filter, auxiliary particle filter, and kernel density particle filter. In Section \ref{sec:results}, we compare the efficiency of these techniques in the syndromic surveillance context.
 
 \subsection{Bootstrap filter \label{sec:bf}}
 
@@ -102,11 +102,11 @@ The first successful version of particle filtering is known as the bootstrap fil
 \[ \tilde{w}_{t+1}^{(j)} = p\left(y_{t+1}\left|x_{t+1}^{(j)}\right.\right) \qquad w_{t+1}^{(j)} = \tilde{w}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{w}_{t+1}^{(l)} \right. .\]
 \end{enumerate}
 
-\noindent This procedure can be applied recursively provided an initial set of weights $w_0^{(j)}$ and locations $x_0^{(j)}$ for all $j$, usually obtained by sampling from the prior.
+\noindent This procedure can be applied recursively beginning with an initial set of weights $w_0^{(j)}$ and locations $x_0^{(j)}$ for all $j$, usually obtained by sampling from the prior with uniform weights.
 
 \subsection{Auxiliary particle filter \label{sec:apf}}
 
-One problem that arises in implementing the BF is that $w_t^{(j)}$ will be small for particles where $p\left(y_{t}\left|x_{t}^{(j)}\right.\right)$ is small, and these particles will contribute little to the approximation to $p(x_{t}|y_{1:t})$. The auxiliary particle filter (APF) tries to anticipate which particles will have small weight using a look ahead strategy \citep{Pitt:Shep:filt:1999}. Given an approximation to the filtered distribution at time $t$ as in equation \eqref{eqn:approx}, the APF approximates $p(x_{t+1}|y_{1:t+1})$ by the following:
+One problem that arises in implementing the BF is that $w_t^{(j)}$ will be small for particles where $p\left(y_{t}\left|x_{t}^{(j)}\right.\right)$ is small, and these particles will contribute little to the approximation to $p(x_{t}|y_{1:t})$. The auxiliary particle filter (APF) aims to mitigate this by anticipating which particles will have small weight using a look ahead strategy \citep{Pitt:Shep:filt:1999}. Given an approximation to the filtered distribution at time $t$ as in equation \eqref{eqn:approx}, the APF approximates $p(x_{t+1}|y_{1:t+1})$ by the following:
 
 \begin{enumerate}
 \item For each particle $j$, calculate a point estimate of $x_{t+1}^{(j)}$ called $\mu_{t+1}^{(j)}$, e.g.
@@ -122,9 +122,9 @@ One problem that arises in implementing the BF is that $w_t^{(j)}$ will be small
 	\end{enumerate}
 \end{enumerate}
 
-\noindent The point estimate used in Step 1 can be any point estimate, although the expectation is commonly used. Step 3 is exactly the same as the BF with appropriate modifications to the weight calculation to adjust for the `look ahead' in Step 1. APF weights tend to be more uniform than BF weights, which results in a better approximation of $p(x_{t}|y_{1:t})$.
+\noindent The point estimate used in Step 1 can be any point estimate, although the expectation is commonly used. Step 3 is exactly the same as the BF with appropriate modifications to the weight calculation to adjust for the `look ahead' in steps 1 and 2. APF weights tend to be closer to uniform than BF weights, which would result in a better approximation to $p(x_{t}|y_{1:t})$.
 
-The BF and the APF were constructed with the idea that all fixed parameters were known. In order to simultaneously estimate the states and fixed parameters using these methods, it is necessary to incorporate the fixed parameters into the state with degenerate evolutions. That is, we regard the fixed parameters as elements of the state vector $x_t$ and specify the state evolution equation such that these elements do not change over time. Due to the resampling step, the number of unique values of the fixed parameters in the particle set will decrease over time, resulting in \emph{degeneracy} in the fixed parameters \citep{Liu:West:comb:2001}.
+The BF and the APF were constructed with the idea that all fixed parameters are known. In order to simultaneously estimate the time-evolving states and fixed parameters using either the BF or APF, it is necessary to incorporate the fixed parameters into the state with degenerate evolutions. That is, one regards the fixed parameters as elements of the state vector $x_t$ and specifies the state evolution equation such that these elements do not change over time. Due to the possible duplication of some particles and elimination of others through resampling, the number of unique values of the fixed parameters in the particle set will decrease over time, resulting in \emph{degeneracy} in the fixed parameters \citep{Liu:West:comb:2001}.
 
 \subsection{Kernel density particle filter \label{sec:kd}}
 
