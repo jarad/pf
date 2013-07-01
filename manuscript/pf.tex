@@ -29,11 +29,11 @@
 \author[jarad]{Jarad Niemi}
 \author[wendy]{Wendy Meiring}
 
-\address[danny]{Corresponding author -- Department of Statistics and Applied Probability, University of Califonia--Santa Barbara, \\
- Santa Barbara, CA, U.S.A., sheinson@pstat.ucsb.edu, 1-847-609-7824}
- \address[jarad]{Department of Statistics, Iowa State University, Ames, IA, U.S.A., niemi@iastate.edu}
- \address[wendy]{Department of Statistics and Applied Probability, University of Califonia--Santa Barbara, \\
- Santa Barbara, CA, U.S.A., meiring@pstat.ucsb.edu}
+\address[danny]{Corresponding author -- Department of Statistics and Applied Probability, University of California--Santa Barbara, \\
+ Santa Barbara, CA 93106, U.S.A., sheinson@pstat.ucsb.edu, 1-847-609-7824}
+ \address[jarad]{Department of Statistics, Iowa State University, Ames, IA 50011, U.S.A., niemi@iastate.edu}
+ \address[wendy]{Department of Statistics and Applied Probability, University of California--Santa Barbara, \\
+ Santa Barbara, CA 93106, U.S.A., meiring@pstat.ucsb.edu}
 
 \begin{abstract}
 This paper presents methodology for tracking and prediction of a disease outbreak via a syndromic surveillance system. We present a nonlinear stochastic state-space model with unknown fixed parameters defining the outbreak's infectivity and recovery rate. We show that standard particle filters fail due to degeneracy of these fixed parameters and suggest the use of a kernel density approximation to the filtered distribution of the fixed parameters to allow their regeneration. In addition, we show that seemingly uninformative uniform priors on fixed parameters can affect posterior inferences and suggest the use of priors bounded only by the support of the parameter. We show the negative impact of using multinomial resampling and suggest the use of either stratified or residual resampling within the particle filter. Finally, we use this improved particle filtering methodology to relax prior assumptions of model parameters yet still provide reasonable estimates for model parameters and disease states.
