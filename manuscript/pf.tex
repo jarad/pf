@@ -11,11 +11,7 @@
                        {/Users/Danny/Dropbox/SIR_Particle_Filtering/Graphs/}
                        {/data/home/faculty/meiring/Dropbox/SIR_Particle_Filtering/Graphs/}
                        {./Graphs/}
-                       % Add your directories here
 }
-
-\newcommand{\jarad}[1]{{\color{red}JARAD: #1}}
-\newcommand{\danny}[1]{{\color{blue}DANNY: #1}}
 
 \journal{Mathematical Biosciences}
 
@@ -47,26 +43,19 @@ Bayesian estimation; epidemiological modeling; state-space modeling; sequential 
 
 \section{Introduction} \label{sec:intro}
 
-% Introduce syndromic surveillance
 Syndromic surveillance systems \citep{henning2004overview, wagner2006biosurveillance, wilson2006synsurveillance, hakenewerth2009north, Gins:Mohe:Pate:Bram:Smol:Bril:dete:2009} are commonly used throughout the world to identify emerging disease outbreaks \citep{neill2006bayesian}, estimate their severity \citep{merl2009statistical}, and predict their duration \cite{ludkovski2010optimal}. Examples of these surveillance systems are emergency department visits for influenza-like illness, over-the-counter sales of cold and flu medicines, or poison control center calls due to gastrointestinal symptoms. A single disease outbreak may result in additional observations in some or all of these surveillance systems.
 
-% Introduce state-space models
 State-space models are frequently used to simultaneously model the underlying disease dynamics and the observation process \citep{Mart:Cone:Lope:Lope:baye:2008,merl2009statistical,ludkovski2010optimal,skvortsov2012monitoring,unkel2012statistical}. Although the general form of these models may be reasonably assumed, the models will have unknown fixed parameters that define the disease dynamics and the observation process for this particular outbreak. Based on similar previous outbreaks, the range and likely values for these fixed parameters may be available.
 
-% Introduce Bayesian framework, MCMC, SMC
 In statistical applications where prior knowledge or beliefs about unknown quantities are available, the Bayesian framework is often convenient for performing statistical analysis.  Bayesian inference is conducted through the posterior distribution of any unknown quantities, obtained by updating prior information using observed data. However, the calculation of the posterior distribution frequently involves complicated integrals without an explicit analytical form. The most common approach to approximating these posterior distributions is Markov chain Monte Carlo (MCMC) \citep{Gelf:Smit:samp:1990}. In a sequential context, e.g. syndromic surveillance, MCMC is inefficient due to the increase in computational cost incurred by the need for the entire MCMC to be rerun as each new observation arrives. Sequential Monte Carlo (SMC) - or particle filtering - methods enable on-line inference by updating the estimate of the posterior as new data become available. Furthermore, SMC methods can be flexible, general, easy to implement, and amenable to parallel computing. For a general introduction, please see \cite{Douc:deFr:Gord:sequ:2001} and \cite{cappe2007overview}.
 
-% Introduce bootstrap filter, auxiliary particle filter, kernel density particle filter
 Early SMC methods, including the bootstrap filter \citep{Gord:Salm:Smit:nove:1993,Kita:mont:1996} and the auxiliary particle filter \citep{Pitt:Shep:filt:1999}, assumed all fixed parameters were known. A key defining step in these filters is the use of resampling, which results in particles with low probability being eliminated and particles with high probability being duplicated. When all fixed parameters are known, these filters work remarkably well. In the presence of unknown fixed parameters, these filters suffer dramatically from a \emph{degeneracy} issue due to the fixed parameters (being treated as dynamic states with degenerate evolutions) never being regenerated, and thus only a few distinct values for the fixed parameters remain after a few time points. To combat this degeneracy, a number of alternative approaches have been introduced. In this paper, we focus on the \emph{kernel density particle filter} \citep{Liu:West:comb:2001} due to its wide applicability, ease of implementation, and good performance.
 
-% Introduce layout of paper (see main document)
 The rest of the article proceeds as follows. Section \ref{sec:ss} contains a description of state-space models and sequential estimation. Section \ref{sec:filtering} describes a variety of particle filtering methodologies including the kernel density approach of \cite{Liu:West:comb:2001}. In Section \ref{sec:apply}, we introduce a nonlinear dynamic model for a disease epidemic similar to the one used in \citet{skvortsov2012monitoring}. In Section \ref{sec:results}, we apply the particle filtering methods described in Section \ref{sec:filtering} to the model described in Section \ref{sec:apply}. In Section \ref{sec:extend}, we benefit from the efficiency of more recent particle filtering methods to estimate a more complicated model. In Section \ref{sec:discussion}, we conclude by reviewing more advanced particle filtering methods.
 
 \section{State-space models \label{sec:ss}}
 
-State-space models are a general class of statistical models used for analysis of dynamic data and have been used extensively in modeling disease outbreaks \citep{Mart:Cone:Lope:Lope:baye:2008,watkins2009disease,merl2009statistical,ludkovski2010optimal,skvortsov2012monitoring}.  State space models are constructed using an observation equation, $y_t \sim p_{y,t}(y_t|x_t,\theta)$, and a state evolution equation, $x_t \sim p_{x,t}(x_t|x_{t-1},\theta)$, where $y_t$ is the observed response, $x_t$ is a latent, dynamic state, and $\theta$ is an unknown fixed parameter, all of which could be vectors. The $y_t$'s are assumed independent given $x_t$ and $\theta$, and the $x_t$'s are assumed independent given $x_{t-1}$ and $\theta$. The distributions $p_{y,t}$ and $p_{x,t}$ are assumed known conditional on the values of $\theta$ and $x_t$ in the observation equation and $\theta$ and $x_{t-1}$ in the evolution equation. Depending on whether the observations and the states are continuous or discrete, the distributions themselves may be continuous or discrete. The distributions are typically assumed to only vary with $x_t$ and $\theta$, and therefore the $t$ subscript is dropped.
-%The particle filtering methodology discussed in Sections \ref{sec:filtering} and \ref{sec:discussion} apply equally well when the distributions depend on $t$ so long as they are known.
-For simplicity, we also drop the $x$ and $y$ subscript and instead let the arguments make clear which distribution we are referring to. Thus, the general state-space model is
+State-space models are a general class of statistical models used for analysis of dynamic data and have been used extensively in modeling disease outbreaks \citep{Mart:Cone:Lope:Lope:baye:2008,watkins2009disease,merl2009statistical,ludkovski2010optimal,skvortsov2012monitoring}.  State space models are constructed using an observation equation, $y_t \sim p_{y,t}(y_t|x_t,\theta)$, and a state evolution equation, $x_t \sim p_{x,t}(x_t|x_{t-1},\theta)$, where $y_t$ is the observed response, $x_t$ is a latent, dynamic state, and $\theta$ is an unknown fixed parameter, all of which could be vectors. The $y_t$'s are assumed independent given $x_t$ and $\theta$, and the $x_t$'s are assumed independent given $x_{t-1}$ and $\theta$. The distributions $p_{y,t}$ and $p_{x,t}$ are assumed known conditional on the values of $\theta$ and $x_t$ in the observation equation and $\theta$ and $x_{t-1}$ in the evolution equation. Depending on whether the observations and the states are continuous or discrete, the distributions themselves may be continuous or discrete. The distributions are typically assumed to only vary with $x_t$ and $\theta$, and therefore the $t$ subscript is dropped. For simplicity, we also drop the $x$ and $y$ subscript and instead let the arguments make clear which distribution we are referring to. Thus, the general state-space model is
 \[
 y_t \sim p(y_t|x_t,\theta) \qquad
 x_t \sim p(x_t|x_{t-1},\theta).
@@ -135,10 +124,7 @@ Let $\bar{\theta}_t$ and $V_t$ be the weighted sample mean and weighted sample c
 Given an approximation to the filtered distribution at time $t$ as in equation \eqref{eqn:approx}, the KDPF provides an approximation of $p(x_{t+1},\theta|y_{1:t+1})$ by the following steps:
 
 \begin{enumerate}
-\item For each particle $j$, calculate a point estimate of $\left(x_{t+1}^{(j)},\theta\right)$ given by $\left(\mu_{t+1}^{(j)},m_t^{(j)}\right)$, where $\mu_{t+1}^{(j)}$ can be any point estimate of $x_{t+1}^{(j)}$, e.g. $E\left(x_{t+1}\left|x_t^{(j)},\theta_t^{(j)} \right.\right)$, and
-    \[
-    m_t^{(j)} = a\theta_t^{(j)} + (1-a)\bar{\theta}_t.
-    \]
+\item For each particle $j$, set $m_t^{(j)} = a\theta_t^{(j)} + (1-a)\bar{\theta}_t.$ and calculate a point estimate of $x_{t+1}^{(j)}$ called $\mu_{t+1}^{(j)}$, e.g. $\mu_{t+1}^{(j)} = E\left(x_{t+1}\left|x_t^{(j),\theta_t^{(j)}} \right.\right)$.
 \item Calculate auxiliary weights and renormalize:
 \[ \tilde{g}_{t+1}^{(j)} = w_t^{(j)} p\left(y_{t+1}\left|\mu_{t+1}^{(j)},m_t^{(j)}\right.\right) \qquad g_{t+1}^{(j)} = \tilde{g}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{g}_{t+1}^{(l)}. \right. \]
 \item For each particle $j=1,\ldots,J$,
@@ -159,8 +145,7 @@ To use the KDPF with normal kernels, it is necessary to parameterize the fixed p
 
 \subsection{Resampling \label{sec:advice}}
 
-In addition to choosing which particle filter algorithm to use, successful implementation also depends on which resampling scheme to use and when to resample. Throughout our discussion, we have explicitly used multinomial resampling, but alternative resampling schemes exist including stratified, residual, and systematic resampling \citep{Douc:Capp:Moul:comp:2005}. Resampling is meant to rebalance the weights of the particles in order to avoid degeneracy, but this introduces additional Monte Carlo variability to the particle sample. %This cost can be understood by considering the situation where no data are observed and multinomial resampling is performed at every iteration of the particle filter. In this case, our knowledge about the states and unknown parameters should not change over time, but we lose information about the filtered distribution by resampling. The four resampling techniques mentioned in this paper may add different amounts of Monte Carlo variability to the particle sample for a given model setting.
-In Section \ref{sec:resample}, we discuss some advantages and disadvantages of the different resampling methods and suggest the use of stratified or residual sampling.
+In addition to choosing which particle filter algorithm to use, successful implementation also depends on which resampling scheme to use and when to resample. Throughout our discussion, we have explicitly used multinomial resampling, but alternative resampling schemes exist including stratified, residual, and systematic resampling \citep{Douc:Capp:Moul:comp:2005}. Resampling is meant to rebalance the weights of the particles in order to avoid degeneracy, but this introduces additional Monte Carlo variability to the particle sample. In Section \ref{sec:resample}, we discuss some advantages and disadvantages of the different resampling methods and suggest the use of stratified or residual sampling.
 
 In addition, the frequency of resampling should be reduced to balance the loss of information due to degeneracy with the loss of information due to the additional Monte Carlo variability introduced during resampling. Typically, a measure of the nonuniformity of particle weights is used to determine if resampling should be performed at a given iteration of a particle filter. The common measures are effective sample size, coefficient of variation, and entropy. We use effective sample size \citep{Liu:Chen:Wong:reje:1998}, a value that can be interpreted as the number of independent particle samples, ranging between 1 and $J$, with $J$ corresponding to all particle weights being equal and 1 corresponding to one particle weight being 1 with the rest 0. Using this measure of nonuniformity in our runs, we set a threshold of $0.8J$, meaning that if the number of independent samples is less than 80\% of the total number of particles at time $t$, resampling is performed at that time.
 
@@ -169,7 +154,6 @@ The BF, APF, and KDPF algorithms described in the previous sections were constru
 \subsection{Theoretical justification of particle filters}
 
 The methods described above are all theoretically justified as the number of particles gets large. Specifically, from Section 3.5.1 of \cite{del2004feynman}, for bounded functions $f_t$ and any $p>1$, the following result holds
-%\[ E\left[ \left| \int \phi (x_{t}, \theta) \left(\hat{p}(x_{t},\theta|y_{1:t})-p(x_{t},\theta|y_{1:t})\right)\emph{d}x_t\emph{d}\theta\right|^p\right]^{1/p} \le \frac{C_t}{\sqrt{J}} \]
 \[ E_{\eta_0}^J \left[ \left| \eta_t^J(f_t)-\eta_t(f_t)\right|^p\right]^{1/p} \le \frac{a(p) b(t) ||f||}{\sqrt{J}} \]
 where $\eta_t(f_t)$ is the expectation of $f_t$ under the true filtered distribution shown in equation \eqref{eqn:filtered} at time $t$, $\eta_t^J(f_t)$ is the expectation of $f_t$ under the particle approximation given by equation \eqref{eqn:approx} at time $t$ using $J$ particles, $a(p)$ is a function of $p$, $b(t)$ is an increasing function of $t$ that depends on which algorithm is used, and $||\cdot||$ is the supremum norm. The key here is that for a fixed $t$, we can increase the number of particles $J$ to reduce our Monte Carlo error, and this is true for all of the algorithms above, including the BF and APF. The question then becomes what does $b(t)$ look like for each algorithm, but this is a difficult question to answer. Instead, in Section \ref{sec:results}, we compare the performance of these algorithms at various values for $J$ within a specific model.
 
@@ -210,29 +194,15 @@ Q(\theta) = \frac{\beta}{P^2} \left(
 \right)
 \]
 
-\noindent and $\Omega = \{(s_t,i_t): s_t \ge 0, i_t \ge 0, s_t + i_t \le 1\}$. $N_{\Omega}(.; \mu,\Sigma)$ represents the pdf of the normal distribution with mean $\mu$ and covariance matrix $\Sigma$ truncated onto the set $\Omega$. %Notice that in equation \eqref{eqn:state}, the joint distribution of $s_t$ and $i_t$ has been truncated since they are proportions that must have sum no greater than 1. To generate values from this density during the `Propagate' step of a particle filter, we sample from the untruncated normal distribution, reject any samples outside of $\Omega$, and resample when needed.
-
-%The dynamics of the epidemic with respect to time, $t$, are then described by the following differential equations:
-%
-%\begin{align}
-%\frac{ds}{dt} &= -\beta is^\nu + \epsilon_\beta \label{eqn:dsdt} \\
-%\frac{di}{dt} &= \beta is^\nu - \gamma i - \epsilon_\beta + \epsilon_\gamma \label{eqn:didt}
-%\end{align}
-
-%The standard deviations of the noise terms are approximated by
-%\[\sigma_\beta \approx \frac{\sqrt{\beta}}{P} \mbox{, } \sigma_\gamma \approx \frac{\sqrt{\gamma}}{P}\]
-%This comes from a well-known scaling rule of random fluctuations in the contact rate and recovery time \citep{ovaskainen2010extinction, herwaarden1995stochepid, dangerfield2009stochepid}.
+\noindent and $\Omega = \{(s_t,i_t): s_t \ge 0, i_t \ge 0, s_t + i_t \le 1\}$. $N_{\Omega}(.; \mu,\Sigma)$ represents the pdf of the truncated normal distribution onto the set $\Omega$ with mean and covariance matrix of its corresponding untruncated normal distribution given by $\mu$ and $\Sigma$, respectively.
 
 We consider observed data that are positive real numbers related to counts of emergency room visits, prescription sales, or calls to a hotline, for example, and we can observe data from these different streams/sources asynchronously in time. That is, at any time $t$, we can observe data from any subset of the streams (or possibly none of them). Let $y_{l,t}$ represent data coming from stream $l$ at time $t$, where $l = 1,2,\ldots,L$ and $t = 1,2,\ldots,T$. We model the log of the observations (so that $y_{l,t}$ is restricted to be positive) by
 \begin{equation}
-\log y_{l,t} \sim N\left(b_li_t^{\varsigma_l} + \eta_l,\sigma_l^2\right) \label{eqn:obs}
+\log y_{l,t} \sim N\left(y_{l,t};b_li_t^{\varsigma_l} + \eta_l,\sigma_l^2\right) \label{eqn:obs}
 \end{equation}
 where $b_l$, $\varsigma_l$, and $\sigma_l$ are nonnegative constants \citep{skvortsov2012monitoring} and $\eta_l$ is a real number that determines the baseline level of incoming syndromic data from stream $l$. Initially, we assume $b_l$, $\varsigma_l$, $\sigma_l$, and $\eta_l$ are known for all $l$. In an extended analysis described in Section \ref{sec:extend}, we demonstrate that improved SMC methods enable us to regard these parameters also as unknown and include them in a higher-dimensional $\theta$.
 
-Having formulated the data-generating model, we define $y_t = (y_{1,t},\ldots,y_{L,t})'$ and specify the likelihood of an observation $y_t$ given $x_t$ and $\theta$ by $p(y_t|x_t,\theta) = \mbox{LN}(y_t;\mu_t,\Sigma_t)$, where $\mu_t$ is an $L$-length vector with element $l$ equal to $b_li_t^{\varsigma_l} + \eta_l$, $\Sigma_t$ is an $L \times L$ diagonal matrix with the $l^{\mbox{th}}$ diagonal equal to $\sigma_l^2$, and $\mbox{LN}(.;\mu,\Sigma)$ is the pdf of the log-normal distribution with mean $\mu$ and covariance matrix $\Sigma$ on the log scale. Elements of $y_t$ may be missing, in which case the dimension of $p(y_t|x_t,\theta)$ shrinks by the number of missing elements. %If the $j^{\mbox{th}}$ element of $y_t$ is missing, then the $j^{\mbox{th}}$ element of $\mu_t$ and $j^{\mbox{th}}$ row and column of $\Sigma_t$ are also missing and thus omitted in the calculation of the likelihood.
-If all elements of $y_t$ are empty (i.e. if no syndromic data are observed at time $t$), particle weights are kept the same as they were at the previous time step.
-
-%A further note on propagating particles is necessary.  Notice from equation \eqref{eqn:state} that the transition density needed to propagate $x_t$ in our model is a multivariate normal density with mean $f_\tau(x_t,\theta)$, and recall that the mean function approximates the disease dynamics better for small $\tau$.  Thus, for data observed at times $t_1$ and $t_2$ where the time between observations, $t_2 - t_1$, is large, the mean of $p(x_{t_2}|x_{t_1}^{(j)})$ for each particle $j$ may be inaccurate if $\tau$ is set to $t_2 - t_1$.  To ensure that the transition density matches the actual disease dynamics more closely, we can choose $d$ to be an integer larger than 1, set $\tau = (t_2 - t_1) / d$, and propagate $x_{t_1}^{(j)}$ forward $d$ times to generate $x_{t_2}^{(j)}$.
+Having formulated the data-generating model, we define $y_t = (y_{1,t},\ldots,y_{L,t})'$ and specify the likelihood of an observation $y_t$ given $x_t$ and $\theta$ by $p(y_t|x_t,\theta) = \mbox{LN}(y_t;\mu_t,\Sigma_t)$, where $\mu_t$ is an $L$-length vector with element $l$ equal to $b_li_t^{\varsigma_l} + \eta_l$, $\Sigma_t$ is an $L \times L$ diagonal matrix with the $l^{\mbox{th}}$ diagonal equal to $\sigma_l^2$, and $\mbox{LN}(.;\mu,\Sigma)$ is the pdf of the log-normal distribution with mean $\mu$ and covariance matrix $\Sigma$ on the log scale. Elements of $y_t$ may be missing, in which case the dimension of $p(y_t|x_t,\theta)$ shrinks by the number of missing elements. If all elements of $y_t$ are empty (i.e. if no syndromic data are observed at time $t$), particle weights are kept the same as they were at the previous time step.
 
 Since $p(x_{t+1}|x_t,\theta)$ and $p(y_t|x_t,\theta)$ are nonlinear functions of $x_t$ and $\theta$, a closed-form solution to the posterior $p(x_t,\theta|y_{1:t})$ cannot be obtained. Thus, we use the particle filtering techniques described in Section \ref{sec:filtering} to approximate $p(x_t,\theta|y_{1:t})$ for all $t$.
 
@@ -280,7 +250,7 @@ To start each particle filter run, the initial state, $x_0$, and fixed parameter
 
 To investigate the impact of different prior distributions of $\theta$ on performance of the particle filters, the runs described above were performed once using uniform priors on $\theta$ and then again using log-normal priors. Uniform priors on $\theta$ were chosen to be the same as those used in \citet{skvortsov2012monitoring}, i.e. \hbox{$p(\beta) = \mbox{Unif}(\beta; 0.14, 0.50)$}, \hbox{$p(\gamma) = \mbox{Unif}(\gamma; 0.09, 0.143)$}, and \hbox{$p(\nu) = \mbox{Unif}(\nu; 0.95, 1.3)$} where $\mbox{Unif}(.; a, b)$ represents the pdf of the continuous uniform distribution on the interval $(a,b)$. Log-normal priors on $\theta$ are given by \hbox{$p(\beta) = \mbox{LN}(\beta; -1.3296, 0.3248^2)$}, \hbox{$p(\gamma) = \mbox{LN}(\gamma; -2.1764, 0.1183^2)$}, and \hbox{$p(\nu) = \mbox{LN}(\nu; 0.1055, 0.0800^2)$}. These log-normal priors constrain $\beta$, $\gamma$ and $\nu$ to be positive. The mean and variance of the log of the unknown parameters were chosen so that random draws on the original scale would fall within the bounds used in the uniform prior run with 95\% probability.
 
-Logit and log transformations were applied to the components of $\theta$ in the manner described at the end of Section \ref{sec:kd} so that the normal kernel could be used in the KDPF while constraining $\beta$, $\gamma$, and $\nu$ to be within their respective prior domains (i.e. logit was used with uniform priors and log with log-normal priors). %To aid in comparing particle filters, the same prior draws were used in the BF, APF, and KDPF as long as the number of particles and prior were the same. \danny{But isn't the prior different, e.g. uniform vs log-normal?}
+Logit and log transformations were applied to the components of $\theta$ in the manner described at the end of Section \ref{sec:kd} so that the normal kernel could be used in the KDPF while constraining $\beta$, $\gamma$, and $\nu$ to be within their respective prior domains (i.e. logit was used with uniform priors and log with log-normal priors).
 
 \subsection{Comparison of particle filter algorithms under uniform priors} \label{sec:pfcomparison}
 
@@ -314,14 +284,6 @@ We suggest using log-normal priors on positive elements of $\theta$ as opposed t
 \caption*{logit transformation}
 \end{minipage}
 
-%\vspace{0.5cm}
-%
-%\begin{minipage}{1.0\linewidth}
-%\includegraphics[width=1.0\textwidth]{Hist-KD-uniform-semi-uniform-systematic-10000-betagamma}
-%\vspace{-1.0cm}
-%\caption*{uniform prior draws, no transformation}
-%\end{minipage}
-
 \vspace{0.5cm}
 
 \begin{minipage}{1.0\linewidth}
@@ -330,16 +292,7 @@ We suggest using log-normal priors on positive elements of $\theta$ as opposed t
 \caption*{log transformation}
 \end{minipage}
 
-%\vspace{0.5cm}
-%
-%\begin{minipage}{1.0\linewidth}
-%\includegraphics[width=1.0\textwidth]{Hist-KD-lognormal-lognormal-systematic-10000-betagamma}
-%\vspace{-1.0cm}
-%\caption*{log-normal prior draws, log transformation}
-%\end{minipage}
-
-\caption{Scatterplots of $\beta$ (x-axis) versus $\gamma$ (y-axis) with true values (red crosses) at $t = 15, 30, 45, 60$ days using the KDPF with $J = 10000$ particles and systematic resampling. The logit transformation (top row) on $\theta$ shifted and scaled to $(0,1)$ and log transformation (bottom row) were used prior to regenerating the fixed parameters. The same uniform prior draws of $\theta$ were sampled in each row at $t = 0$. For demonstration, each panel shows 500 particles sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$ \jarad{do we need to mention this?}. %The sample correlation coefficient, $r$, displayed in the subtitle of each plot, is computed from the entire particle sample. Red crosses indicate the true values of $\beta$ and $\gamma$ used for simulation.
-Axes are the same in each panel. Dashed horizontal lines indicate the bounds of the uniform prior on $\gamma$ that was used in the top two rows. Uniform bounds on $\beta$ are not shown because they lie outside the range of the x-axis \jarad{do we need to mention this?}.} \label{fig:priors}
+\caption{Scatterplots of $\beta$ (horizontal) versus $\gamma$ (vertical) with true values (red crosses) at $t = 15, 30, 45, 60$ days using the KDPF with $J = 10000$ particles and systematic resampling. The logit transformation (top row) on $\theta$ shifted and scaled to $(0,1)$ and log transformation (bottom row) were used prior to regenerating the fixed parameters. The same uniform prior draws of $\theta$ were sampled in each row at $t = 0$. For demonstration, each panel shows 500 particles sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$. Axes are the same in each panel. Dashed horizontal lines indicate the bounds of the uniform prior on $\gamma$ that was used in the top two rows. Uniform bounds on $\beta$ are not shown because they lie outside the range of the horizontal axis.} \label{fig:priors}
 
 \end{figure}
 
@@ -367,7 +320,7 @@ Figure \ref{fig:ext} shows sequential 95\% credible intervals for both the exten
 
 In Figure \ref{fig:ext}, the lines appear choppier than in earlier plots, with flat periods followed by sharp changes in uncertainty. This results from data coming from only one stream, leading to more time points where no data are available and making the analysis more sensitive to abnormal data. Gaps in the data lead to a lack of resampling of particles and cause more drastic shifts in the filtered distribution once data arrive. For example, a sharp shift in the filtered distribution of $\beta$ occurs around $t = 25$ because of an influx of data following a period of no data and hence scarce resampling of particles. Also, we notice a spike in the $s_t$ and $i_t$ curves right before $t = 40$ because of a shift in the trajectory of data points.
 
-Lastly, we comment on a widening of the credible intervals for $\nu$ in the extended analysis. This phenomenon suggests that the log-normal prior on $\nu$ that samples particles in $[0.9,1.3]$ is too restrictive, and that our model provides even less insight about this parameter than our prior belief. Scarce knowledge about $\nu$ is gained over the course of the epidemic in the original analysis due to the nonlinear nature of the evolution equation with respect to $\nu$, and we in fact lose information about $\nu$ in the extended analysis relative to our specified prior. While the extended analysis could be rerun with a different prior, we present this specific analysis to illustrate the sensitivity of the filtered distribution of $\nu$ to assumptions about other parameters. The improved efficiency of the KDPF provides insight into this sensitivity for realistic $J$ in the absence of assumptions made about fixed parameters in the observation equation in our initial analysis and in the prior BF analysis by \citet{skvortsov2012monitoring}.
+Lastly, we comment on a widening of the credible intervals for $\nu$ in the extended analysis. This phenomenon suggests that the log-normal prior on $\nu$ that samples particles in $[0.9,1.3]$ is too restrictive, and that our model provides even less insight about this parameter than our prior belief. Scarce knowledge about $\nu$ is gained over the course of the epidemic in the original analysis due to the nonlinear nature of the evolution equation with respect to $\nu$, and we in fact lose information about $\nu$ in the extended analysis relative to our specified prior. While the extended analysis could be rerun with a different prior, we present this specific analysis to illustrate the sensitivity of the filtered distribution of $\nu$ to assumptions about other parameters. The improved efficiency of the KDPF provides insight into this sensitivity in the absence of assumptions made about fixed parameters in the observation equation in our initial analysis and in the prior BF analysis by \citet{skvortsov2012monitoring}.
 
 \begin{figure}
 \centering
@@ -377,7 +330,11 @@ Lastly, we comment on a widening of the credible intervals for $\nu$ in the exte
 
 \section{Discussion \label{sec:discussion}}
 
-\input{discussion}
+Presented here is a strategy for simultaneous estimation of the current outbreak state and fixed parameters related to disease transmission using syndromic data. We introduce a stochastic epidemiological compartment model of a disease outbreak for data from syndromic surveillance that could possibly be multivariate and have any pattern of missingness. We suggest the use of the kernel density particle filter \citep{Liu:West:comb:2001} using priors on fixed parameters that are bounded only by their support. We suggest the use of stratified (or residual) resampling when effective sample size has dropped markedly and regeneration of fixed parameters values should only occur when resampling is performed. We showed how this approach is capable of estimating a model with additional unknown fixed parameters.
+
+The KDPF provides a generic sequential inferential strategy that reduces particle degeneracy in many situations. Advanced techniques exist that are better than the KDPF at fighting particle degeneracy, but require more practitioner input. For example, particle degeneracy could be combated within an SMC algorithm by incorporating a MCMC step to refresh fixed parameter values \citep{Gilk:Berz:foll:2001,Stor:part:2002}. However, this would require the practitioner to define a MCMC algorithm in addition to the SMC algorithm. In addition to this requirement, the algorithm would no longer be truly sequential as the computational effort increases with time. Alternatively, if the practitioner is willing to modify their model, they can take advantage of a sufficient statistic structure \citep{Fear:mark:2002}, Rao-Blackwellization \citep{Douc:Gods:Andr:on:2000}, or both \citep{carvalho2010particle}. Possible modifications to the model in Section \ref{sec:model} to allow alternative strategies (such as these) include setting $\nu=1$, removing fixed parameters from $Q$, and eliminating the truncation in equation \eqref{eqn:state}.
+
+In this paper, we outline a strategy for real time tracking of a disease epidemic using data from syndromic surveillance, but this strategy can be applied to many other fields requiring on-line data analysis. We present improved particle filtering methods in general within the framework of sequential estimation of states and unknown fixed parameters in state-space models to inspire future work in epidemiological modeling and other scientific areas as well.
 
 \clearpage
 
