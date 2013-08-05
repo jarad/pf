@@ -1,4 +1,4 @@
-#' A function to perform the auxiliary particle filter
+#' A function to perform the kernel density particle filter
 #'
 #' @param y a matrix with no, dimension of each observation, rows and  nt, number of observation time points, columns
 #' @param dllik a function to evaluate the logarithm of the likelihood with arguments y, x, and theta for data, state, and fixed parameters respectively

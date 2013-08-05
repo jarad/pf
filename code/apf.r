@@ -16,7 +16,7 @@
 #'   Journal of the American Statistical Association. 94 (446): 590–591.
 #' @seealso \code{\link{resample}}
 #'
-apf = function(y, dllik, pstate, revo, rprior, n, progress = TRUE, seed = TRUE, ...)
+apf = function(y, dllik, pstate, revo, rprior, n, progress = TRUE, ...)
 {
   require(smcUtils)
 
