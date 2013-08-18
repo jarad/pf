@@ -64,7 +64,8 @@ kd_pf = function(y, dllik, pstate, revo, rprior, n, delta=0.99, progress = TRUE,
     if(progress) setTxtProgressBar(pb,i)
 
     # Kernel density estimate
-    theta.est = cov.wt(t(theta[,,i]),weight[,i])
+    if(dim(theta)[1] == 1) m.theta = as.matrix(theta[,,i]) else m.theta = t(theta[,,i])
+    theta.est = cov.wt(m.theta,weight[,i])
     mn = theta.est$center
     vr = theta.est$cov
     cl = try(t(chol(vr)),silent=TRUE)
