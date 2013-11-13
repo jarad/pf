@@ -1,45 +1,53 @@
+source("sir_functions.r")
+source("ss_sim.r")
+
+# Initialize .Random.seed
+rnorm(1)
+
 # Set data and graphics path
 dpath = "../data/"
 gpath = "../graphs/"
 
 # Load simulated data from original model
 load(paste(dpath,"sim-orig.rdata",sep=""))
+sim.orig = mysim
+sim = list(x=sim.orig$sim$x)
+theta = sim.orig$true.params$theta
+P = sim.orig$true.params$P
+d = sim.orig$true.params$d
+nt = dim(sim$x)[2] - 1
 
-# Create table of data for .csv file
-epid.data = data.frame(seq(0,125,1),cbind(sim$x[2,],sim$x[1,],1-sim$x[2,]-sim$x[1,]),t(cbind(rep(NA,4),sim$y)))
-
-# Alter parameters in observation equation
+# Set parameters in observation equation
 b = .25
 varsigma = 1
 sigma = 0.001
-mu = 2
+eta = 2
 
 # Generate new observations
+robs_sim = function(x){ robs(x, b, varsigma, sigma, eta)}
 z = matrix(NA,nr=1,nc=nt)
 for(i in 1:nt) z[1,i] = robs_sim(sim$x[1,i+1])
 
-# Replace old observations with new ones
+# Add new observations to list
 sim$y = z
 
 # Save data
-save.image(paste(dpath,"sim-ext.rdata",sep=""))
-#load(paste(dpath,"sim-ext.rdata",sep=""))
+mysim = list(sim=sim,true.params=list(theta=theta,b=b,sigma=sigma,varsigma=varsigma,eta=eta,P=P,d=d))
+save(mysim,file=paste(dpath,"sim-ext.rdata",sep=""))
 
-# Add to .csv file of data and save
-epid.data = data.frame(epid.data,c(NA,sim$y[1,]))
-names(epid.data) = c("Day","s","i","r","Stream 1","Stream 2","Stream 3","Stream 4","Stream 1 (Extended Analysis)")
-write.csv(epid.data,file=paste(dpath,"simdata.csv",sep=""),row.names=FALSE)
+# Create table of data for .csv file
+epid.data = data.frame(seq(0,125,1),cbind(sim$x[2,],sim$x[1,],1-sim$x[2,]-sim$x[1,],c(NA,sim$y[1,])))
+names(epid.data) = c("Day","s","i","r","Stream 1")
+write.csv(epid.data,file=paste(dpath,"simdata-ext.csv",sep=""),row.names=FALSE)
 
 # Export epid.data as latex xtable
-epid.data = epid.data[,-1]
-names(epid.data) = c("$s$","$i$","$r$","$y_{1,t}$","$y_{1,t}$","$y_{1,t}$","$y_{1,t}$","$y_{1,t}$ (Extended Analysis)")
-rownames(epid.data) = seq(0,125,1)
+names(epid.data) = c("Day","$s$","$i$","$r$","$y_{1,t}$")
 require(xtable)
 caption = "Simulated epidemic and syndromic data"
 label = "tab:data"
-align = "|c|ccc|cccc|c|"
-digits = 6
-print(xtable(epid.data,caption,label,align,digits),type="latex",file="../latex/simdata.txt")
+align = "|c|c|ccc|c|"
+digits = c(0,0,rep(6,4))
+print(xtable(epid.data,caption,label,align,digits),type="latex",file="../latex/simdata-ext.txt",include.rownames=FALSE)
 
 # Plot the data
 no = dim(sim$y)[1]
