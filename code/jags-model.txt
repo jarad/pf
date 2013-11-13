@@ -1,0 +1,24 @@
+model {
+  x[1,1] ~ dnorm(0.002, 2000) T(0,1)
+  x[2,1] <- 1 - x[1,1]
+  for(j in 1:N) {
+    for(l in 1:L) { y[l,j] ~ dlnorm(b[l]*x[1,j+1]^varsigma[l] + eta[l], 1 / sigma[l]^2) }
+    mu[1,j] <- x[1,j] + beta*x[1,j]*x[2,j]^nu - gamma*x[1,j]
+    mu[2,j] <- x[2,j] - beta*x[1,j]*x[2,j]^nu
+    Q[2,2,j] <- beta / P^2
+    Q[1,2,j] <- -beta / P^2
+    Q[2,1,j] <- -beta / P^2
+    Q[1,1,j] <- (beta / P^2)*(1 + gamma / beta)
+    Qinv[1:2,1:2,j] <- inverse(Q[1:2,1:2,j])
+    x[1,j+1] ~ dnorm(mu[1,j], Qinv[1,1,j]) T(0,1)
+    sigma.i[j] <- sqrt(Q[1,1,j])
+    sigma.s[j] <- sqrt(Q[2,2,j])
+    rho[j] <- Q[1,2,j] / (sigma.i[j]*sigma.s[j])
+    x[2,j+1] ~ dnorm(mu[2,j] + (rho[j]*(sigma.s[j]/sigma.i[j]))*(x[1,j+1] - mu[1,j]), 1 / ((1-rho[j]^2)*Q[2,2,j])) T(0,1-x[1,j+1])
+  }
+
+  # Prior distributions
+  beta ~ dunif(0.14,0.50)
+  gamma ~ dunif(0.09,0.143)
+  nu ~ dunif(0.95,1.3)
+}
