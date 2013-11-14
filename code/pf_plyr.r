@@ -1,10 +1,11 @@
 source("pf_plyr_functions.r")
 require(plyr)
 
-pf(100, "RM", "systematic", "uniform", "orig", "orig")
-pf.quant(100, "RM", "systematic", "uniform", "orig", "orig")
+pf(n = 100, filt = "RM", resamp = "systematic", prior = "uniform", mod.data = "orig", mod.fit = "orig", seed = 61)
+pf.quant(n = 100, filt = "RM", resamp = "systematic", prior = "uniform", mod.data = "orig", mod.fit = "orig")
 
 mydata = expand.grid(n = c(100,1000,10000,20000), filt="KD", resamp="systematic", prior="uniform", mod.data="orig", mod.fit="orig", progress=FALSE, stringsAsFactors=FALSE)
+mydata = data.frame(mydata, seed = 61:64)
 
 # Apply pf to combination of pfs
 #data1 = expand.grid(mod.dat = "orig", mod.fit = "orig", n = c(100, 1000, 10000, 20000, 40000), filt = c("BF","APF","KD"), resamp = "systematic", prior = "uniform", progress=FALSE, stringsAsFactors=FALSE)
@@ -18,4 +19,4 @@ require(doMC)
 registerDoMC()
 
 m_ply(.data = mydata, .fun = pf, .parallel = TRUE)
-m_ply(.data = mydata[,-dim(mydata)[2]], .fun = pf.quant, .parallel = TRUE)
+m_ply(.data = mydata[,-((dim(mydata)[2]-1):(dim(mydata)[2]))], .fun = pf.quant, .parallel = TRUE)

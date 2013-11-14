@@ -10,13 +10,14 @@ dpath = "../data/"
 
 # Set known parameter values
 P = 5000
-b = c(.25, .27, .23, .29)
-varsigma = c(1.07, 1.05, 1.01, .98)
-sigma = c(.0012, .0008, .0010, .0011)
-eta = rep(0,4)
+#b = c(.25, .27, .23, .29)
+#varsigma = c(1.07, 1.05, 1.01, .98)
+#sigma = c(.0012, .0008, .0010, .0011)
+#eta = rep(0,4)
+b = .25; varsigma = .27; sigma = .0012; eta = 0
 
 # Set unknown parameter values
-theta = c(0.2399, 0.1066, 1.2042)
+theta = c(0.2399, 0.1066, 1)
 
 # Simulate epidemic
 revo_sim = function(x){ revo(x, theta, P)}
@@ -28,17 +29,22 @@ mysim = list(sim=sim,true.params=list(theta=theta,b=b,sigma=sigma,varsigma=varsi
 save(mysim,file=paste(dpath,"sim-orig.rdata",sep=""))
 
 # Write data to .csv file
-epid.data = data.frame(seq(0,125,1),cbind(sim$x[2,],sim$x[1,],1-sim$x[2,]-sim$x[1,]),t(cbind(rep(NA,4),sim$y)))
-names(epid.data) = c("Day","s","i","r","Stream 1","Stream 2","Stream 3","Stream 4")
+epid.data = data.frame(seq(0,125,1),cbind(sim$x[2,],sim$x[1,],1-sim$x[2,]-sim$x[1,]),t(cbind(rep(NA,dim(sim$y)[1]),sim$y)))
+streams = rep(NA, dim(sim$y)[1])
+for(i in 1:dim(sim$y)[1]) streams[i] = paste("Stream ",i,sep="")
+names(epid.data) = c("Day","s","i","r",streams)
 write.csv(epid.data,file=paste(dpath,"simdata-orig.csv",sep=""),row.names=FALSE)
 
 # Export epid.data as latex xtable
-names(epid.data) = c("Day","$s$","$i$","$r$","$y_{1,t}$","$y_{1,t}$","$y_{1,t}$","$y_{1,t}$")
+latex.streams = rep(NA, dim(sim$y)[1])
+for(i in 1:dim(sim$y)[1]) latex.streams[i] = paste("$y_{",i,",t}$",sep="")
+names(epid.data) = c("Day","$s$","$i$","$r$",latex.streams)
 require(xtable)
 caption = "Simulated epidemic and syndromic data"
 label = "tab:data"
-align = "|c|c|ccc|cccc|"
-digits = c(0,0,rep(6,7))
+align = c("|c","|c|","c","c","c|",rep("c",length(streams)),"|")
+paste("|c|c|ccc|",cccc"|"
+digits = c(0,0,rep(6,3+length(streams)))
 print(xtable(epid.data,caption,label,align,digits),type="latex",file="../latex/simdata-orig.txt",include.rownames=FALSE)
 
 # Plot the data
@@ -67,7 +73,7 @@ if(no > 1)
      points(x,z,col=i)
   }
 }
-legend("topright",legend=seq(1,4,1),pch=rep(1,4),col=seq(1,4,1),title="Stream",cex=1.5)
+legend("topright",legend=seq(1,length(streams),1),pch=rep(1,length(streams)),col=seq(1,length(streams),1),title="Stream",cex=1.5)
 dev.off()
 
 # Clear objects

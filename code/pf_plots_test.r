@@ -2,12 +2,12 @@ source("pf_functions.r")
 
 # Set graphics and data path
 gpath = "../graphs/"
-dpath = "/storage/sheinson_research/"
+dpath = "../data/"
 
 ## Figure 1 - Compare particle filters over different # particles for systematic resampling, uniform priors
 
 # Set graphical parameters
-params = expression(beta,gamma,nu)
+params = expression(beta,gamma)
 ymins = c(0.15,0.085,0.9)
 ymaxs = c(0.35,0.145,1.35)
 cols = c(2,4,3)
@@ -36,23 +36,19 @@ for(i in 1:length(ns))
       {
         if(k == 1 & i == 1) # label y axis and title
         {
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = 
-          ",ns[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",ns[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
           lines(1:nt,out[-1,k,3],col=cols[j])
         } else if(k == 1 & i == length(ns)) { # label x and y axes
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = 
-          ",ns[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = ",ns[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
           lines(1:nt,out[-1,k,3],col=cols[j])
         } else if(k == 1) { # label y axis only
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = 
-          ",ns[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",ns[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
           lines(1:nt,out[-1,k,3],col=cols[j])
         } else if(i == 1) { # label title only
           plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
           lines(1:nt,out[-1,k,3],col=cols[j])
         } else if(i == length(ns)) { # label x axis only
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time 
-          (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
+          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
           lines(1:nt,out[-1,k,3],col=cols[j])
         } else { # label nothing
           plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
