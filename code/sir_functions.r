@@ -2,40 +2,49 @@
 #
 # revo - function that propagates state forward given previous state x and parameters theta
 # Arguments:
-# x - 2-element vector, current state (i,s)
+# x - 2-element vector, current state (s,i)
 # theta - 3-element vector, current parameter (beta,gamma,nu)
 # P - scalar, population size
-# d - scalar, positive integer indicating number of times to propagate state within 1 time unit before returning
 # random - boolean, if TRUE function returns a sample from predictive distribution of the next state and if FALSE function returns the mean of next state
+# d - scalar, positive integer indicating number of times to propagate state within 1 time unit before returning
 revo = function(x,theta,P,random=TRUE,d=1)
 {
   d = floor(d)
   if(d < 1) stop("d must be a positive integer")
   tau = 1/d
-  x1var = (theta[1] + theta[2])*tau^2 / P^2
-  x2var = theta[1]*tau^2 / P^2
-  x1x2cov = -theta[1]*tau^2 / P^2
-  vr = cbind(c(x1var,x1x2cov),c(x1x2cov,x2var))
-  cl = t(chol(vr))
   for(i in 1:d)
-  { 
-    tmp = c(-1,-1)
+  {
+    tmp = c(NA, NA)
+    tmp[1] = x[1] - tau*theta[1]*x[2]*x[1]^theta[3] + random*rnorm(1, 0, sqrt(theta[1] / P^2))
+    tmp[2] = x[2] + tau*(theta[1]*x[2]*x[1]^theta[3] - x[2]*theta[2]) + random*rnorm(1, x[1] - tau*theta[1]*x[2]*x[1]^theta[3] - tmp[1], sqrt(theta[2] / P^2))
     while(!(all(tmp >= 0) & sum(tmp) <= 1))
     {
-      tmp[1] = x[1] + tau*(x[1]*theta[1]*x[2]^theta[3] - x[1]*theta[2])
-      tmp[2] = x[2] - tau*theta[1]*x[1]*x[2]^theta[3]
-      if(random) tmp = tmp + cl%*%rnorm(2)
+      tmp[1] = x[1] - tau*theta[1]*x[2]*x[1]^theta[3] + random*rnorm(1, 0, sqrt(theta[1] / P^2))
+      tmp[2] = x[2] + tau*(theta[1]*x[2]*x[1]^theta[3] - x[2]*theta[2]) + random*rnorm(1, x[1] - tau*theta[1]*x[2]*x[1]^theta[3] - tmp[1], sqrt(theta[2] / P^2))
     }
     x[1:2] = tmp
   }
   return(x)
 }
 
-rmove <- function(y, x, theta, b, varsigma, sigma, eta, P)
+# rmove - function to move particles at each iteration using an MCMC kernel
+# Arguments:
+# y - vector, current observation of length L, the number of syndromes; may have empty elements
+# x - 2-element vector, current state (s,i)
+# theta - 3-element vector, current parameter (beta,gamma,nu)
+# b - vector of length L, values of b_l's
+# varsigma - vector of length L, values of varsigma_l's
+# sigma - vector of length L, values of sigma_l's
+# eta - vector of length L, values of eta_l's
+# P - scalar, population size
+# n.iter = scaler, number of MCMC iterations to run for each particle
+rmove <- function(y, x, theta, b, varsigma, sigma, eta, P, n.iter = 1)
 {
   require(rjags)
 
   # Set data values
+  if(!is.matrix(y)) y = matrix(y, 1)
+  if(!is.matrix(x)) x = matrix(x, 1)
   N = dim(y)[2]
   stopifnot(N == dim(x)[2] - 1)
   L = length(b)
@@ -43,20 +52,22 @@ rmove <- function(y, x, theta, b, varsigma, sigma, eta, P)
 
   # Create JAGS model
   d = list(y=y,N=N,L=L,b=b,varsigma=varsigma,sigma=sigma,eta=eta,P=P)
-  x[2,1] = NA
-  inits = list(list(beta=theta[1],gamma=theta[2],nu=theta[3],x=x))
+  x[1,1] = NA
+  inits = list(list(beta=theta[1],gamma=theta[2],x=x))
   mod = jags.model("jags-model.txt", data=d, n.chains=1, n.adapt=0, inits=inits, quiet=TRUE)
   
   # Generate new samples
-  samps = coda.samples(mod, c("beta","gamma","nu","x"), n.iter=1)
+  sink("coda.samples.messages.txt")
+  samps = coda.samples(mod, c("beta","gamma","x"), n.iter=n.iter)
+  sink()
   
   # Return moved particle
-  return(list(state=matrix(samps[[1]][4:(2*(N+1)+3)],nr=2,byrow=FALSE),theta=samps[[1]][1:3]))
+  return(list(state=matrix(samps[[1]][3:(2*(N+1)+2)],nr=2,byrow=FALSE),theta=samps[[1]][1:2]))
 }
 
 # robs - function that produces a simulated observation y given current state x
 # Arguments:
-# x - 2-element vector, current state (i,s)
+# x - 2-element vector, current state (s,i)
 # b - vector of length L, the number of syndromes, with elements values of parameters b_l
 # varsigma - vector of length L, the number of syndromes, with elements values of parameters varsigma_l
 # sigma - vector of length L, number of syndromes, with elements values of parameters sigma_l
@@ -65,9 +76,10 @@ robs = function(x,b,varsigma,sigma,eta)
 {
   L = length(b)
   if(!(L == length(varsigma) & L == length(sigma) & L == length(eta))) stop("b, varsigma, sigma, and eta must all have same length")
-  l = sample(1:L,sample(0:L,1))
+#  l = sample(1:L,sample(0:L,1))
+  l = 1:L
   y = rep(NA,L)
-  if(length(l) > 0) y[l] = rlnorm(length(l),b[l]*x[1]^varsigma[l]+eta[l],sigma[l])
+  if(length(l) > 0) y[l] = rlnorm(length(l),b[l]*x[2]^varsigma[l]+eta[l],sigma[l])
   return(y)
 }
 
@@ -77,13 +89,13 @@ robs = function(x,b,varsigma,sigma,eta)
 rinit = function(i0=.002)
 {
   if(i0 < 0 | i0 > 1) stop("i0 must be between 0 and 1")
-  return(c(i0,1-i0))
+  return(c(1-i0,i0))
 }
 
 # dllik - function to return the log of the likelihood function given current observation y, current state x, and parameter theta
 # Arguments:
 # y - vector, current observation of length L, the number of syndromes; may have empty elements
-# x - vector, current state (i,s)
+# x - vector, current state (s,i)
 # b - vector of length L, values of b_l's
 # varsigma - vector of length L, values of varsigma_l's
 # sigma - vector of length L, values of sigma_l's
@@ -92,7 +104,7 @@ dllik = function(y,x,b,varsigma,sigma,eta)
 {
   L = length(y)
   if(!(L == length(b) & L == length(varsigma) & L == length(sigma) & L == length(eta))) stop("b, varsigma, sigma, and eta must all have same length")
-  h = b*x[1]^varsigma+eta
+  h = b*x[2]^varsigma+eta
   return(sum(dlnorm(y,h,sigma,log=T),na.rm=TRUE))
 }
 
@@ -105,7 +117,7 @@ rprior = function(rtheta)
   i0 = rnorm(1,0.002,0.0005)
   while(i0 < 0 | i0 > 1) i0 = rnorm(1,0.002,0.0005)
   s0 = 1 - i0
-  return(list(x=c(i0,s0),theta=theta0))
+  return(list(x=c(s0,i0),theta=theta0))
 }
 
 # Functions to reparameterize theta to [a,b] from the real line and vice versa
