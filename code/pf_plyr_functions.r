@@ -17,6 +17,7 @@ pf <- function(n, filt, resamp, prior, mod.data, mod.fit, nonunif = "ess", thres
   varsigma = mysim$true.params$varsigma
   sigma = mysim$true.params$sigma
   eta = mysim$true.params$eta
+  nu = mysim$true.params$theta[3]
 
   # Create functions to draw fixed parameters and map theta to original scale
   if(mod.fit == "orig")
@@ -25,8 +26,9 @@ pf <- function(n, filt, resamp, prior, mod.data, mod.fit, nonunif = "ess", thres
     { 
       thetal = c(0.1400, 0.0900, 0.9500)
       thetau = c(0.5000, 0.1430, 1.3000)
-      rtheta = function() u2theta(runif(3,thetal,thetau),thetal,thetau)
+#      rtheta = function() u2theta(runif(3,thetal,thetau),thetal,thetau)
       ftheta = function(theta,param=1) theta2u(theta,thetal[param],thetau[param])
+      rtheta = function() u2theta(runif(2,thetal[1:2],thetau[1:2]),thetal[1:2],thetau[1:2])
     } else if(prior == "semi-uniform") {
       thetal = c(0.1400, 0.0900, 0.9500)
       thetau = c(0.5000, 0.1430, 1.3000)
@@ -105,17 +107,21 @@ pf <- function(n, filt, resamp, prior, mod.data, mod.fit, nonunif = "ess", thres
     } else if(filt == "KD"){
       # Run kernel density particle filter
       dllik_kd = function(y, x, theta) dllik(y, x, b, varsigma, sigma, eta)
-      pstate_kd = function(x, theta) revo(x, ftheta(theta,1:3), P, FALSE)
-      revo_kd = function(x, theta) revo(x, ftheta(theta,1:3), P)
+#      pstate_kd = function(x, theta) revo(x, ftheta(theta,1:3), P, FALSE)
+#      revo_kd = function(x, theta) revo(x, ftheta(theta,1:3), P)
+      pstate_kd = function(x, theta) revo(x, c(ftheta(theta,1:2),nu), P, FALSE)
+      revo_kd = function(x, theta) revo(x, c(ftheta(theta,1:2),nu), P)
       rprior_kd = function() rprior(rtheta)
       source("kd_pf.r")
       out = kd_pf(y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, progress=progress, method=resamp, log=F, nonuniformity = nonunif, threshold = thresh)
     } else if(filt == "RM"){
       # Run resample-move particle filter
       dllik_rm = function(y, x, theta) dllik(y, x, b, varsigma, sigma, eta)
-      revo_rm = function(x, theta) revo(x, ftheta(theta,1:3), P)
+#      revo_rm = function(x, theta) revo(x, ftheta(theta,1:3), P)
+      revo_rm = function(x, theta) revo(x, c(ftheta(theta,1:2),nu), P)
       rprior_rm = function() rprior(rtheta)
-      rmove_rm = function(y, x, theta) rmove(y, x, ftheta(theta,1:3), b, varsigma, sigma, eta, P) 
+#      rmove_rm = function(y, x, theta) rmove(y, x, ftheta(theta,1:3), b, varsigma, sigma, eta, P) 
+      rmove_rm = function(y, x, theta) rmove(y, x, c(ftheta(theta,1:2), nu), b, varsigma, sigma, eta, P) 
       source("rm_pf.r")
       out = rm_pf(y, dllik_rm, revo_rm, rprior_rm, rmove_rm, n, progress=progress, method=resamp, log=F, nonuniformity = nonunif, threshold = thresh)
     } else{ stop("filt must be one of 'BF', 'APF', 'KD', or 'RM'") } 
