@@ -1,5 +1,49 @@
 source("sir_functions.r")
 
+sir_mcmc <- function(y, psi, mcmc.details, steps, verbose=F) {
+  nt = dim(y)[2]
+  L = dim(y)[1]
+
+  # Set up initial values
+  theta = exp(rnorm(2, prior$mean, prior$sd))
+  x = matrix(NA, 2, nt + 1)
+  x[,1] = rprior()$x
+  for(i in 1:nt) x[,i+1] = revo(x[,i], theta, psi$P)
+
+  # Deal with missing arguments
+  if (missing(mcmc.details)) {
+    n.thin <- 1   # save every n.thin(th) iteration
+    n.sims <- 10
+    n.burn <- 0  
+  } else {
+    attach(mcmc.details)
+  }
+  if (missing(steps)) {
+    steps=c('x','theta')
+  } 
+
+  # save structures
+  n.iter <- n.burn+n.sims%/%n.thin
+  keep.x   <- array(NA, c(n.sims, 2, nt + 1)
+  keep.theta    <- matrix(NA, n.sims, 3)
+
+  # Run mcmc
+  for (i in 1:n.sims) {
+    if (verbose) cat(i,round(theta,4),"\n")
+    
+    if ('x'  %in% steps) x = sample.x(y, x, theta, psi)
+    if ('theta'   %in%steps) theta = sample.theta(y, x, theta, psi)
+
+    # Only save every n.thin iteration
+    if (ii <- save.iteration(i,n.burn,n.thin)) {
+      keep.x[ii,,] = x
+      keep.theta[ii,] = theta
+    }
+  }
+
+  return(list(x=keep.x, theta=keep.theta))
+}
+
 rmove <- function(y, x, theta, psi)
 {
   nt = dim(y)[2]
@@ -43,6 +87,14 @@ sample.theta <- function(y, x, theta, psi, tuning = c(0.003, .001))
   if(log(runif(1)) < logMH) theta[2] = gamma.prop
   
   return(theta)
+}
+
+save.iteration <- function(current.iter, n.burn, n.thin) {
+  if (current.iter<n.burn | ((current.iter-n.burn)%%n.thin)!=0) {
+    return(0)
+  } else {
+    return((current.iter-n.burn)/n.thin)
+  }
 }
 
 #### Utility functions ####
