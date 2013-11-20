@@ -22,13 +22,13 @@ eta = mysim$true.params$eta
 P = mysim$true.params$P
 nu = mysim$true.params$theta[3]
 
-# Fit stan model
+# Initial values for each chain
 n.chains = 3
 d = list(y1=y1,y2=y2,y3=y3,y4=y4,obs1=obs1,obs2=obs2,obs3=obs3,obs4=obs4,N=N,N1=N1,N2=N2,N3=N3,N4=N4,b=b,varsigma=varsigma,sigma=sigma,eta=eta,P=P,nu=nu)
 beta.init = rlnorm(N, -1.3296, 0.1183)
 gamma.init = rlnorm(N, -2.1764, 0.1055)
 i0 = rnorm(n.chains, 0.002, 0.0005)
-while(all(i0 > 0 & i0 < 1)) i0 = rnorm(n.chains, 0.002, 0.0005)
+while(!all(i0 > 0 & i0 < 1)) i0 = rnorm(n.chains, 0.002, 0.0005)
 x = array(NA, c(2,N,n.chains))
 for(j in 1:n.chains)
 {
@@ -41,4 +41,6 @@ for(j in 1:n.chains)
 }
 init = list()
 for(i in 1:n.chains) init[[i]] = list(i0 = i0[i], beta = beta.init[i], gamma = gamma.init[i], x = x[,,i])
-fit <- stan(file = 'sir-model.stan', data = d, init = init, iter = 1000, chains = 3)
+
+# Fit stan model
+fit <- stan(file = 'sir-model.stan', init = init, data = d, iter = 1000, chains = 3)

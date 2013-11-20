@@ -29,22 +29,22 @@ model {
   i0 ~ normal(0.002, 0.0005) T[0,1];
   beta ~ lognormal(-1.3296, 0.1183);
   gamma ~ lognormal(-2.1764, 0.1055);
-  x[1,1] ~ normal(1 - i0 - pow(beta*(i0)*(1-i0),nu), sqrt(beta) / P) T[0,1];
+  x[1,1] ~ normal(1 - i0 - beta*(i0)*pow((1-i0),nu), sqrt(beta) / P) T[0,1];
   x[2,1] ~ normal(i0*(1 - gamma) + (1-i0) - x[1,1], sqrt(gamma) / P) T[0,1-x[1,1]];
   for(j in 1:(N-1)) {
-    x[1,j+1] ~ normal(x[1,j] - pow(beta*x[2,j]*x[1,j],nu), sqrt(beta) / P) T[0,1];
+    x[1,j+1] ~ normal(x[1,j] - beta*x[2,j]*pow(x[1,j],nu), sqrt(beta) / P) T[0,1];
     x[2,j+1] ~ normal(x[2,j]*(1 - gamma) + x[1,j] - x[1,j+1], sqrt(gamma) / P) T[0,1-x[1,j+1]];
   }
   for(j in 1:N1) {
-    y1[j] ~ lognormal(pow(b[1]*x[1,obs1[j]], varsigma[1]) + eta[1], sigma[1]);
+    y1[j] ~ lognormal(b[1]*pow(x[1,obs1[j]], varsigma[1]) + eta[1], sigma[1]);
   }
   for(j in 1:N2) {
-    y2[j] ~ lognormal(pow(b[2]*x[1,obs2[j]], varsigma[2]) + eta[2], sigma[2]);
+    y2[j] ~ lognormal(b[2]*pow(x[1,obs2[j]], varsigma[2]) + eta[2], sigma[2]);
   }
   for(j in 1:N3) {
-    y3[j] ~ lognormal(pow(b[3]*x[1,obs3[j]], varsigma[3]) + eta[3], sigma[3]);
+    y3[j] ~ lognormal(b[3]*pow(x[1,obs3[j]], varsigma[3]) + eta[3], sigma[3]);
   }
   for(j in 1:N4) {
-    y4[j] ~ lognormal(pow(b[4]*x[1,obs4[j]], varsigma[4]) + eta[4], sigma[4]);
+    y4[j] ~ lognormal(b[4]*pow(x[1,obs4[j]], varsigma[4]) + eta[4], sigma[4]);
   }
 }
