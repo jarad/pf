@@ -1,14 +1,13 @@
 model {
   for(j in 1:N) {
     for(l in 1:L) { y[l,j] ~ dlnorm(b[l]*x[1,j+1]^varsigma[l] + eta[l], 1 / sigma[l]^2) }
-    x[2,j+1] ~ dnorm(x[2,j] + beta*x[2,j]*x[1,j] - gamma*x[2,j] + (x[1,j] - beta*x[2,j]*x[1,j] - x[1,j+1]), P^2 / gamma)
-    T(0,1-x[1,j+1])
-    x[1,j+1] ~ dnorm(x[1,j] - beta*x[2,j]*x[1,j], P^2 / beta) T(0,1)
+    x[2,j+1] ~ dnorm(x[2,j]*(1 - gamma) + x[1,j] - x[1,j+1], P^2 / gamma) T(0,1-x[1,j+1])
+    x[1,j+1] ~ dnorm(x[1,j] - beta*x[2,j]*x[1,j]^nu, P^2 / beta) T(0,1)
   }
 
   # Prior distributions
   x[2,1] ~ dnorm(0.002, 2000) T(0,1)
   x[1,1] <- 1 - x[2,1]
-  beta ~ dunif(0.14,0.50)
-  gamma ~ dunif(0.09,0.143)
+  beta ~ dlnorm(-1.3296, 1 / .1183^2)
+  gamma ~ dlnorm(-2.1764, 1 / .1055^2)
 }

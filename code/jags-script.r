@@ -12,12 +12,16 @@ varsigma = mysim$true.params$varsigma
 sigma = mysim$true.params$sigma
 eta = mysim$true.params$eta
 P = mysim$true.params$P
+nu = mysim$true.params$theta[3]
 
 # Test JAGS model
-d = list(y=y,N=N,L=L,b=b,varsigma=varsigma,sigma=sigma,eta=eta,P=P)
+d = list(y=y,N=N,L=L,b=b,varsigma=varsigma,sigma=sigma,eta=eta,P=P,nu=nu)
 inits = list(list(beta=.2399, gamma=.1066),list(beta=.15, gamma=.13),list(beta=.45, gamma=.095))
 mod = jags.model("jags-model.txt", data=d, n.chains=3, n.adapt=1e3, inits=inits)
 samps = coda.samples(mod, c("beta","gamma"), n.iter=1e5)
+save(samps, file="../data/jags-script.rdata")
+
+# Diagnostics
 gelman.diag(samps)
 summary(samps)
 
