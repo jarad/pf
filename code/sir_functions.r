@@ -1,70 +1,5 @@
 # sir_functions.R - functions needed for simulating data and running particle filters for SIR model of a disease epidemic
 #
-# revo - function that propagates state forward given previous state x and parameters theta
-# Arguments:
-# x - 2-element vector, current state (s,i)
-# theta - 3-element vector, current parameter (beta,gamma,nu)
-# P - scalar, population size
-# random - boolean, if TRUE function returns a sample from predictive distribution of the next state and if FALSE function returns the mean of next state
-# d - scalar, positive integer indicating number of times to propagate state within 1 time unit before returning
-revo = function(x,theta,P,random=TRUE,d=1)
-{
-  d = floor(d)
-  if(d < 1) stop("d must be a positive integer")
-  tau = 1/d
-  for(i in 1:d)
-  {
-    tmp = c(NA, NA)
-    tmp[1] = x[1] - tau*theta[1]*x[2]*x[1]^theta[3] + random*rnorm(1, 0, sqrt(theta[1] / P^2))
-    tmp[2] = x[2] + tau*(theta[1]*x[2]*x[1]^theta[3] - x[2]*theta[2]) + random*rnorm(1, x[1] - tau*theta[1]*x[2]*x[1]^theta[3] - tmp[1], sqrt(theta[2] / P^2))
-    while(!(all(tmp >= 0) & sum(tmp) <= 1))
-    {
-      tmp[1] = x[1] - tau*theta[1]*x[2]*x[1]^theta[3] + random*rnorm(1, 0, sqrt(theta[1] / P^2))
-      tmp[2] = x[2] + tau*(theta[1]*x[2]*x[1]^theta[3] - x[2]*theta[2]) + random*rnorm(1, x[1] - tau*theta[1]*x[2]*x[1]^theta[3] - tmp[1], sqrt(theta[2] / P^2))
-    }
-    x[1:2] = tmp
-  }
-  return(x)
-}
-
-# rmove - function to move particles at each iteration using an MCMC kernel
-# Arguments:
-# y - vector, current observation of length L, the number of syndromes; may have empty elements
-# x - 2-element vector, current state (s,i)
-# theta - 3-element vector, current parameter (beta,gamma,nu)
-# b - vector of length L, values of b_l's
-# varsigma - vector of length L, values of varsigma_l's
-# sigma - vector of length L, values of sigma_l's
-# eta - vector of length L, values of eta_l's
-# P - scalar, population size
-# n.iter = scaler, number of MCMC iterations to run for each particle
-rmove <- function(y, x, theta, b, varsigma, sigma, eta, P, n.iter = 1)
-{
-  require(rjags)
-
-  # Set data values
-  if(!is.matrix(y)) y = matrix(y, 1)
-  if(!is.matrix(x)) x = matrix(x, 1)
-  N = dim(y)[2]
-  stopifnot(N == dim(x)[2] - 1)
-  L = length(b)
-  stopifnot(L == length(varsigma) & L == length(sigma) & L == length(eta) & L == dim(y)[1])
-
-  # Create JAGS model
-  d = list(y=y,N=N,L=L,b=b,varsigma=varsigma,sigma=sigma,eta=eta,P=P)
-  x[1,1] = NA
-  inits = list(list(beta=theta[1],gamma=theta[2],x=x))
-  mod = jags.model("jags-model.txt", data=d, n.chains=1, n.adapt=0, inits=inits, quiet=TRUE)
-  
-  # Generate new samples
-  sink("coda.samples.messages.txt")
-  samps = coda.samples(mod, c("beta","gamma","x"), n.iter=n.iter)
-  sink()
-  
-  # Return moved particle
-  return(list(state=matrix(samps[[1]][3:(2*(N+1)+2)],nr=2,byrow=FALSE),theta=samps[[1]][1:2]))
-}
-
 # robs - function that produces a simulated observation y given current state x
 # Arguments:
 # x - 2-element vector, current state (s,i)
@@ -76,8 +11,7 @@ robs = function(x,b,varsigma,sigma,eta)
 {
   L = length(b)
   if(!(L == length(varsigma) & L == length(sigma) & L == length(eta))) stop("b, varsigma, sigma, and eta must all have same length")
-#  l = sample(1:L,sample(0:L,1))
-  l = 1:L
+  l = sample(1:L,sample(0:L,1))
   y = rep(NA,L)
   if(length(l) > 0) y[l] = rlnorm(length(l),b[l]*x[2]^varsigma[l]+eta[l],sigma[l])
   return(y)
@@ -90,6 +24,41 @@ rinit = function(i0=.002)
 {
   if(i0 < 0 | i0 > 1) stop("i0 must be between 0 and 1")
   return(c(1-i0,i0))
+}
+
+# revo - function that propagates state forward given previous state x and parameters theta
+# Arguments:
+# x - 2-element vector, current state (s,i)
+# theta - 3-element vector, current parameter (beta,gamma,nu)
+# P - scalar, population size
+# random - boolean, if TRUE function returns a sample from predictive distribution of the next state and if FALSE function returns the mean of next state
+revo = function(x,theta,P,random=TRUE,sdfac=1)
+{
+  tmp = c(NA, NA)
+  tmp[1] = x[1] - theta[1]*x[2]*x[1]^theta[3] + random*rnorm(1, 0, sdfac*sqrt(theta[1] / P^2))
+  tmp[2] = x[2] + theta[1]*x[2]*x[1]^theta[3] - x[2]*theta[2] + random*rnorm(1, -1*(tmp[1] - (x[1] - theta[1]*x[2]*x[1]^theta[3])), sdfac*sqrt(theta[2] / P^2))
+  while(!(all(tmp >= 0) & sum(tmp) <= 1))
+  {
+    tmp[1] = x[1] - theta[1]*x[2]*x[1]^theta[3] + random*rnorm(1, 0, sdfac*sqrt(theta[1] / P^2))
+    tmp[2] = x[2] + theta[1]*x[2]*x[1]^theta[3] - x[2]*theta[2] + random*rnorm(1, -1*(tmp[1] - (x[1] - theta[1]*x[2]*x[1]^theta[3])), sdfac*sqrt(theta[2] / P^2))
+  }
+  x[1:2] = tmp
+  return(x)
+}
+
+# dlevo - function to evaluate the logarithm of the state transition density
+# Arguments:
+# Arguments:
+# x - 2-element vector of state (s,i) at which to evaluate the density
+# x.curr - 2-element vector, current state (s,i)
+# theta - 3-element vector, current parameter (beta,gamma,nu)
+# P - scalar, population size
+dlevo <- function(x,x.curr,theta,P,sdfac=1)
+{
+  if(all(x >= 0) & sum(x) <= 1)
+  {
+    dnorm(x[1], x.curr[1] - theta[1]*x.curr[2]*x.curr[1]^theta[3], sdfac*sqrt(theta[1]/P^2), log=TRUE) + dnorm(x[2], x.curr[2]*(1 - theta[2]) + x.curr[1] - x[1], sdfac*sqrt(theta[2] / P^2), log=TRUE)
+  } else { return(-Inf) }
 }
 
 # dllik - function to return the log of the likelihood function given current observation y, current state x, and parameter theta
@@ -120,6 +89,18 @@ rprior = function(rtheta)
   return(list(x=c(s0,i0),theta=theta0))
 }
 
+# dlprior - function that evaluates the logarithm of the prior density of the initial states and unknown parameters
+# Arguments
+# x - vector, state at which to evaluate density (s,i)
+# theta - vector, unknown parameter values at which to evaluate the density (beta, gamma, nu)
+dlprior <- function(x, theta)
+{
+  if(all(x >= 0) & sum(x) <= 1 & all(theta > 0))
+  {
+    dnorm(x[2], .002, .0005, log=TRUE) + sum(dlnorm(theta[1:2], c(-1.3296, -2.1764, 0.1055)[1:2], c(.3248, .1183, .0800)[1:2], log=TRUE))
+  } else { return(-Inf) }
+}
+
 # Functions to reparameterize theta to [a,b] from the real line and vice versa
 theta2u = function(theta,a,b)
 {
@@ -131,9 +112,3 @@ u2theta = function(u,a,b)
   U = (u - a) / (b - a)
   return(log(U / (1 - U)))
 }
-
-
-
-
-
-

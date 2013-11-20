@@ -1,14 +1,17 @@
 source("sir_functions.r")
 
-sir_mcmc <- function(y, psi, mcmc.details, steps, verbose=F) {
+sir_mcmc <- function(y, psi, mcmc.details, steps, progress=TRUE) {
   nt = dim(y)[2]
   L = dim(y)[1]
-
+  
   # Set up initial values
-  theta = exp(rnorm(2, prior$mean, prior$sd))
+  tmp = rprior(function() exp(rnorm(2, c(-1.3296, -2.1764), c(.3248, .1183))))
+  theta = tmp$theta
   x = matrix(NA, 2, nt + 1)
-  x[,1] = rprior()$x
-  for(i in 1:nt) x[,i+1] = revo(x[,i], theta, psi$P)
+  x[,1] = tmp$x
+  beta.x <- exp(rnorm(nt, -1.3296, .3248))
+  gamma.x <- exp(rnorm(nt, -2.1764, .1183))
+  for(i in 1:nt) x[,i+1] = revo(x[,i], c(beta.x[i], gamma.x[i], 1), psi$P)
 
   # Deal with missing arguments
   if (missing(mcmc.details)) {
@@ -24,15 +27,16 @@ sir_mcmc <- function(y, psi, mcmc.details, steps, verbose=F) {
 
   # save structures
   n.iter <- n.burn+n.sims%/%n.thin
-  keep.x   <- array(NA, c(n.sims, 2, nt + 1)
-  keep.theta    <- matrix(NA, n.sims, 3)
+  keep.x   <- array(NA, c(n.sims, 2, nt + 1))
+  keep.theta    <- matrix(NA, n.sims, 2)
 
   # Run mcmc
+  if(progress) pb = txtProgressBar(0,nt,style=3)
   for (i in 1:n.sims) {
-    if (verbose) cat(i,round(theta,4),"\n")
+    if (progress) setTxtProgressBar(pb,i)
     
-    if ('x'  %in% steps) x = sample.x(y, x, theta, psi)
-    if ('theta'   %in%steps) theta = sample.theta(y, x, theta, psi)
+    if ('x'  %in% steps) x = sample.x(y, x, c(theta,1), psi)
+    if ('theta'   %in%steps) theta = sample.theta(y, x, c(theta,1), psi)[1:2]
 
     # Only save every n.thin iteration
     if (ii <- save.iteration(i,n.burn,n.thin)) {
@@ -68,14 +72,14 @@ sample.x <- function(y, x, theta, psi)
   return(x)
 }
 
-sample.theta <- function(y, x, theta, psi, tuning = c(0.003, .001))
+sample.theta <- function(y, x, theta, psi, tuning = c(0.003, 0.001))
 {
   # Sample beta
   nt = dim(y)[2]
   stopifnot(nt == dim(x)[2] - 1)
   beta.prop = rnorm(1, theta[1], tuning[1])
   while(!(beta.prop > 0)) beta.prop = rnorm(1, theta[1], tuning[1])
-  logMH = dljoint(y, x, c(beta.prop, theta[2:3]), psi) + dnorm(theta[1], beta.prop, tuning[1], log=TRUE) - dljoint(y, x, theta, psi) -  dnorm(beta.prop, theta[1], tuning[1])
+  logMH = dljoint(y, x, c(beta.prop, theta[2:3]), psi) + dnorm(theta[1], beta.prop, tuning[1], log=TRUE) - dljoint(y, x, theta, psi) -  dnorm(beta.prop, theta[1], tuning[1], log=TRUE)
   if(log(runif(1)) < logMH) theta[1] = beta.prop
   
   # Sample gamma
@@ -83,7 +87,7 @@ sample.theta <- function(y, x, theta, psi, tuning = c(0.003, .001))
   stopifnot(nt == dim(x)[2] - 1)
   gamma.prop = rnorm(1, theta[2], tuning[2])
   while(!(gamma.prop > 0)) gamma.prop = rnorm(1, theta[2], tuning[2])
-  logMH = dljoint(y, x, c(theta[1], gamma.prop, theta[3]), psi) + dnorm(theta[2], gamma.prop, tuning[2], log=TRUE) - dljoint(y, x, theta, psi) -  dnorm(gamma.prop, theta[2], tuning[2])
+  logMH = dljoint(y, x, c(theta[1], gamma.prop, theta[3]), psi) + dnorm(theta[2], gamma.prop, tuning[2], log=TRUE) - dljoint(y, x, theta, psi) -  dnorm(gamma.prop, theta[2], tuning[2], log=TRUE)
   if(log(runif(1)) < logMH) theta[2] = gamma.prop
   
   return(theta)
@@ -111,7 +115,13 @@ rx <- function(x, theta, psi, sdfac = 1)
   return(rbind(s,i))
 }
 
-dlx <- function(x, x.curr, theta, psi, sdfac=1) dnorm(x[1], x.curr[1], sdfac*sqrt(theta[1] / psi$P^2), log=TRUE) + dnorm(x[2], x.curr[2] + -1*(x[1] - x.curr[1]), sdfac*sqrt(theta[2] / psi$P^2), log=TRUE)
+dlx <- function(x, x.curr, theta, psi, sdfac=1)
+{
+  nt = dim(x)[2] - 1
+  log.density = sum(dnorm(x[,1], c(x.curr[1,1], x.curr[2,1] + -1*(x[1,1] - x.curr[1,1])), sdfac*sqrt(theta[1:2] / psi$P^2), log=TRUE))
+  for(i in 1:nt) log.density = log.density + sum(dnorm(x[,i+1], c(x.curr[1,i+1], x.curr[2,i+1] + -1*(x[1,i+1] - x.curr[1,i+1])), sdfac*sqrt(theta[1:2] / psi$P^2), log=TRUE))
+  return(log.density)
+}
 
 dljoint <- function(y, x, theta, psi)
 {
@@ -121,33 +131,6 @@ dljoint <- function(y, x, theta, psi)
   for(i in 1:nt) log.density = log.density + dllik(y[,i], x[,i+1], psi$b, psi$varsigma, psi$sigma, psi$eta) + dlevo(x[,i+1], x[,i], theta, 
   psi$P)
   return(log.density)
-}
-
-# dlevo - function to evaluate the logarithm of the state transition density
-# Arguments:
-# Arguments:
-# x - 2-element vector of state (s,i) at which to evaluate the density
-# x.curr - 2-element vector, current state (s,i)
-# theta - 3-element vector, current parameter (beta,gamma,nu)
-# P - scalar, population size
-dlevo <- function(x,x.curr,theta,P,sdfac=1)
-{
-  if(all(x >= 0) & sum(x) <= 1)
-  {
-    dnorm(x[1], x.curr[1] - theta[1]*x.curr[2]*x.curr[1]^theta[3], sdfac*sqrt(theta[1]/P^2), log=TRUE) + dnorm(x[2], x.curr[2]*(1 - theta[2]) + x.curr[1] - x[1], sdfac*sqrt(theta[2] / P^2), log=TRUE)
-  } else { return(-Inf) }
-}
-
-# dlprior - function that evaluates the logarithm of the prior density of the initial states and unknown parameters
-# Arguments
-# x - vector, state at which to evaluate density (s,i)
-# theta - vector, unknown parameter values at which to evaluate the density (beta, gamma, nu)
-dlprior <- function(x, theta)
-{
-  if(all(x >= 0) & sum(x) <= 1 & all(theta > 0))
-  {
-    dnorm(x[2], .002, .00025, log=TRUE) + sum(dlnorm(theta[1:2], c(-1.3296, -2.1764, 0.1055)[1:2], c(.3248, .1183, .0800)[1:2], log=TRUE))
-  } else { return(-Inf) }
 }
 
 in.Omega <- function(x) all(x >= 0) & sum(x) <= 1

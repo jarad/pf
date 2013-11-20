@@ -2,7 +2,7 @@ source("sir_functions.r")
 source("pf_functions.r")
 
 # Set data path
-dpath = "../data/"
+dpath = "/storage/sheinson_research/"
 
 # pf - function to run particle filter given n number of particles, filt = "BF", "APF", or "KD" for which filter to run, resamp = "multinomial", "residual", "stratified", or "systematic" for which resampling method to use, and prior = "normal" or "uniform" for which prior to use on unknown parameters
 # Returns nothing; saves .rdata data file
@@ -12,7 +12,6 @@ pf <- function(n, filt, resamp, prior, mod.data, mod.fit, nonunif = "ess", thres
   load(paste(dpath,"sim-",mod.data,".rdata",sep=""))
   y = mysim$sim$y
   P = mysim$true.params$P
-  d = mysim$true.params$d
   b = mysim$true.params$b
   varsigma = mysim$true.params$varsigma
   sigma = mysim$true.params$sigma
@@ -37,8 +36,9 @@ pf <- function(n, filt, resamp, prior, mod.data, mod.fit, nonunif = "ess", thres
     } else if(prior == "lognormal") {
       theta.mean = c(-1.3296, -2.1764, 0.1055)
       theta.sd = c(.3248, .1183, .0800)
-      rtheta = function() rnorm(3,theta.mean,theta.sd)
+#      rtheta = function() rnorm(3,theta.mean,theta.sd)
       ftheta = function(theta,param=1) exp(theta)
+      rtheta = function() rnorm(2, theta.mean[1:2], theta.sd[1:2])
     } else if(prior == "semi-lognormal") {
       theta.mean = c(-1.3296, -2.1764, 0.1055)
       theta.sd = c(.3248, .1183, .0800)
@@ -113,17 +113,29 @@ pf <- function(n, filt, resamp, prior, mod.data, mod.fit, nonunif = "ess", thres
       revo_kd = function(x, theta) revo(x, c(ftheta(theta,1:2),nu), P)
       rprior_kd = function() rprior(rtheta)
       source("kd_pf.r")
+#      sink(paste("kd_pf-",n,".txt",sep=""))
       out = kd_pf(y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, progress=progress, method=resamp, log=F, nonuniformity = nonunif, threshold = thresh)
+#      sink()
     } else if(filt == "RM"){
-      # Run resample-move particle filter
+      source("sir_mcmc_functions.r")
       dllik_rm = function(y, x, theta) dllik(y, x, b, varsigma, sigma, eta)
-#      revo_rm = function(x, theta) revo(x, ftheta(theta,1:3), P)
-      revo_rm = function(x, theta) revo(x, c(ftheta(theta,1:2),nu), P)
+      revo_rm = function(x, theta) revo(x, c(theta[1:2],nu), P)
+      rtheta = function() exp(rnorm(2, theta.mean, theta.sd))
       rprior_rm = function() rprior(rtheta)
-#      rmove_rm = function(y, x, theta) rmove(y, x, ftheta(theta,1:3), b, varsigma, sigma, eta, P) 
-      rmove_rm = function(y, x, theta) rmove(y, x, c(ftheta(theta,1:2), nu), b, varsigma, sigma, eta, P) 
+      rmove_rm = function(y, x, theta) rmove(y, x, c(theta[1:2], nu), list(b=b, varsigma=varsigma, sigma=sigma, eta=eta, P=P)) 
       source("rm_pf.r")
+    
+      # Run resample-move particle filter
+#      dllik_rm = function(y, x, theta) dllik(y, x, b, varsigma, sigma, eta)
+#      revo_rm = function(x, theta) revo(x, ftheta(theta,1:3), P)
+#      revo_rm = function(x, theta) revo(x, c(ftheta(theta,1:2),nu), P)
+#      rprior_rm = function() rprior(rtheta)
+#      rmove_rm = function(y, x, theta) rmove(y, x, ftheta(theta,1:3), b, varsigma, sigma, eta, P) 
+#      rmove_rm = function(y, x, theta) rmove(y, x, c(ftheta(theta,1:2), nu), b, varsigma, sigma, eta, P) 
+#      source("rm_pf.r")
+#      sink(paste("rm_pf-",n,".txt",sep=""))
       out = rm_pf(y, dllik_rm, revo_rm, rprior_rm, rmove_rm, n, progress=progress, method=resamp, log=F, nonuniformity = nonunif, threshold = thresh)
+#      sink()
     } else{ stop("filt must be one of 'BF', 'APF', 'KD', or 'RM'") } 
   } else if(mod.fit == "ext") {
     if(filt == "BF")
@@ -179,6 +191,7 @@ pf.quant = function(n, filt, resamp, prior, mod.data, mod.fit, nonunif = "ess", 
     require(plyr)
     out.t = laply(out$state, function(x) x[,,dim(x)[3]])
     out$state = aperm(out.t, c(2,3,1))
+    ftheta = function(x,param=1) x
   }
 
   # Calculate 2.5%, 50%, and 97.5% quantiles of states over time
