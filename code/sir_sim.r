@@ -10,11 +10,10 @@ dpath = "../data/"
 
 # Set known parameter values
 P = 5000
-#b = c(.25, .27, .23, .29)
-#varsigma = c(1.07, 1.05, 1.01, .98)
-#sigma = c(.0012, .0008, .0010, .0011)
-#eta = rep(0,4)
-b = .25; varsigma = .27; sigma = .0012; eta = 0
+b = c(.25, .27, .23, .29)
+varsigma = c(1.07, 1.05, 1.01, .98)
+sigma = c(.0012, .0008, .0010, .0011)
+eta = rep(0,4)
 
 # Set unknown parameter values
 theta = c(0.2399, 0.1066, 1)
@@ -43,7 +42,6 @@ require(xtable)
 caption = "Simulated epidemic and syndromic data"
 label = "tab:data"
 align = c("|c","|c|","c","c","c|",rep("c",length(streams)),"|")
-paste("|c|c|ccc|",cccc"|"
 digits = c(0,0,rep(6,3+length(streams)))
 print(xtable(epid.data,caption,label,align,digits),type="latex",file="../latex/simdata-orig.txt",include.rownames=FALSE)
 
@@ -52,8 +50,8 @@ print(xtable(epid.data,caption,label,align,digits),type="latex",file="../latex/s
 pdf(paste(gpath,"sim-orig-epid.pdf",sep=""))
 par(mar=c(5,7,4,1)+.1)
 plot(0:nt,1 - sim$x[1,] - sim$x[2,],type="l",ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
-lines(0:nt,sim$x[2,])
-lines(0:nt,sim$x[1,],col=2)
+lines(0:nt,sim$x[1,])
+lines(0:nt,sim$x[2,],col=2)
 legend("topright",legend=c("Susceptible","Infected","Recovered"),lty=rep(1,3),col=c(1,2,4),cex=1.5)
 dev.off()
 

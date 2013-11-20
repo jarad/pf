@@ -14,7 +14,6 @@ sim.orig = mysim
 sim = list(x=sim.orig$sim$x)
 theta = sim.orig$true.params$theta
 P = sim.orig$true.params$P
-d = sim.orig$true.params$d
 nt = dim(sim$x)[2] - 1
 
 # Set parameters in observation equation
@@ -26,13 +25,13 @@ eta = 2
 # Generate new observations
 robs_sim = function(x){ robs(x, b, varsigma, sigma, eta)}
 z = matrix(NA,nr=1,nc=nt)
-for(i in 1:nt) z[1,i] = robs_sim(sim$x[1,i+1])
+for(i in 1:nt) z[1,i] = robs_sim(sim$x[,i+1])
 
 # Add new observations to list
 sim$y = z
 
 # Save data
-mysim = list(sim=sim,true.params=list(theta=theta,b=b,sigma=sigma,varsigma=varsigma,eta=eta,P=P,d=d))
+mysim = list(sim=sim,true.params=list(theta=theta,b=b,sigma=sigma,varsigma=varsigma,eta=eta,P=P))
 save(mysim,file=paste(dpath,"sim-ext.rdata",sep=""))
 
 # Create table of data for .csv file
