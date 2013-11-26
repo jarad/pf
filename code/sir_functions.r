@@ -89,17 +89,23 @@ rprior = function(rtheta)
   return(list(x=c(s0,i0),theta=theta0))
 }
 
-# dlprior - function that evaluates the logarithm of the prior density of the initial states and unknown parameters
-# Arguments
-# x - vector, state at which to evaluate density (s,i)
-# theta - vector, unknown parameter values at which to evaluate the density (beta, gamma, nu)
-dlprior <- function(x, theta)
+# dlx0 - function that evaluates the log density of the prior state (s,i)
+dlx0 <- function(x)
 {
-  if(all(x >= 0) & sum(x) <= 1 & all(theta > 0))
+  if(all(x >= 0) & sum(x) <= 1)
   {
-    dnorm(x[2], .002, .0005, log=TRUE) + sum(dlnorm(theta[1:2], c(-1.3296, -2.1764, 0.1055)[1:2], c(.3248, .1183, .0800)[1:2], log=TRUE))
+    dnorm(x[2], .002, .0005, log=TRUE)
   } else { return(-Inf) }
 }
+
+# dlbeta0 - function that evaluates the log density of the prior on beta
+dlbeta0 <- function(beta) dlnorm(beta, -1.3296, .3248, log=TRUE)
+
+# dlgamma0 - function that evaluates the log density of the prior on gamma
+dlgamma0 <- function(gamma) dlnorm(gamma, -2.1764, .1183, log=TRUE)
+
+# dlnu0 - function that evaluates the log density of the prior on nu
+dlnu0 <- function(nu) dlnorm(nu, 0.1055, 0.0800, log=TRUE)
 
 # Functions to reparameterize theta to [a,b] from the real line and vice versa
 theta2u = function(theta,a,b)
@@ -111,4 +117,13 @@ u2theta = function(u,a,b)
 {
   U = (u - a) / (b - a)
   return(log(U / (1 - U)))
+}
+
+# Functions to find mean and sd on log scale so that (1-alpha)*100% of random draws fall b/w a and b
+find.mu.sigma <- function(a, b, alpha = 0.05)
+{
+  z = qnorm(1 - alpha/2)
+  sigma = log(b/a) / (2*z)
+  mu = log(b) - z*sigma
+  return(list(mu=mu,sigma=sigma))
 }
