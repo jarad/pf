@@ -1,23 +1,90 @@
-# Load mcmc data
-load("../data/sir_mcmc_test.rdata")
+# Set data and graphics path
+dpath = "../data/"
+gpath = "../graphs/"
 
-# Diagnostics
+# Load mcmc data and simulated data
+load(paste(dpath,"sir_mcmc_test.rdata",sep=""))
+load(paste(dpath,"sim-orig.rdata",sep=""))
+
+# Diagnostics on unknown parameters
 require(coda)
 samps = mcmc.list(mcmc(out[[1]]$theta), mcmc(out[[2]]$theta), mcmc(out[[3]]$theta))
 gelman.diag(samps)
 summary(samps)
 
-# Traceplots
+# Traceplots on unknown parameters
 n.samp = dim(samps[[1]])[1]
-iter = 1001:100000
-par(mfrow=c(2,1))
-minbeta = min(sapply(samps, function(x) min(x[iter,1])))
-maxbeta = max(sapply(samps, function(x) max(x[iter,1])))
-mingamma = min(sapply(samps, function(x) min(x[iter,2])))
-maxgamma = max(sapply(samps, function(x) max(x[iter,2])))
-plot(iter,samps[[1]][iter,1],type="l",ylim=c(minbeta,maxbeta),xlab="",ylab=expression(beta))
-lines(iter,samps[[2]][iter,1],col=2)
-lines(iter,samps[[3]][iter,1],col=4)
-plot(iter,samps[[1]][iter,2],type="l",ylim=c(mingamma,maxgamma),xlab="Iteration",ylab=expression(gamma))
-lines(iter,samps[[2]][iter,2],col=2)
-lines(iter,samps[[3]][iter,2],col=4)
+n.params = dim(samps[[1]])[2]
+n.chains = 3
+iter = 1:n.samp
+ylabs = expression(beta,gamma,nu)
+par(mfrow=c(n.params,1))
+mins = apply(sapply(samps, function(x) apply(x, 2, min)), 1, min)
+maxs = apply(sapply(samps, function(x) apply(x, 2, max)), 1, max)
+for(i in 1:n.params)
+{
+  plot(iter,samps[[1]][iter,i],type="l",ylim=c(mins[i],maxs[i]),xlab="",ylab=ylabs[i])
+  abline(h=mysim$true.params$theta[i])
+  if(n.chains > 1)
+  {
+    for(j in 2:n.chains) lines(iter,samps[[j]][iter,i],col=2*(j-1))
+  }
+}
+
+# Diagnostics on states
+mystates = floor(seq(1, 126, len=126))
+samps.states = mcmc.list(mcmc(cbind(out[[1]]$x[,1,mystates],out[[1]]$x[,2,mystates])), mcmc(cbind(out[[2]]$x[,1,mystates],out[[2]]$x[,2,mystates])), mcmc(cbind(out[[3]]$x[,1,mystates],out[[3]]$x[,2,mystates])))
+gelman.diag(samps.states)
+
+# Traceplots on (some) states
+n.states = 6
+mystates = floor(seq(1, 126, len=n.states))
+samps.states = mcmc.list(mcmc(cbind(out[[1]]$x[,1,mystates],out[[1]]$x[,2,mystates])), mcmc(cbind(out[[2]]$x[,1,mystates],out[[2]]$x[,2,mystates])), mcmc(cbind(out[[3]]$x[,1,mystates],out[[3]]$x[,2,mystates])))
+n.samp = dim(samps.states[[1]])[1]
+n.params = dim(samps.states[[1]])[2]
+n.chains = 3
+iter = 1:n.samp
+ylabs = paste(c(rep("s", n.states), rep("i", n.states)), rep(mystates,2), sep=" ")
+windows(width=7.5,height=10)
+par(mfrow=c(4,3))
+mins = apply(sapply(samps.states, function(x) apply(x, 2, min)), 1, min)
+maxs = apply(sapply(samps.states, function(x) apply(x, 2, max)), 1, max)
+for(i in 1:n.params)
+{
+  plot(iter,samps.states[[1]][iter,i],type="l",ylim=c(mins[i],maxs[i]),xlab="",ylab=ylabs[i])
+  abline(h=mysim$sim[[1]]$x[(i > n.states) + 1, mystates[6*(!(i %% n.states)) + (i %% n.states)]])
+  if(n.chains > 1)
+  {
+    for(j in 2:n.chains) lines(iter,samps.states[[j]][iter,i],col=2*(j-1))
+  }
+}
+
+# Acceptance rates
+overall.chain = sapply(out, function(x) mean(cbind(x$accept.x,x$accept.theta)))
+overall = mean(overall.chain)
+states.chain = sapply(out, function(x) apply(x$accept.x, 2, mean))
+states.overall.chain = apply(states.chain, 2, mean)
+states.overall = mean(states.overall.chain)
+theta.chain = sapply(out, function(x) apply(x$accept.theta, 2, mean))
+theta.overall = apply(theta.chain, 1, mean)
+
+# Final tuning parameters
+tuning.final = sapply(out, function(x) x$tuning[10000,])
+# How do tuning parameters change?
+iter = 1:10000
+n.params = dim(out[[1]]$tuning)[2]
+n.chains = 3
+ylabs = expression(s,i,beta,gamma,nu)
+windows(width=10,height=5)
+par(mfrow=c(3,2))
+mins = apply(sapply(out, function(x) apply(x$tuning, 2, min)), 1, min)
+maxs = apply(sapply(out, function(x) apply(x$tuning, 2, max)), 1, max)
+for(i in 1:n.params)
+{
+  plot(iter,out[[1]]$tuning[iter,i],type="l",ylim=c(mins[i],maxs[i]),xlab="",ylab=ylabs[i])
+  abline(h=out[[1]]$tuning[iter[length(iter)],i])
+  if(n.chains > 1)
+  {
+    for(j in 2:n.chains) lines(iter,out[[j]]$tuning[iter,i],col=2*(j-1))
+  }
+}
