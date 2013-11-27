@@ -116,7 +116,7 @@ sample.x <- function(y, x, theta, psi, tuning, burn = FALSE)
   accept = rep(FALSE, nt + 1)
   
   # resample prior state
-  i0 = rx(x[,1], tuning)[1]
+  i0 = rx(x[,1], tuning)[2]
   x.prop = c(1-i0,i0)
   logMH = dlevo(x[,2], x.prop, theta, psi$P) + dlx0(x.prop) - dlevo(x[,2], x[,1], theta, psi$P) - dlx0(x[,1])
   if(log(runif(1)) < logMH)
