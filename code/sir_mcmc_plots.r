@@ -70,6 +70,7 @@ theta.overall = apply(theta.chain, 1, mean)
 
 # Final tuning parameters
 tuning.final = sapply(out, function(x) x$tuning[10000,])
+rownames(tuning.final) = c("s","i","beta","gamma","nu")
 # How do tuning parameters change?
 iter = 1:10000
 n.params = dim(out[[1]]$tuning)[2]
