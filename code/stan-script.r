@@ -6,7 +6,7 @@ load("../data/sim-orig.rdata")
 
 # Set data values
 N = 60
-y = mysim$sim$y[,1:N]
+y = mysim$sim[[1]]$y[,1:N]
 obs1 = which(!is.na(y[1,])); N1 = length(obs1)
 obs2 = which(!is.na(y[2,])); N2 = length(obs2)
 obs3 = which(!is.na(y[3,])); N3 = length(obs3)
