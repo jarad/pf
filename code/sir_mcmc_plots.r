@@ -67,25 +67,3 @@ states.overall.chain = apply(states.chain, 2, mean)
 states.overall = mean(states.overall.chain)
 theta.chain = sapply(out, function(x) apply(x$accept.theta, 2, mean))
 theta.overall = apply(theta.chain, 1, mean)
-
-# Final tuning parameters
-tuning.final = sapply(out, function(x) x$tuning[10000,])
-rownames(tuning.final) = c("s","i","beta","gamma","nu")
-# How do tuning parameters change?
-iter = 1:10000
-n.params = dim(out[[1]]$tuning)[2]
-n.chains = 3
-ylabs = expression(s,i,beta,gamma,nu)
-windows(width=10,height=5)
-par(mfrow=c(3,2))
-mins = apply(sapply(out, function(x) apply(x$tuning, 2, min)), 1, min)
-maxs = apply(sapply(out, function(x) apply(x$tuning, 2, max)), 1, max)
-for(i in 1:n.params)
-{
-  plot(iter,out[[1]]$tuning[iter,i],type="l",ylim=c(mins[i],maxs[i]),xlab="",ylab=ylabs[i])
-  abline(h=out[[1]]$tuning[iter[length(iter)],i])
-  if(n.chains > 1)
-  {
-    for(j in 2:n.chains) lines(iter,out[[j]]$tuning[iter,i],col=2*(j-1))
-  }
-}
