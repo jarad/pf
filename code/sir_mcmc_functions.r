@@ -128,7 +128,7 @@ sample.x <- function(y, x, theta, psi, tuning, tune = FALSE)
   i0 = rx(x[,1], tuning[,1])[2]
   x.prop = c(1-i0,i0)
   logMH = dlevo(x[,2], x.prop, theta, psi$P) + dlx0(x.prop) - dlevo(x[,2], x[,1], theta, psi$P) - dlx0(x[,1])
-  if(log(runif(1)) < logMH)
+  if(log(runif(1)) < logMH & in.Omega(x.prop))
   {
     x[,1] = x.prop
     accept[1] = TRUE
@@ -142,7 +142,7 @@ sample.x <- function(y, x, theta, psi, tuning, tune = FALSE)
   {
     x.prop = rx(x[,i], tuning[,i])
     logMH = dllik(y[,i-1], x.prop, psi$b, psi$varsigma, psi$sigma, psi$eta) + dlevo(x[,i+1], x.prop, theta, psi$P) + dlevo(x.prop, x[,i-1], theta, psi$P) - dllik(y[,i-1], x[,i], psi$b, psi$varsigma, psi$sigma, psi$eta) - dlevo(x[,i+1], x[,i], theta, psi$P) - dlevo(x[,i], x[,i-1], theta, psi$P)
-    if(log(runif(1)) < logMH)
+    if(log(runif(1)) < logMH & in.Omega(x.prop))
     {
       x[,i] = x.prop
       accept[i] = TRUE
@@ -155,7 +155,7 @@ sample.x <- function(y, x, theta, psi, tuning, tune = FALSE)
   # resample last state
   x.prop = rx(x[,nt+1], tuning[,nt+1])
   logMH = dllik(y[,nt], x.prop, psi$b, psi$varsigma, psi$sigma, psi$eta) + dlevo(x.prop, x[,nt], theta, psi$P) - dllik(y[,nt], x[,nt+1], psi$b, psi$varsigma, psi$sigma, psi$eta) - dlevo(x[,nt+1], x[,nt], theta, psi$P)
-  if(log(runif(1)) < logMH)
+  if(log(runif(1)) < logMH & in.Omega(x.prop))
   {
     x[,nt+1] = x.prop
     accept[nt + 1] = TRUE
@@ -185,7 +185,7 @@ sample.beta <- function(y, x, theta, psi, tuning, tune = FALSE)
     dlevo.curr = dlevo.curr + dlevo(x[,i+1], x[,i], theta, psi$P)
   }
   logMH = dlevo.prop + dlbeta0(beta.prop) - dlevo.curr - dlbeta0(beta.curr)
-  if(log(runif(1)) < logMH)
+  if(log(runif(1)) < logMH & beta.prop > 0)
   { 
     beta.curr = beta.prop
     accept = TRUE
@@ -216,7 +216,7 @@ sample.gamma <- function(y, x, theta, psi, tuning, tune = FALSE)
     dlevo.curr = dlevo.curr + dlevo(x[,i+1], x[,i], theta, psi$P)
   }
   logMH = dlevo.prop + dlgamma0(gamma.prop) - dlevo.curr - dlgamma0(gamma.curr)
-  if(log(runif(1)) < logMH)
+  if(log(runif(1)) < logMH & gamma.prop > 0)
   {
     gamma.curr = gamma.prop
     accept = TRUE
@@ -247,7 +247,7 @@ sample.nu <- function(y, x, theta, psi, tuning, tune = FALSE)
     dlevo.curr = dlevo.curr + dlevo(x[,i+1], x[,i], theta, psi$P)
   }
   logMH = dlevo.prop + dlnu0(nu.prop) - dlevo.curr - dlnu0(nu.curr)
-  if(log(runif(1)) < logMH)
+  if(log(runif(1)) < logMH & nu.prop > 0)
   {
     nu.curr = nu.prop
     accept = TRUE
