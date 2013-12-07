@@ -99,13 +99,25 @@ dlx0 <- function(x)
 }
 
 # dlbeta0 - function that evaluates the log density of the prior on beta
-dlbeta0 <- function(beta) dlnorm(beta, -1.3296, .3248, log=TRUE)
+dlbeta0 <- function(beta)
+{
+  log.params = find.mu.sigma(.14, .50)
+  return(dlnorm(beta, log.params$mu, log.params$sigma, log=TRUE))
+}
 
 # dlgamma0 - function that evaluates the log density of the prior on gamma
-dlgamma0 <- function(gamma) dlnorm(gamma, -2.1764, .1183, log=TRUE)
+dlgamma0 <- function(gamma)
+{
+  log.params = find.mu.sigma(.09, .143)
+  return(dlnorm(gamma, log.params$mu, log.params$sigma, log=TRUE))
+}
 
 # dlnu0 - function that evaluates the log density of the prior on nu
-dlnu0 <- function(nu) dlnorm(nu, 0.1055, 0.0800, log=TRUE)
+dlnu0 <- function(nu)
+{
+  log.params = find.mu.sigma(0.95, 1.3)
+  dlnorm(nu, log.params$mu, log.params$sigma, log=TRUE)
+}
 
 # Functions to reparameterize theta to [a,b] from the real line and vice versa
 theta2u = function(theta,a,b)

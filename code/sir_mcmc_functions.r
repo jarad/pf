@@ -29,8 +29,8 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
   }
   if(missing(tuning))
   {
-    tuning.x = matrix(0.0001, nr=2, nc = nt+1)
-    tuning.theta = c(0.001, 0.001, 0.01)
+    tuning.x = matrix(0.001, nr=2, nc = nt+1)
+    tuning.theta = c(0.01, 0.001, 0.01)
   } else {
     attach(tuning)
   }
