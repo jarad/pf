@@ -25,14 +25,16 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
     nu.x <- exp(rnorm(nt, log.params[[1]][3], log.params[[2]][3]))
     for(i in 1:nt) x[,i+1] = revo(x[,i], c(beta.x[i], gamma.x[i], nu.x[i]), psi$P)
   } else {
-    attach(initial)
+    x = initial$x
+    theta = initial$theta
   }
   if(missing(tuning))
   {
     tuning.x = matrix(0.001, nr=2, nc = nt+1)
     tuning.theta = c(0.01, 0.001, 0.01)
   } else {
-    attach(tuning)
+    tuning.x = tuning$tuning.x
+    tuning.theta = tuning$tuning.theta
   }
   if (missing(mcmc.details)) {
     n.thin <- 1   # save every n.thin(th) iteration
@@ -40,7 +42,10 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
     n.burn <- 0
     tune = FALSE
   } else {
-    attach(mcmc.details)
+    n.thin = mcmc.details$n.thin
+    n.sims = mcmc.details$n.sims
+    n.burn = mcmc.details$n.burn
+    tune = mcmc.details$tune
   }
   if (missing(steps)) {
     steps=c('x','beta','gamma','nu')
