@@ -23,12 +23,13 @@ for(j in 1:n.chains)
   log.params = find.mu.sigma(c(.14, .09, .95), c(.5, .143, 1.3))
   tmp = rprior(function() exp(rnorm(3, log.params[[1]], log.params[[2]])))
   theta = tmp$theta
-  x = matrix(NA, 2, nt + 1)
-  x[,1] = tmp$x
-  beta.x <- exp(rnorm(nt, log.params[[1]][1], log.params[[2]][1]))
-  gamma.x <- exp(rnorm(nt, log.params[[1]][2], log.params[[2]][2]))
-  nu.x <- exp(rnorm(nt, log.params[[1]][3], log.params[[2]][3]))
-  for(i in 1:nt) x[,i+1] = revo(x[,i], c(beta.x[i], gamma.x[i], nu.x[i]), P)
+#  x = matrix(NA, 2, nt + 1)
+#  x[,1] = tmp$x
+#  beta.x <- exp(rnorm(nt, log.params[[1]][1], log.params[[2]][1]))
+#  gamma.x <- exp(rnorm(nt, log.params[[1]][2], log.params[[2]][2]))
+#  nu.x <- exp(rnorm(nt, log.params[[1]][3], log.params[[2]][3]))
+#  for(i in 1:nt) x[,i+1] = revo(x[,i], c(beta.x[i], gamma.x[i], nu.x[i]), P)
+  x = mysim$sim[[1]]$x
   initial.chains[[j]] = list(x = x, theta = theta)
 }
 
@@ -36,7 +37,7 @@ for(j in 1:n.chains)
 psi = list(b=b, varsigma=varsigma, sigma=sigma, eta=eta, P=P)
 tuning.1 = list(tuning.x = matrix(0.001, nr=2, nc = nt+1), tuning.theta = c(0.01, 0.001, 0.01))
 tuning.2 = list(tuning.x = matrix(c(0.002, 0.001), nr=2, nc = nt+1), tuning.theta = c(0.01, 0.001, 0.01))
-mcmc.details = list(n.thin=10, n.sims=110000, n.burn=10000, tune = TRUE)
+mcmc.details = list(n.thin=15, n.sims=200000, n.burn=50000, tune = TRUE)
 my_sir_mcmc <- function(n.chain, tune.type, x, beta, gamma, nu, progress)
 {
   if(tune.type == 1) tuning = tuning.1 else tuning = tuning.2

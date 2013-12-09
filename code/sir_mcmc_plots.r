@@ -1,5 +1,5 @@
 # Set data and graphics path
-dpath = "../data/"
+dpath = "/storage/sheinson_research/"
 gpath = "../graphs/"
 
 # Load simulated data
@@ -26,7 +26,7 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
       this.out[[i]]$theta = as.matrix(out$theta[,params])
       this.out[[i]]$accept.theta = as.matrix(out$accept.theta[,params])
       this.out[[i]]$tuning$params = as.matrix(out$tuning$params[,params])
-    }   
+    }
   }
   out = this.out
 
@@ -50,6 +50,16 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
       }
     }
     dev.off()
+
+    # Plot acceptance rates for parameters
+    sink(file = paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-acceptance-params.txt",sep=""))
+    print("Acceptance rates of unknown parameters for each chain")
+    theta.chain = sapply(out, function(x) apply(x$accept.theta, 2, mean))
+    print(theta.chain)
+    print("Acceptance rates of unknown parameters over all chains")
+    theta.overall = apply(as.matrix(theta.chain), 1, mean)
+    print(theta.overall)
+    sink()
   }
 
   # Joint traceplots on (some) states
@@ -85,6 +95,19 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
       }
     }
     dev.off()
+
+    # Print acceptance rates for states
+    sink(file = paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-acceptance-states.txt",sep=""))
+    print("Acceptance rates of each state for each chain")
+    states.chain = sapply(out, function(x) apply(x$accept.x, 2, mean))
+    print(states.chain)
+    print("Acceptance rates over all states for each chain")
+    states.overall.chain = apply(states.chain, 2, mean)
+    print(states.overall.chain)
+    print("Acceptance rates over all states over all chains")
+    states.overall = mean(states.overall.chain)
+    print(states.overall)
+    sink()
   }
 
   # Plot tuning parameters over time for parameters
@@ -106,6 +129,12 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
       }
     }
     dev.off()
+
+    # Print final tuning parameter values
+    sink(file = paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-finaltunings-params.txt",sep=""))
+    print("Final tuning parameters of fixed parameters")
+    print(sapply(out, function(x) x$tuning$params[dim(x$tuning$params)[1],]))
+    sink()
   }
 
   # Plot tuning parameters over time for (some) states
@@ -130,33 +159,13 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
       }
     }
     dev.off()
-  }
-
-  # Print acceptance rates
-  sink(file = paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-acceptance.txt",sep=""))
-  print("Acceptance rates for each chain")
-  (overall.chain = sapply(out, function(x) mean(cbind(x$accept.x,x$accept.theta))))
-  print("Acceptance rates over all chains")
-  (overall = mean(overall.chain))
-  print("Acceptance rates of each state for each chain")
-  (states.chain = sapply(out, function(x) apply(x$accept.x, 2, mean)))
-  print("Acceptance rates over all states for each chain")
-  (states.overall.chain = apply(states.chain, 2, mean))
-  print("Acceptance rates over all states over all chains")
-  (states.overall = mean(states.overall.chain))
-  print("Acceptance rates of unknown parameters for each chain")
-  (theta.chain = sapply(out, function(x) apply(x$accept.theta, 2, mean)))
-  print("Acceptance rates of unknown parameters over all chains")
-  (theta.overall = apply(theta.chain, 1, mean))
-  sink()
 
   # Print final tuning parameter values
-  sink(file = paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-finaltunings.txt",sep=""))
+  sink(file = paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-finaltunings-states.txt",sep=""))
   print("Final tuning parameters of states")
-  (sapply(out, function(x) x$tuning$states[1,,dim(x$tuning$states)[3]]))
-  print("Final tuning parameters of fixed parameters")
-  (sapply(out, function(x) x$tuning$params[dim(x$tuning$params)[1],]))
+  print(sapply(out, function(x) x$tuning$states[1,,dim(x$tuning$states)[3]]))
   sink()
+  }
 }
 
 mydata = matrix(nr=0,nc=0)
