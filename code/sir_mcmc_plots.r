@@ -5,7 +5,7 @@ gpath = "../graphs/"
 # Load simulated data
 load(paste(dpath,"sim-orig.rdata",sep=""))
 
-sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
+sir_mcmc_plots <- function(n.chains, n.thin, tune.type, x, beta, gamma, nu)
 {
   # Load MCMC data
   params = which(as.logical(c(beta,gamma,nu)))
@@ -34,7 +34,7 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
   if(length(params) > 0)
   {
     n.keep = dim(out[[1]]$theta)[1]
-    iter = 1:n.keep
+    iter = (1:n.keep)*n.thin
     ylabs = expression(beta,gamma,nu)[params]
     pdf(file=paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-traceplots-params.pdf",sep=""))
     par(mfrow=c(length(params),1), mar=c(5,6,4,2)+.1)
@@ -42,12 +42,12 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
     maxs = apply(as.matrix(sapply(out, function(x) apply(x$theta, 2, max))), 1, max)
     for(i in 1:length(params))
     {
-      plot(iter,out[[1]]$theta[iter,i],type="l",ylim=c(mins[i],maxs[i]),xlab="Iteration",ylab=ylabs[i],cex.lab=1.5)
-      abline(h=mysim$true.params$theta[params[i]])
+      plot(iter,out[[1]]$theta[,i],type="l",ylim=c(mins[i],maxs[i]),xlab="Iteration",ylab=ylabs[i],cex.lab=1.5)
       if(n.chains > 1)
       {
-        for(j in 2:n.chains) lines(iter,out[[j]]$theta[iter,i],col=2*(j-1))
+        for(j in 2:n.chains) lines(iter,out[[j]]$theta[,i],col=2*(j-1))
       }
+      abline(h=mysim$true.params$theta[params[i]])
     }
     dev.off()
 
@@ -65,7 +65,7 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
   # Joint traceplots on (some) states
   if(states){
     nt = dim(mysim$sim[[1]]$y)[2]
-    n.states = 4
+    n.states = 9
     mystates = floor(seq(0, nt, len=n.states))
     n.keep = dim(out[[1]]$x)[1]
     iter = 1:n.keep
@@ -79,20 +79,20 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
     par(mfrow=c(sqrt(n.states),sqrt(n.states)),mar=c(5,6,4,2)+.1)
     for(i in 1:n.states)
     {
-      plot(out[[1]]$x[iter,1,mystates[i]+1],out[[1]]$x[iter,2,mystates[i]+1],type="l",xlim=c(mins.s[i],maxs.s[i]),ylim=c(mins.i[i],maxs.i[i]),xlab=xlabs[i],ylab=ylabs[i],cex.lab=1.5)
-      points(mysim$sim[[1]]$x[1,mystates[i]+1],mysim$sim[[1]]$x[2,mystates[i]+1],pch=20,cex=2,col="gray")
+      plot(out[[1]]$x[iter,1,mystates[i]+1],out[[1]]$x[iter,2,mystates[i]+1],type="l",xlim=c(mins.s[i],maxs.s[i]),ylim=c(mins.i[i],maxs.i[i]),xlab=xlabs[i],ylab=ylabs[i],cex.lab=2,cex.axis=1.5)
       mtext(paste("s = ",round(mysim$sim[[1]]$x[1,mystates[i]+1],3),", i = ",round(mysim$sim[[1]]$x[2,mystates[i]+1],3),sep=""),side=3,cex=.8)
-      points(out[[1]]$x[iter[1],1,mystates[i]+1],out[[1]]$x[iter[1],2,mystates[i]+1],pch=20,cex=2,col="green")
-      points(out[[1]]$x[iter[length(iter)],1,mystates[i]+1],out[[1]]$x[iter[length(iter)],2,mystates[i]+1],pch=20,cex=2,col="red")
+      if(n.chains > 1) for(j in 2:n.chains) lines(out[[j]]$x[iter,1,mystates[i]+1],out[[j]]$x[iter,2,mystates[i]+1],col=2*(j-1))
+      points(out[[1]]$x[iter[1],1,mystates[i]+1],out[[1]]$x[iter[1],2,mystates[i]+1],pch="S",cex=2,col="gray")
+      points(out[[1]]$x[iter[length(iter)],1,mystates[i]+1],out[[1]]$x[iter[length(iter)],2,mystates[i]+1],pch="F",cex=2,col="gray")
       if(n.chains > 1)
       {
         for(j in 2:n.chains)
         {
-          lines(out[[j]]$x[iter,1,mystates[i]+1],out[[j]]$x[iter,2,mystates[i]+1],col=2*(j-1))
-          points(out[[j]]$x[iter[1],1,mystates[i]+1],out[[j]]$x[iter[1],2,mystates[i]+1],pch=20,cex=2,col="green")
-          points(out[[j]]$x[iter[length(iter)],1,mystates[i]+1],out[[j]]$x[iter[length(iter)],2,mystates[i]+1],pch=20,cex=2,col="red")
+          points(out[[j]]$x[iter[1],1,mystates[i]+1],out[[j]]$x[iter[1],2,mystates[i]+1],pch="S",cex=2,col="gray")
+          points(out[[j]]$x[iter[length(iter)],1,mystates[i]+1],out[[j]]$x[iter[length(iter)],2,mystates[i]+1],pch="F",cex=2,col="gray")
         }
       }
+      points(mysim$sim[[1]]$x[1,mystates[i]+1],mysim$sim[[1]]$x[2,mystates[i]+1],pch=20,cex=2,col="gray")
     }
     dev.off()
 
@@ -114,7 +114,7 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
   if(length(params) > 0)
   {
     n.sims = dim(out[[1]]$tuning$params)[1]
-    iter = 1:n.sims
+    iter = (1:n.sims)[1:n.sims %% n.thin == 0]
     ylabs = expression(tau[beta],tau[gamma],tau[nu])[params]
     pdf(file=paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-tunings-params.pdf",sep=""))
     par(mfrow=c(length(params),1),mar=c(5,6,4,2)+.1)
@@ -141,10 +141,10 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
   if(states)
   {
     nt = dim(mysim$sim[[1]]$y)[2]
-    n.states = 4
+    n.states = 9
     mystates = floor(seq(0, nt, len=n.states))
     n.sims = dim(out[[1]]$tuning$states)[3]
-    iter = 1:n.sims
+    iter = (1:n.sims)[1:n.sims %% n.thin == 0]
     ylabs = paste("t = ",mystates,sep="")
     pdf(file=paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-tunings-states-s.pdf",sep=""),width=4*sqrt(n.states),height=4*sqrt(n.states))
     par(mfrow=c(sqrt(n.states),sqrt(n.states)),mar=c(5,6,4,2)+.1)
@@ -152,7 +152,7 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
     maxs = apply(as.matrix(sapply(out, function(x) apply(x$tuning$states[1, mystates+1, ], 1, max))),1, max)
     for(i in 1:n.states)
     {
-      plot(iter,out[[1]]$tuning$states[1,mystates[i]+1,iter],type="l",ylim=c(mins[i],maxs[i]),xlab="Iteration",ylab=ylabs[i],cex.lab = 1.5, main="Tuning parameters for states")
+      plot(iter,out[[1]]$tuning$states[1,mystates[i]+1,iter],type="l",ylim=c(mins[i],maxs[i]),xlab="Iteration",ylab=ylabs[i],cex.lab = 2, cex.axis = 1.5, main="Tuning parameters for states")
       if(n.chains > 1)
       {
         for(j in 2:n.chains) lines(iter,out[[j]]$tuning$states[1,mystates[i]+1,iter],col=2*(j-1))
@@ -169,12 +169,13 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
 }
 
 mydata = matrix(nr=0,nc=0)
-data = data.frame(x=c(0,0,0,1,1),beta=c(1,0,0,0,1),gamma=c(0,1,0,0,1),nu=c(0,0,1,0,1))
+#data = data.frame(x=c(0,0,0,1,1),beta=c(1,0,0,0,1),gamma=c(0,1,0,0,1),nu=c(0,0,1,0,1))
+data = data.frame(x=c(1,1),beta=c(0,1),gamma=c(0,1),nu=c(0,1))
 for(k in 1:dim(data)[1])
 {
   for(i in 1:2)
   {
-    mydata = rbind(mydata, data.frame(n.chains = 3, tune.type=i,data[k,]))
+    mydata = rbind(mydata, data.frame(n.chains = 3, tune.type=i, n.thin = 15, data[k,]))
   }
 }
 rownames(mydata) = 1:dim(mydata)[1]
