@@ -37,7 +37,7 @@ for(j in 1:n.chains)
 psi = list(b=b, varsigma=varsigma, sigma=sigma, eta=eta, P=P)
 tuning.1 = list(tuning.x = matrix(0.001, nr=2, nc = nt+1), tuning.theta = c(0.01, 0.001, 0.01))
 tuning.2 = list(tuning.x = matrix(c(0.002, 0.001), nr=2, nc = nt+1), tuning.theta = c(0.01, 0.001, 0.01))
-mcmc.details = list(n.thin=15, n.sims=200000, n.burn=50000, tune = TRUE)
+mcmc.details = list(n.thin=50, n.sims=600000, n.burn=100000, tune = TRUE)
 my_sir_mcmc <- function(n.chain, tune.type, x, beta, gamma, nu, progress)
 {
   if(tune.type == 1) tuning = tuning.1 else tuning = tuning.2
@@ -56,7 +56,8 @@ require(plyr)
 require(doMC)
 registerDoMC()
 mydata = matrix(nr=0,nc=0)
-data = data.frame(x=c(0,0,0,1,1),beta=c(1,0,0,0,1),gamma=c(0,1,0,0,1),nu=c(0,0,1,0,1),progress=FALSE)
+#data = data.frame(x=c(0,0,0,1,1),beta=c(1,0,0,0,1),gamma=c(0,1,0,0,1),nu=c(0,0,1,0,1),progress=FALSE)
+data = data.frame(x=c(1,1),beta=c(0,1),gamma=c(0,1),nu=c(0,1),progress=FALSE)
 for(k in 1:dim(data)[1])
 {
   for(i in 1:2)

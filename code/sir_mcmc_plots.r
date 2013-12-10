@@ -82,17 +82,35 @@ sir_mcmc_plots <- function(n.chains, n.thin, tune.type, x, beta, gamma, nu)
       plot(out[[1]]$x[iter,1,mystates[i]+1],out[[1]]$x[iter,2,mystates[i]+1],type="l",xlim=c(mins.s[i],maxs.s[i]),ylim=c(mins.i[i],maxs.i[i]),xlab=xlabs[i],ylab=ylabs[i],cex.lab=2,cex.axis=1.5)
       mtext(paste("s = ",round(mysim$sim[[1]]$x[1,mystates[i]+1],3),", i = ",round(mysim$sim[[1]]$x[2,mystates[i]+1],3),sep=""),side=3,cex=.8)
       if(n.chains > 1) for(j in 2:n.chains) lines(out[[j]]$x[iter,1,mystates[i]+1],out[[j]]$x[iter,2,mystates[i]+1],col=2*(j-1))
-      points(out[[1]]$x[iter[1],1,mystates[i]+1],out[[1]]$x[iter[1],2,mystates[i]+1],pch="S",cex=2,col="gray")
-      points(out[[1]]$x[iter[length(iter)],1,mystates[i]+1],out[[1]]$x[iter[length(iter)],2,mystates[i]+1],pch="F",cex=2,col="gray")
-      if(n.chains > 1)
-      {
-        for(j in 2:n.chains)
-        {
-          points(out[[j]]$x[iter[1],1,mystates[i]+1],out[[j]]$x[iter[1],2,mystates[i]+1],pch="S",cex=2,col="gray")
-          points(out[[j]]$x[iter[length(iter)],1,mystates[i]+1],out[[j]]$x[iter[length(iter)],2,mystates[i]+1],pch="F",cex=2,col="gray")
-        }
-      }
       points(mysim$sim[[1]]$x[1,mystates[i]+1],mysim$sim[[1]]$x[2,mystates[i]+1],pch=20,cex=2,col="gray")
+    }
+    dev.off()
+
+    # Marginal traceplots on (some) states
+    iter = (1:n.keep)*n.thin
+    xlabs = c("Iteration",rep("",n.states-1))
+    ylabs.s = paste(rep("s", n.states), mystates, sep=" ")
+    ylabs.i = paste(rep("i", n.states), mystates, sep=" ")
+    mins.s = apply(sapply(out, function(x) apply(x$x[,1,mystates+1], 2, min)), 1, min)
+    maxs.s = apply(sapply(out, function(x) apply(x$x[,1,mystates+1], 2, max)), 1, max)
+    mins.i = apply(sapply(out, function(x) apply(x$x[,2,mystates+1], 2, min)), 1, min)
+    maxs.i = apply(sapply(out, function(x) apply(x$x[,2,mystates+1], 2, max)), 1, max)
+    pdf(file=paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-traceplots-states-s.pdf",sep=""),width=4*sqrt(n.states),height=4*sqrt(n.states))
+    par(mfrow=c(sqrt(n.states),sqrt(n.states)),mar=c(5,6,4,2)+.1)
+    for(i in 1:n.states)
+    {
+      plot(iter,out[[1]]$x[,1,mystates[i]+1],type="l",ylim=c(mins.s[i],maxs.s[i]),xlab=xlabs[i],ylab=ylabs.s[i],cex.lab=2,cex.axis=1.5)
+      mtext(paste("s = ", round(mysim$sim[[1]]$x[1,mystates[i]+1],3),sep=""),side=3)
+      if(n.chains > 1) for(j in 2:n.chains) lines(iter,out[[j]]$x[,1,mystates[i]+1],col=2*(j-1))
+    }
+    dev.off()
+    pdf(file=paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-traceplots-states-i.pdf",sep=""),width=4*sqrt(n.states),height=4*sqrt(n.states))
+    par(mfrow=c(sqrt(n.states),sqrt(n.states)),mar=c(5,6,4,2)+.1)
+    for(i in 1:n.states)
+    {
+      plot(iter,out[[1]]$x[,2,mystates[i]+1],type="l",ylim=c(mins.i[i],maxs.i[i]),xlab=xlabs[i],ylab=ylabs.i[i],cex.lab=2,cex.axis=1.5)
+      mtext(paste("i = ", round(mysim$sim[[1]]$x[2,mystates[i]+1],3),sep=""),side=3)
+      if(n.chains > 1) for(j in 2:n.chains) lines(iter,out[[j]]$x[,2,mystates[i]+1],col=2*(j-1))
     }
     dev.off()
 
@@ -169,8 +187,7 @@ sir_mcmc_plots <- function(n.chains, n.thin, tune.type, x, beta, gamma, nu)
 }
 
 mydata = matrix(nr=0,nc=0)
-#data = data.frame(x=c(0,0,0,1,1),beta=c(1,0,0,0,1),gamma=c(0,1,0,0,1),nu=c(0,0,1,0,1))
-data = data.frame(x=c(1,1),beta=c(0,1),gamma=c(0,1),nu=c(0,1))
+data = data.frame(x=c(0,0,0,1,1),beta=c(1,0,0,0,1),gamma=c(0,1,0,0,1),nu=c(0,0,1,0,1))
 for(k in 1:dim(data)[1])
 {
   for(i in 1:2)
