@@ -9,7 +9,7 @@ source("sir_functions.r")
 # mcmc.details - optionally, a list containing scalars n.thin, n.sims, and n.burn for the how often to save iterations, total number of iterations, and burn in period, respectively, and boolean tune to specify whether tuning parameters should be adjusted during burn-in period
 # steps - optionally, a character vector specifying which states/unknown parameters to sample from in the Gibbs sampler. May contain any of 'x', 'beta', 'gamma', or 'nu'.
 # progress - boolean, should progress bar be displayed?
-sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE) {
+sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE, print.iter=FALSE) {
   nt = dim(y)[2] # How many time points?
 
   # Deal with missing arguments
@@ -55,44 +55,43 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
   n.iter <- (n.sims - n.burn)%/%n.thin
   keep.x   <- array(NA, c(n.iter, 2, nt + 1))
   keep.theta <- matrix(NA, n.iter, 3)
-  accept.x <- matrix(NA, n.sims, nt + 1)
-  accept.beta <- accept.gamma <- accept.nu <- rep(NA, n.sims)
-  tune.states.all <- array(NA, c(2, nt+1, n.sims))
-  tune.params.all <- matrix(NA, nr=n.sims, nc=3)
+  accept.x <- rep(0, nt + 1)
+  accept.theta <- rep(0, 3)
 
   # Run mcmc
   if(progress) pb = txtProgressBar(0,n.sims,style=3)
   for (i in 1:n.sims) {
-    if (progress) setTxtProgressBar(pb,i)
+    if(progress) setTxtProgressBar(pb,i)
+    if(print.iter & (i %% n.thin == 0)) print(i)
     if(i <= n.burn & tune) tune.burn = TRUE else tune.burn = FALSE
     
     if('x'  %in% steps)
     {
       samp.x = sample.x(y, x, theta, psi, tuning.x, tune.burn)
       x = samp.x$x
-      tuning.x <- tune.states.all[,,i] <- samp.x$tuning
-      accept.x[i,] = samp.x$accept
+      tuning.x <- samp.x$tuning
+      accept.x = accept.x + samp.x$accept
     }
     if('beta' %in% steps)
     {
       samp.beta = sample.beta(y, x, theta, psi, tuning.theta[1], tune.burn)
       theta[1] = samp.beta$beta
-      tuning.theta[1] <- tune.params.all[i,1] <- samp.beta$tuning
-      accept.beta[i] = samp.beta$accept
+      tuning.theta[1] <- samp.beta$tuning
+      accept.theta[1] = accept.theta[1] + samp.beta$accept
     }
     if('gamma' %in% steps)
     {
       samp.gamma = sample.gamma(y, x, theta, psi, tuning.theta[2], tune.burn)
       theta[2] = samp.gamma$gamma
-      tuning.theta[2] <- tune.params.all[i,2] <- samp.gamma$tuning
-      accept.gamma[i] = samp.gamma$accept
+      tuning.theta[2]  <- samp.gamma$tuning
+      accept.theta[2] = accept.theta[2] + samp.gamma$accept
     }
     if('nu' %in% steps)
     {
       samp.nu = sample.nu(y, x, theta, psi, tuning.theta[3], tune.burn)
       theta[3] = samp.nu$nu
-      tuning.theta[3] <- tune.params.all[i,3] <- samp.nu$tuning
-      accept.nu[i] = samp.nu$accept
+      tuning.theta[3] <- samp.nu$tuning
+      accept.theta[3] = accept.theta[3] + samp.nu$accept
     }
 
     # Only save every n.thin iteration
@@ -102,7 +101,7 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
     }
   }
 
-  return(list(x=keep.x, theta=keep.theta, tuning=list(states=tune.states.all,params=tune.params.all), accept.x=accept.x, accept.theta=cbind(accept.beta,accept.gamma,accept.nu)))
+  return(list(x=keep.x, theta=keep.theta, accept.x=accept.x, accept.theta=accept.theta, mcmc.details=list(n.sims=n.sims,n.thin=n.thin,n.burn=n.burn,tune=tune)))
 }
 
 #rmove <- function(y, x, theta, psi, tuning)
