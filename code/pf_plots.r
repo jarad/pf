@@ -4,6 +4,7 @@ source("pf_functions.r")
 n = c(100, 1000, 10000, 20000, 40000)
 filt = c("BF", "APF", "KD")
 cols = c(2, 4, 3)
+probs = c(2, 3)
 load.label <- function(filt, n, n.sim) paste("../data/PF-quant-uniform-systematic-",filt,"-",n,"-logit-61-",n.sim,".rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -20,7 +21,7 @@ for(i in 1:20)
       burn = c(15, 0, 0)
     }
     create.label <- paste("../graphs/PF-uniform-systematic-filt-",states.label[j],"-",i,".pdf",sep="")
-    pf_plot(n, params, filt, i, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
+    pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
   }
 }
 
@@ -44,7 +45,7 @@ for(i in 1:20)
       burn = c(15, 0, 0)
     }
     create.label <- paste("../graphs/PF-KD-lognormal-resamp-",states.label[j],"-",i,".pdf",sep="")
-    pf_plot(n, params, filt, i, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
+    pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
   }
 }
 
@@ -68,9 +69,21 @@ for(i in 1:20)
       burn = c(15, 0, 0)
     }
     create.label <- paste("../graphs/PF-lognormal-stratified-delta-",states.label[j],"-",i,".pdf",sep="")
-    pf_plot(n, params, filt, i, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
+    pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
   }
 }
+
+# Calculate coverage probabilities
+pf_coverage_unifsys <- function(n, filt, states)
+{
+  load.label <- function(filt, n, n.sim) paste("../data/PF-quant-uniform-systematic-",filt,"-",n,"-logit-61-",n.sim,".rdata",sep="")
+  pf_coverage(20, n, filt, c(2, 3), load.label, states) 
+}
+mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = c("BF", "APF", "KD"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
+require(plyr)
+coverage.unifsys <- maply(mydata, pf_coverage_unifsys)
+
+###################
 
 # Set graphics and data path
 gpath = "../graphs/"
