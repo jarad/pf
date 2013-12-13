@@ -95,11 +95,10 @@ pf.quant = function(n.sim, n, resamp, prior, delta, seed)
 }
 
 # Create data frame and use plyr to run particle filters in parallel
-data1 = expand.grid(n.sim = 1:20, n = c(100,1000,10000,20000,40000), resamp = c("multinomial","residual","stratified","systematic"), prior="orig", delta = .99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
-data2 = expand.grid(n.sim = 1:20, n = c(100,1000,10000,20000,40000), resamp = "stratified", prior="orig", delta = c(.9,.95,.96,.97,.98), seed = 61, progress=FALSE, stringsAsFactors=FALSE)
-data3 = expand.grid(n.sim = 1:20, n = c(100,1000,10000,20000,40000), resamp = "stratified", prior = "disp", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
-data4 = expand.grid(n.sim = 1:20, n = c(100,1000,10000,20000,40000), resamp = "stratified", prior = "unit", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
-mydata = rbind(data1, data2, data3, data4)
+data1 = expand.grid(n.sim = 1:20, n = c(60000, 80000), resamp = c("multinomial","residual","stratified","systematic"), prior="orig", delta = .99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data2 = expand.grid(n.sim = 1:20, n = c(60000, 80000), resamp = "stratified", prior="orig", delta = c(.9,.95,.96,.97,.98), seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data3 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000, 60000, 80000), resamp = "stratified", prior = "unit", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+mydata = rbind(data3, data1, data2)
 require(plyr)
 require(doMC)
 registerDoMC()
