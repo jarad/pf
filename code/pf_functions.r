@@ -25,6 +25,108 @@ pf.quantile = function(out, wts, ftheta, probs=.5, normwt=TRUE)
   return(quantiles)
 }
 
+# pf_plot - function that creates a grid of plots of credible intervals over time of filtered distributions based on particle filter output; number of particles along the rows, parameter along the columns and different pf's for which to compare within plot panels
+# Arguments:
+# n - integer vector of number of particles (rows)
+# params - character vector of expression vector of parameters (columns)
+# filt - character vector of particle filter types (different lines within plot panels)
+# n.sim - integer, simulation number for which to load particle filter approximations
+# cols - vector of colors of lines in plots (should be same length as 'filt')
+# create.label - character label for output file
+# load.label - function that takes elements of n, filt, and n.sim as arguments and returns the file name from which to load particle filter output
+# states - boolean, if TRUE, credible intevals for states are plotted, and if FALSE credible intervals for unknown parameters are plotted
+# ymins, ymaxs - vector of minimum and maximum values of plot window within columns (should be same length as params); may be left missing
+# cex.lab, cex.main, cex.axis, cex.leg - expansion factors for plot labels - same as those in functions plot() and legend()
+# pic.fac - factor by which to multiply the length of n and params to get the height and width, respectively, of output pdf file
+# burn - vector of length equal to params, how many beginning time points to ignore when finding ymins and ymaxs (only used if ymins and ymaxs are missing)
+pf_plot <- function(n, params, filt, n.sim, cols, create.label, load.label, states = FALSE, ymins, ymaxs, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, pic.fac = 10, burn = 0)
+{
+  # If missing ymins and ymaxs, find values to make plot windows consistent across columns (parameters)
+  if(missing(ymins))
+  {
+    if(length(burn) != length(params)) burn = rep(0,length(params))
+    mins = matrix(nr=0,nc=length(params))
+    for(i in 1:length(n)){
+    for(j in 1:length(filt)){
+      load(load.label(filt[j], n[i], n.sim))
+      if(states) out = pf.quant.out$state.quant else out = pf.quant.out$theta.quant
+      min.k <- rep(NA, length(params))
+      for(k in 1:length(params)) if(burn[k] > 0) min.k[k] = min(out[-(1:burn[k]),k,2]) else min.k[k] = min(out[,k,2])
+      mins = rbind(mins, min.k)
+    }}
+    ymins = apply(mins, 2, min)
+  }
+  if(missing(ymaxs))
+  {
+    maxs = matrix(nr=0,nc=length(params))
+    for(i in 1:length(n)){
+    for(j in 1:length(filt)){
+      load(load.label(filt[j], n[i], n.sim))
+      if(states) out = pf.quant.out$state.quant else out = pf.quant.out$theta.quant
+      max.k <- rep(NA, length(params))
+      for(k in 1:length(params)) if(burn[k] > 0) max.k[k] = max(out[-(1:burn[k]),k,3]) else max.k[k] = max(out[,k,3])
+      maxs = rbind(maxs, max.k)
+    }}
+    ymaxs = apply(maxs, 2, max)
+  }
+
+  # Construct plots
+  pdf(create.label, width = pic.fac*length(params), height = pic.fac*length(n))
+  par(mfrow=c(length(n),length(params)),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
+  for(i in 1:length(n))
+  {
+    for(k in 1:length(params))
+    {
+      for(j in 1:length(filt))
+      {
+        load(load.label(filt[j], n[i], n.sim))
+        if(states) out = pf.quant.out$state.quant else out = pf.quant.out$theta.quant
+        tt = dim(out)[1]; nt = tt - 1
+        quant = out[,k,]
+        x = 0:nt
+        if(j == 1) # call plot function
+        {
+          if(k == 1 & i == 1) # label y axis and title
+          {
+            plot(x,quant[,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+            lines(x,quant[,3],col=cols[j])
+          } else if(k == 1 & i == length(n)) { # label x and y axes
+            plot(x,quant[,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+            lines(x,quant[,3],col=cols[j])
+          } else if(k == 1) { # label y axis only
+            plot(x,quant[,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+            lines(x,quant[,3],col=cols[j])
+          } else if(i == 1) { # label title only
+            plot(x,quant[,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
+            lines(x,quant[,3],col=cols[j])
+          } else if(i == length(n)) { # label x axis only
+            plot(x,quant[,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
+            lines(x,quant[,3],col=cols[j])
+          } else { # label nothing
+            plot(x,quant[,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
+            lines(x,quant[,3],col=cols[j])
+          }
+        } else { # lines only
+          lines(x,quant[,2],col=cols[j])
+          lines(x,quant[,3],col=cols[j])
+        }
+      }
+      load("../data/sim-orig.rdata")
+      if(states)
+      {
+        if(k < 3) lines(x, mysim$sim[[1]]$x[k,], col="gray47") else lines(x, 1 - mysim$sim[[1]]$x[1,] - mysim$sim[[1]]$x[2,], col="gray47")
+      } else {
+        abline(h=mysim$sim[[n.sim]]$true.params$theta[k],col="gray47",lwd=6)
+      }
+      if(k == 1 & i == 1) # add legend
+      {
+        legend("topright",legend=c("Truth",filt),col=c("gray47",cols),lty=c(1,rep(1,length(filt))),lwd=c(6,rep(1,length(filt))),cex=cex.leg)
+      }
+    }
+  }
+  dev.off()
+}
+
 # pf.scat - function to resample particles, compute maximum/minimum values, and compute correlations between two parameters at specified time points; returns a list with components xrw1 and xrw2 that are M x length(cutoff) matrices of resampled particles (row = particle, column = time point), xlim and ylim that are each two element vectors that are the minimum and maximum values over all time points of xrw1 and xrw2, respectively, and r that is a length(cutoff) length vector of correlations between xrw1 and xrw2 at each time point
 # Arguments:
 # out - 2 by n by tt array of particles (assumed on original scale)

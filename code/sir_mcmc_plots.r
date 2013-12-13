@@ -1,5 +1,5 @@
 # Set data and graphics path
-dpath = "../data/"
+dpath = "/storage/sheinson_research/"
 gpath = "../graphs/"
 
 # Load simulated data
@@ -13,7 +13,7 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
   this.out = list()
   for(i in 1:n.chains)
   {
-    load(paste(dpath,"sir_mcmc_test-60",paste(i,tune.type,x,beta,gamma,nu,sep="-"),".rdata",sep=""))
+    load(paste(dpath,"sir_mcmc_test-",paste(i,tune.type,x,beta,gamma,nu,sep="-"),".rdata",sep=""))
     this.out[[i]] = list()
     n.sims = out$mcmc.details$n.sims
     n.burn = out$mcmc.details$n.burn
@@ -65,7 +65,7 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
 
   # Joint traceplots on (some) states
   if(states){
-    nt = dim(mysim$sim[[1]]$y)[2]
+    nt = dim(out[[1]]$x)[3] - 1
     n.states = 9
     mystates = floor(seq(0, nt, len=n.states))
     xlabs = paste(rep("s", n.states), mystates, sep=" ")
@@ -101,6 +101,7 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
       plot(iter,out[[1]]$x[,1,mystates[i]+1],type="l",ylim=c(mins.s[i],maxs.s[i]),xlab=xlabs[i],ylab=ylabs.s[i],cex.lab=2,cex.axis=1.5)
       mtext(paste("s = ", round(mysim$sim[[1]]$x[1,mystates[i]+1],3),sep=""),side=3)
       if(n.chains > 1) for(j in 2:n.chains) lines(iter,out[[j]]$x[,1,mystates[i]+1],col=2*(j-1))
+      abline(h=mysim$sim[[1]]$x[1,mystates[i]+1])
     }
     dev.off()
     pdf(file=paste(gpath,"sir_mcmc_test-",paste(tune.type,x,beta,gamma,nu,sep="-"),"-traceplots-states-i.pdf",sep=""),width=4*sqrt(n.states),height=4*sqrt(n.states))
@@ -110,6 +111,7 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
       plot(iter,out[[1]]$x[,2,mystates[i]+1],type="l",ylim=c(mins.i[i],maxs.i[i]),xlab=xlabs[i],ylab=ylabs.i[i],cex.lab=2,cex.axis=1.5)
       mtext(paste("i = ", round(mysim$sim[[1]]$x[2,mystates[i]+1],3),sep=""),side=3)
       if(n.chains > 1) for(j in 2:n.chains) lines(iter,out[[j]]$x[,2,mystates[i]+1],col=2*(j-1))
+      abline(h=mysim$sim[[1]]$x[1,mystates[i]+1])
     }
     dev.off()
 

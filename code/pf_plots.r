@@ -1,73 +1,80 @@
 source("pf_functions.r")
 
+## Compare particle filters over different # particles using systematic resampling, uniform priors
+n = c(100, 1000, 10000, 20000, 40000)
+filt = c("BF", "APF", "KD")
+cols = c(2, 4, 3)
+load.label <- function(filt, n, n.sim) paste("../data/PF-quant-uniform-systematic-",filt,"-",n,"-logit-61-",n.sim,".rdata",sep="")
+states = c(TRUE, FALSE)
+states.label <- c("states", "params")
+for(i in 1:20)
+{
+  for(j in 1:2)
+  {
+    if(j == 1)
+    {
+      params <- expression(s,i,r)
+      burn = 0
+    } else {
+      params <- expression(beta,gamma,nu)
+      burn = c(15, 0, 0)
+    }
+    create.label <- paste("../graphs/PF-uniform-systematic-filt-",states.label[j],"-",i,".pdf",sep="")
+    pf_plot(n, params, filt, i, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
+  }
+}
+
+## Compare resampling schemes over different # particles using KD pf and lognormal priors
+n = c(100, 1000, 10000, 20000, 40000)
+filt = c("multinomial", "residual", "stratified", "systematic")
+cols = rainbow(length(filt))
+load.label <- function(filt, n, n.sim) paste("../data/PF-quant-KD-lognormal-",filt,"-",n,"-orig-0.99-61-",n.sim,".rdata",sep="")
+states = c(TRUE, FALSE)
+states.label <- c("states", "params")
+for(i in 1:20)
+{
+  for(j in 1:2)
+  {
+    if(j == 1)
+    {
+      params <- expression(s,i,r)
+      burn = 0
+    } else {
+      params <- expression(beta,gamma,nu)
+      burn = c(15, 0, 0)
+    }
+    create.label <- paste("../graphs/PF-KD-lognormal-resamp-",states.label[j],"-",i,".pdf",sep="")
+    pf_plot(n, params, filt, i, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
+  }
+}
+
+## Compare delta parameter over different # particles using lognormal priors and stratified resampling
+n = c(100, 1000, 10000, 20000, 40000)
+filt = c(0.9, 0.95, 0.96, 0.97, 0.98, 0.99)
+cols = rainbow(length(filt))
+load.label <- function(filt, n, n.sim) paste("../data/PF-quant-KD-lognormal-stratified-",n,"-orig-",filt,"-61-",n.sim,".rdata",sep="")
+states = c(TRUE, FALSE)
+states.label <- c("states", "params")
+for(i in 1:20)
+{
+  for(j in 1:2)
+  {
+    if(j == 1)
+    {
+      params <- expression(s,i,r)
+      burn = 0
+    } else {
+      params <- expression(beta,gamma,nu)
+      burn = c(15, 0, 0)
+    }
+    create.label <- paste("../graphs/PF-lognormal-stratified-delta-",states.label[j],"-",i,".pdf",sep="")
+    pf_plot(n, params, filt, i, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
+  }
+}
+
 # Set graphics and data path
 gpath = "../graphs/"
 dpath = "../data/"
-
-## Figure 1 - Compare particle filters over different # particles for systematic resampling, uniform priors
-
-# Set graphical parameters
-params = expression(beta,gamma,nu)
-ymins = c(0.15,0.085,0.9)
-ymaxs = c(0.35,0.145,1.35)
-cols = c(2,4,3)
-cex.lab = 6
-cex.main = 7
-cex.axis = 4
-cex.leg = 4
-
-# 4 by 3 figure of plot panels (rows = num particles, cols = params)
-filts.load = c("BF","APF","KD")
-ns = c(1000,10000,20000,40000)
-
-# Construct plots
-pdf(paste(gpath,"PF-systematic-uniform-",ns[length(ns)],".pdf",sep=""),width=30,height=40)
-par(mfrow=c(4,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
-for(i in 1:length(ns))
-{
-  for(k in 1:length(params))
-  {
-    for(j in 1:length(filts.load))
-    {
-      load(paste(dpath,"PF-quant-orig-orig-",filts.load[j],"-uniform-uniform-systematic-",ns[i],"-ess-80.rdata",sep=""))
-      out = pf.quant.out$theta.quant
-      tt = dim(out)[1]; nt = tt - 1
-      if(j == 1) # call plot function
-      {
-        if(k == 1 & i == 1) # label y axis and title
-        {
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",ns[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-          lines(1:nt,out[-1,k,3],col=cols[j])
-        } else if(k == 1 & i == length(ns)) { # label x and y axes
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = ",ns[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
-          lines(1:nt,out[-1,k,3],col=cols[j])
-        } else if(k == 1) { # label y axis only
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",ns[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
-          lines(1:nt,out[-1,k,3],col=cols[j])
-        } else if(i == 1) { # label title only
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
-          lines(1:nt,out[-1,k,3],col=cols[j])
-        } else if(i == length(ns)) { # label x axis only
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
-          lines(1:nt,out[-1,k,3],col=cols[j])
-        } else { # label nothing
-          plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
-          lines(1:nt,out[-1,k,3],col=cols[j])
-        }
-      } else { # lines only
-        lines(1:nt,out[-1,k,2],col=cols[j])
-        lines(1:nt,out[-1,k,3],col=cols[j])
-      }
-    }
-    load(paste(dpath,"sim-orig.rdata",sep=""))
-    abline(h=theta[k],col="gray47",lwd=6)
-    if(k == 1 & i == 1) # add legend
-    {
-      legend("topright",legend=c("Truth","BF","APF","KDPF"),col=c("gray47",cols),lty=c(1,1,1,1),lwd=c(6,1,1,1),cex=cex.leg)
-    }
-  }
-}
-dev.off()
 
 ## Figure 2 - Create scatterplots of beta v gamma over time
 
@@ -102,7 +109,7 @@ for(k in 1:length(priors))
   myscat = pf.scat(myout,pf.out$out$weight,cutoff)
 
   # Scatterplots over time
-  file = paste(gpath,"Hist-KD-",prior.samps[k],"-",priors[k],"-systematic-",n,"-betagamma.pdf",sep="")
+  file = paste(gpath,"Hist-KD-nor-",prior.samps[k],"-",priors[k],"-systematic-",n,"-betagamma.pdf",sep="")
   pdf(file,width=20,height=5)
   par(mfrow=c(1,4),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
   for(i in 1:length(cutoff))
@@ -119,7 +126,7 @@ for(k in 1:length(priors))
       abline(v=borderx,lty=2)
       abline(h=bordery,lty=2)
       points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
-      mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
+#      mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
       points(theta[1],theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
     } else {
       plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",axes=FALSE)
@@ -127,7 +134,7 @@ for(k in 1:length(priors))
       abline(v=borderx,lty=2)
       abline(h=bordery,lty=2)
       points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
-      mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
+#      mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
       points(theta[1],theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
     }
   }

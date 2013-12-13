@@ -6,8 +6,7 @@ dpath = "/storage/sheinson_research/"
 
 # Load simulated data and redefine data / known parameter values
 load(paste(dpath,"sim-orig.rdata",sep=""))
-t = 1:60
-y = mysim$sim[[1]]$y[,t]
+y = mysim$sim[[1]]$y
 P = mysim$true.params$P
 b = mysim$true.params$b
 varsigma = mysim$true.params$varsigma
@@ -38,7 +37,7 @@ for(j in 1:n.chains)
 psi = list(b=b, varsigma=varsigma, sigma=sigma, eta=eta, P=P)
 tuning.1 = list(tuning.x = matrix(0.001, nr=2, nc = nt+1), tuning.theta = c(0.01, 0.001, 0.01))
 tuning.2 = list(tuning.x = matrix(c(0.002, 0.001), nr=2, nc = nt+1), tuning.theta = c(0.01, 0.001, 0.01))
-mcmc.details = list(n.thin=100, n.sims=1500000, n.burn=500000, tune = TRUE)
+mcmc.details = list(n.thin=1000, n.sims=11000000, n.burn=1000000, tune = TRUE)
 my_sir_mcmc <- function(n.chain, tune.type, x, beta, gamma, nu, progress, print.iter)
 {
   if(tune.type == 1) tuning = tuning.1 else tuning = tuning.2
