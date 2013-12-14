@@ -164,6 +164,92 @@ pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE)
   return(apply(covered, c(2, 3), mean))
 }
 
+# pf_coverage_plot - function to plot coverage probabilities over time for particle filters for each parameter (columns) with increasing number of particles (rows)
+# Arguments:
+# coverage - 4-dimensional array where first two dimensions are different number of particles and types of particle filter, and last two dimensions are different parameters and total time points
+# alpha - scaler, nominal proportion of time truth should be covered, to be plotted as horizontal gray line
+# params - vector of parameter names, should be of length equal to third dimension of coverage
+# cols - vector of colors of lines in plots (should be same length as 'filt')
+# create.label - character label for output file
+# ymins, ymaxs - vector of minimum and maximum values of plot window within columns (should be same length as params); may be left missing
+# cex.lab, cex.main, cex.axis, cex.leg - expansion factors for plot labels - same as those in functions plot() and legend()
+# pic.fac - factor by which to multiply the length of n and params to get the height and width, respectively, of output pdf file
+# burn - vector of length equal to params, how many beginning time points to ignore when finding ymins and ymaxs (only used if ymins and ymaxs are missing)
+pf_coverage_plot <- function(coverage, alpha, params, cols, create.label, ymins, ymaxs, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, pic.fac = 10, burn = 0)
+{
+  n <- dimnames(coverage)[[1]]
+  filt <- dimnames(coverage)[[2]]
+
+  # If missing ymins and ymaxs, find values to make plot windows consistent across columns (parameters)
+  if(missing(ymins))
+  {
+    if(length(burn) != length(params)) burn = rep(0,length(params))
+    mins = matrix(nr=0,nc=length(params))
+    for(i in 1:length(n)){
+    for(j in 1:length(filt)){   
+      min.k <- rep(NA, length(params))
+      for(k in 1:length(params)) if(burn[k] > 0) min.k[k] = min(coverage[i,j,k,-(1:burn[k])]) else min.k[k] = min(coverage[i,j,k,])
+      mins = rbind(mins, min.k)
+    }}
+    ymins = apply(mins, 2, min)
+  }
+  if(missing(ymaxs))
+  {
+    maxs = matrix(nr=0,nc=length(params))
+    for(i in 1:length(n)){
+    for(j in 1:length(filt)){
+      max.k <- rep(NA, length(params))
+      for(k in 1:length(params)) if(burn[k] > 0) max.k[k] = max(coverage[i,j,k,-(1:burn[k])]) else max.k[k] = max(coverage[i,j,k,])
+      maxs = rbind(maxs, max.k)
+    }}
+    ymaxs = apply(maxs, 2, max)
+  }
+
+  # Construct plots
+  pdf(create.label, width = pic.fac*length(params), height = pic.fac*length(n))
+  par(mfrow=c(length(n),length(params)),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
+  for(i in 1:length(n))
+  {
+    for(k in 1:length(params))
+    {
+      for(j in 1:length(filt))
+      {
+        tt = dim(coverage)[4]; nt = tt - 1
+        cov = coverage[i,j,k,]
+        x = 0:nt
+        if(j == 1) # call plot function
+        {
+          if(k == 1 & i == 1) # label y axis and title
+          {
+            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+          } else if(k == 1 & i == length(n)) { # label x and y axes
+            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+          } else if(k == 1) { # label y axis only
+            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+          } else if(i == 1) { # label title only
+            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
+          } else if(i == length(n)) { # label x axis only
+            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
+          } else { # label nothing
+            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
+          }
+        } else { # lines only
+          lines(x,cov,col=cols[j])
+        }
+      }
+
+      # Add nominal coverage level line
+      abline(h = alpha, col = "gray", lwd = 6)
+
+      if(k == 1 & i == 1) # add legend
+      {
+        legend("topright",legend=c("Nominal level",filt),col=c("gray47",cols),lty=c(1,rep(1,length(filt))),lwd=c(6,rep(1,length(filt))),cex=cex.leg)
+      }
+    }
+  }
+  dev.off()
+}
+
 # pf.scat - function to resample particles, compute maximum/minimum values, and compute correlations between two parameters at specified time points; returns a list with components xrw1 and xrw2 that are M x length(cutoff) matrices of resampled particles (row = particle, column = time point), xlim and ylim that are each two element vectors that are the minimum and maximum values over all time points of xrw1 and xrw2, respectively, and r that is a length(cutoff) length vector of correlations between xrw1 and xrw2 at each time point
 # Arguments:
 # out - 2 by n by tt array of particles (assumed on original scale)
