@@ -104,21 +104,25 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
   return(list(x=keep.x, theta=keep.theta, accept.x=accept.x, accept.theta=accept.theta, mcmc.details=list(n.sims=n.sims,n.thin=n.thin,n.burn=n.burn,tune=tune)))
 }
 
-#rmove <- function(y, x, theta, psi, tuning)
-#{
-#  nt = dim(y)[2]
-#  stopifnot(nt == dim(x)[2] - 1)
-#
-#  # Move states
-#  x = sample.x(y, x, theta, psi, tuning[1:2])
-#  
-#  # Move parameters
-#  theta[1] = sample.beta(y, x, theta, psi, tuning[3])
-#  theta[2] = sample.gamma(y, x, theta, psi, tuning[4])
-#  theta[3] = sample.nu(y, x, theta, psi, tuning[5])
-#  
-#  return(list(state=x, theta=theta))
-#}
+rmove <- function(y, x, theta, psi, tuning.x, tuning.theta, n.iter = 1)
+{
+  # Check dimensions of y and x
+  nt = dim(y)[2]
+  stopifnot(nt == dim(x)[2] - 1)
+  stopfifnot(all(dim(x) == dim(tuning.x)) & (length(theta) == length(tuning.theta)))
+
+  for(j in 1:n.iter)
+  {
+    # Move states
+    x = sample.x(y, x, theta, psi, tuning.x)
+    
+    # Move parameters
+    theta[1] = sample.beta(y, x, theta, psi, tuning.theta[1])
+    theta[2] = sample.gamma(y, x, theta, psi, tuning.theta[2])
+    theta[3] = sample.nu(y, x, theta, psi, tuning.theta[3])
+  }
+  return(list(state=x, theta=theta))
+}
 
 # sample.x - function to sample from the full conditional of the state vector x at each time point separately, starting from initial state x[,0]
 sample.x <- function(y, x, theta, psi, tuning, tune = FALSE)
