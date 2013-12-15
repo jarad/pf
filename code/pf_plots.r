@@ -109,24 +109,6 @@ pf_coverage_plot(coverage[,,1,,], alpha, params, cols, create.label)
 create.label <- "../graphs/PF-coverage-KD-lognormal-resamp-states.pdf"
 pf_coverage_plot(coverage[,,2,,], alpha, states, cols, create.label)
 
-# Plot coverage probabilities for different particle filters with uniform priors, systematic resampling
-my_pf_coverage <- function(n, filt, states)
-{
-  load.label <- function(filt, n, n.sim) paste("../data/PF-quant-uniform-systematic-",filt,"-",n,"-logit-61-",n.sim,".rdata",sep="")
-  pf_coverage(20, n, filt, c(2, 3), load.label, states) 
-}
-mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = c("BF", "APF", "KD"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
-require(plyr)
-coverage <- maply(mydata, my_pf_coverage)
-alpha = 0.95
-params = expression(beta, gamma, nu)
-states = expression(s, i, r)
-cols = c(2,4,3)
-create.label <- "../graphs/PF-coverage-uniform-systematic-filt-params.pdf"
-pf_coverage_plot(coverage[,,1,,], alpha, params, cols, create.label)
-create.label <- "../graphs/PF-coverage-uniform-systematic-filt-states.pdf"
-pf_coverage_plot(coverage[,,2,,], alpha, states, cols, create.label)
-
 # Plot coverage probabilities for delta values with lognormal priors, stratified resampling
 my_pf_coverage <- function(n, filt, states)
 {

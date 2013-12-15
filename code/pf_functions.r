@@ -221,20 +221,20 @@ pf_coverage_plot <- function(coverage, alpha, params, cols, create.label, ymins,
         {
           if(k == 1 & i == 1) # label y axis and title
           {
-            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
           } else if(k == 1 & i == length(n)) { # label x and y axes
-            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
           } else if(k == 1) { # label y axis only
-            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
           } else if(i == 1) { # label title only
-            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
           } else if(i == length(n)) { # label x axis only
-            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
           } else { # label nothing
-            plot(x,cov,type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
           }
         } else { # lines only
-          lines(x,cov,col=cols[j])
+          lines(x,cov,type="b",cex=2.5,col=cols[j])
         }
       }
 
