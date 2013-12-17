@@ -23,13 +23,7 @@ for(j in 1:n.chains)
   log.params = find.mu.sigma(c(.14, .09, .95), c(.5, .143, 1.3))
   tmp = rprior(function() exp(rnorm(3, log.params[[1]], log.params[[2]])))
   theta = tmp$theta
-#  x = matrix(NA, 2, nt + 1)
-#  x[,1] = tmp$x
-#  beta.x <- exp(rnorm(nt, log.params[[1]][1], log.params[[2]][1]))
-#  gamma.x <- exp(rnorm(nt, log.params[[1]][2], log.params[[2]][2]))
-#  nu.x <- exp(rnorm(nt, log.params[[1]][3], log.params[[2]][3]))
-#  for(i in 1:nt) x[,i+1] = revo(x[,i], c(beta.x[i], gamma.x[i], nu.x[i]), P)
-  x = mysim$sim[[1]]$x[,c(1,t)]
+  x = mysim$sim[[1]]$x
   initial.chains[[j]] = list(x = x, theta = theta)
 }
 
@@ -50,23 +44,17 @@ my_sir_mcmc <- function(n.chain, tune.type, x, beta, gamma, nu, progress, print.
   if(!('nu' %in% steps)) initial.chains[[n.chain]]$theta[3] = mysim$true.params$theta[3]
   cat(n.chain,tune.type,x,beta,gamma,nu,"\n",sep=" ")
   out = sir_mcmc(y, psi, initial.chains[[n.chain]], tuning, mcmc.details, steps, progress, print.iter)
-  save(out, file = paste(dpath,"sir_mcmc_test-60",paste(n.chain,tune.type,x,beta,gamma,nu,sep="-"),".rdata",sep=""))
+  return(list(out=out,samp.details=list(n.chain=n.chain,tune.type=tune.type,x=x,beta=beta,gamma=gamma,nu=nu)))
 }
 require(plyr)
 require(doMC)
 registerDoMC()
-mydata = matrix(nr=0,nc=0)
-#data = data.frame(x=c(0,0,0,1,1),beta=c(1,0,0,0,1),gamma=c(0,1,0,0,1),nu=c(0,0,1,0,1),progress=FALSE)
-data = data.frame(x=1,beta=1,gamma=1,nu=1,progress=FALSE,print.iter=TRUE)
-for(k in 1:dim(data)[1])
+mydata = data.frame(n.chain=1:3, tune.type=1, x=1, beta=1, gamma=1, nu=1, progress=FALSE, print.iter=TRUE)
+mcmc.chains = mlply(.data = mydata, .fun = my_sir_mcmc, .parallel = TRUE)
+for(i in 1:dim(mydata)[1])
 {
-#  for(i in 1:2)
-#  {
-    for(j in 1:n.chains)
-    {
-      mydata = rbind(mydata, data.frame(n.chain=j,tune.type=1,data[k,]))
-    }
-#  }
+  label = mcmc.chains[[i]]$samp.details
+  file = paste(dpath,"sir_mcmc_test-",paste(label$n.chain,label$tune.type,label$x,label$beta,label$gamma,label$nu,sep="-"),".rdata",sep="")
+  out = mcmc.chains[[i]]$out
+  save(out, file = file)
 }
-rownames(mydata) = 1:dim(mydata)[1]
-m_ply(.data = mydata, .fun = my_sir_mcmc, .parallel = TRUE)

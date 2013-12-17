@@ -129,18 +129,6 @@ sir_mcmc_plots <- function(n.chains, tune.type, x, beta, gamma, nu)
     sink()
   }
 }
-
-mydata = matrix(nr=0,nc=0)
-#data = data.frame(x=c(0,0,0,1,1),beta=c(1,0,0,0,1),gamma=c(0,1,0,0,1),nu=c(0,0,1,0,1))
-data = data.frame(x=1,beta=1,gamma=1,nu=1)
-for(k in 1:dim(data)[1])
-{
-#  for(i in 1:2)
-#  {
-    mydata = rbind(mydata, data.frame(n.chains = 3, tune.type=1, data[k,]))
-#  }
-}
-rownames(mydata) = 1:dim(mydata)[1]
-
+mydata = data.frame(n.chains=3,tune.type=1,x=1,beta=1,gamma=1,nu=1)
 require(plyr)
 m_ply(.data = mydata, .fun = sir_mcmc_plots)
