@@ -106,20 +106,24 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
 
 rmove <- function(y, x, theta, psi, tuning.x, tuning.theta, n.iter = 1)
 {
+  # Deal with missing arguments
+  if(missing(tuning.x)) tuning.x <- matrix(0.0001, nr=dim(x)[1], nc=dim(x)[2])
+  if(missing(tuning.theta)) tuning.theta <- c(0.0005, 0.00018, 0.00038)
+
   # Check dimensions of y and x
   nt = dim(y)[2]
   stopifnot(nt == dim(x)[2] - 1)
-  stopfifnot(all(dim(x) == dim(tuning.x)) & (length(theta) == length(tuning.theta)))
+  stopifnot(all(dim(x) == dim(tuning.x)) & (length(theta) == length(tuning.theta)))
 
   for(j in 1:n.iter)
   {
     # Move states
-    x = sample.x(y, x, theta, psi, tuning.x)
+    x = sample.x(y, x, theta, psi, tuning.x)$x
     
     # Move parameters
-    theta[1] = sample.beta(y, x, theta, psi, tuning.theta[1])
-    theta[2] = sample.gamma(y, x, theta, psi, tuning.theta[2])
-    theta[3] = sample.nu(y, x, theta, psi, tuning.theta[3])
+    theta[1] = sample.beta(y, x, theta, psi, tuning.theta[1])$beta
+    theta[2] = sample.gamma(y, x, theta, psi, tuning.theta[2])$gamma
+    theta[3] = sample.nu(y, x, theta, psi, tuning.theta[3])$nu
   }
   return(list(state=x, theta=theta))
 }
