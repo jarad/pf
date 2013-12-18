@@ -60,7 +60,9 @@ pf <- function(n.sim, n, resamp, prior, delta, seed, progress = TRUE)
 
   # Save output
   pf.out = list(out=out,ftheta=ftheta)
-  save(pf.out, file=paste(dpath,"PF-KD-lognormal-",resamp,"-",n,"-",prior,"-",delta,"-",seed,"-",n.sim,".rdata",sep=""))
+  file = paste(dpath,"PF-KD-lognormal-",resamp,"-",n,"-",prior,"-",delta,"-",seed,"-",n.sim,".rdata",sep="")
+  print(file)
+  save(pf.out, file=file)
 }
 
 pf.quant = function(n.sim, n, resamp, prior, delta, seed)
@@ -91,19 +93,39 @@ pf.quant = function(n.sim, n, resamp, prior, delta, seed)
 
   # Save data
   pf.quant.out = list(state.quant=state.quant,theta.quant=theta.quant,probs=probs)
-  save(pf.quant.out, file=paste(dpath,"PF-quant-KD-lognormal-",resamp,"-",n,"-",prior,"-",delta,"-",seed,"-",n.sim,".rdata",sep=""))
+  file = paste(dpath,"PF-quant-KD-lognormal-",resamp,"-",n,"-",prior,"-",delta,"-",seed,"-",n.sim,".rdata",sep="")
+  print(file)
+  save(pf.quant.out, file=file)
 }
 
 # Create data frame and use plyr to run particle filters in parallel
-data1 = expand.grid(n.sim = 1:20, n = c(60000, 80000), resamp = c("multinomial","residual","stratified","systematic"), prior="orig", delta = .99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
-data2 = expand.grid(n.sim = 1:20, n = c(60000, 80000), resamp = "stratified", prior="orig", delta = c(.9,.95,.96,.97,.98), seed = 61, progress=FALSE, stringsAsFactors=FALSE)
-data3 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000, 60000, 80000), resamp = "stratified", prior = "unit", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
-mydata = rbind(data3, data1, data2)
+#data1 = expand.grid(n.sim = 1:20, n = c(60000, 80000), resamp = c("multinomial","residual","stratified","systematic"), prior="orig", delta = .99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+#data2 = expand.grid(n.sim = 1:20, n = c(60000, 80000), resamp = "stratified", prior="orig", delta = c(.9,.95,.96,.97,.98), seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+#data3 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000, 60000, 80000), resamp = "stratified", prior = "unit", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+#mydata = rbind(data3, data1, data2)
+
+data1 <- data.frame(n.sim = c(6, 10, 14, 18), n = 80000, resamp = "multinomial", prior = "orig", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data2 <- data.frame(n.sim = c(2, 6, 10, 14, 18), n = 60000, resamp = "residual", prior = "orig", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data3 <- data.frame(n.sim = c(2, 6, 10, 14, 17:20), n = 80000, resamp = "residual", prior = "orig", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data4 <- data.frame(n.sim = 1:20, n = 60000, resamp = "stratified", prior = "orig", delta = c(0.9, 0.95), seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data5 <- data.frame(n.sim = c(1:8, 10, 14, 18), n = 60000, resamp = "stratified", prior = "orig", delta = 0.96, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data6 <- data.frame(n.sim = c(2, 6, 9:20), n = 60000, resamp = "stratified", prior = "orig", delta = 0.97, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data7 <- data.frame(n.sim = c(2, 6, 10, 14, 18), n = 60000, resamp = "stratified", prior = "orig", delta = 0.98, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data8 <- data.frame(n.sim = c(2, 6, 10, 13:15, 17:20), n = 60000, resamp = "stratified", prior = "orig", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data9 <- data.frame(n.sim = c(1:16, 18), n = 80000, resamp = "stratified", prior = "orig", delta = 0.9, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data10 <- data.frame(n.sim = c(2, 6, 10, 14, 17:20), n = 80000, resamp = "stratified", prior = "orig", delta = 0.95, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data11 <- data.frame(n.sim = 1:20, n = 80000, resamp = "stratified", prior = "orig", delta = c(0.96, 0.97), seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data12 <- data.frame(n.sim = c(1:8, 10, 14, 18), n = 80000, resamp = "stratified", prior = "orig", delta = 0.98, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data13 <- data.frame(n.sim = c(2, 6, 10, 13, 14, 16:20), n = 80000, resamp = "stratified", prior = "orig", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data14 <- data.frame(n.sim = c(2, 6, 10, 14, 17, 18), n = 60000, resamp = "systematic", prior = "orig", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+data15 <- data.frame(n.sim = c(2, 6, 10, 14, 18), n = 80000, resamp = "systematic", prior = "orig", delta = 0.99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
+mydata = rbind(data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13, data14, data15)
+
 require(plyr)
 require(doMC)
 registerDoMC()
 m_ply(.data = mydata, .fun = pf, .parallel = TRUE)
 
 # Calculate quantiles
-mydata.quant = mydata[,-dim(mydata)[2]]
-m_ply(.data = mydata.quant, .fun = pf.quant, .parallel = TRUE)
+#mydata.quant = mydata[,-dim(mydata)[2]]
+#m_ply(.data = mydata.quant, .fun = pf.quant, .parallel = TRUE)
