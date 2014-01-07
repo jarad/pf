@@ -24,28 +24,15 @@ pf <- function(n.sim, n, resamp, prior, delta, seed, progress = TRUE)
     rtheta <- function() rnorm(3, log.params[[1]], log.params[[2]])
     ftheta <- function(x, param=1) exp(x)
   } else if(prior == "disp") {
-    log.params <- find.mu.sigma(c(.05, .01, .75), c(2, 0.25, 1.75))
-    rtheta <- function() rnorm(3, log.params[[1]], log.params[[2]])
-    ftheta <- function(x, param=1) exp(x)
-  } else if(prior == "unit"){
-    thetal = c(0, 0)
-    thetau = c(1, 1)
-    log.nu <- find.mu.sigma(.75, 1.75)    
-    rtheta <- function() c(u2theta(runif(2,thetal,thetau),thetal,thetau), rnorm(1,log.nu[[1]],log.nu[[2]]))
-    ftheta <- function(theta, param=1:3)
+    log.params <- find.mu.sigma(c(.05, .05, .75), c(0.75, 0.25, 1.5))
+    rtheta <- function()
     {
-      if(length(param) < 1) stop("param must have at least 1 element")
-      u = rep(NA, length(param))
-      for(d in 1:length(param))
-      {
-        if(param[d] < 3)
-        {
-          u[d] = theta2u(theta[param[d]],thetal[param[d]],thetau[param[d]])
-        } else { u[d] = exp(theta[param[d]]) }
-      }
-      return(u)
+      log.theta = rnorm(3, log.params[[1]], log.params[[2]])
+      while(!all(exp(log.theta) > 0) | !all(exp(log.theta[1:2]) < 1)) log.theta = rnorm(3, log.params[[1]], log.params[[2]])
+      return(log.theta)
     }
-  } else { stop("prior must be 'orig', 'disp', or 'unit'") }
+    ftheta <- function(x, param=1) exp(x)
+  } else { stop("prior must be 'orig' or 'disp'") }
 
   # Set seed
   set.seed(seed)
@@ -65,9 +52,13 @@ pf <- function(n.sim, n, resamp, prior, delta, seed, progress = TRUE)
 }
 
 # Create data frame and use plyr to run particle filters in parallel
-data1 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000), resamp = c("multinomial","residual","stratified","systematic"), prior="orig", delta = .99, seed = 61, progress=FALSE, stringsAsFactors=FALSE)
-data2 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000), resamp = "stratified", prior="orig", delta = c(0.9,0.95,0.96,0.97,0.98,0.99), seed = 61, progress = FALSE, stringsAsFactors=FALSE)
-mydata = rbind(data1, data2)
+data1 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000), resamp = c("multinomial","residual","stratified","systematic"), prior="orig", delta = .99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+data2 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000), resamp = "stratified", prior="orig", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+data3 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000), resamp = "stratified", prior = "disp", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
+data4 = expand.grid(n.sim = 1, n = c(60000, 80000), resamp = c("multinomial","residual","stratified","systematic"), prior = "orig", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+data5 = expand.grid(n.sim = 1, n = c(60000, 80000), resamp = "stratified", prior = "orig", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+data6 = expand.grid(n.sim = 1, n = c(60000, 80000), resamp = "stratified", prior = "disp", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+mydata = rbind(data3, data4, data5, data6)
 
 require(plyr)
 require(doMC)

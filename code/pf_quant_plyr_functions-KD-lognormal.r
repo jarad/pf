@@ -38,8 +38,12 @@ pf.quant = function(n.sim, n, resamp, prior, delta, seed)
 
 # Create data frame and use plyr to run particle filters
 data1 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000), resamp = c("multinomial","residual","stratified","systematic"), prior="orig", delta = .99, seed = 61, stringsAsFactors=FALSE)
-data2 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000), resamp = "stratified", prior="orig", delta = c(0.9,0.95,0.96,0.97,0.98,0.99), seed = 61, stringsAsFactors=FALSE)
-mydata = rbind(data1, data2)
+data2 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000), resamp = "stratified", prior = "orig", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, stringsAsFactors=FALSE)
+data3 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000, 40000), resamp = "stratified", prior = "disp", delta = 0.99, seed = 61, stringsAsFactors=FALSE)
+data4 = expand.grid(n.sim = 1, n = c(60000, 80000), resamp = c("multinomial","residual","stratified","systematic"), prior = "orig", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
+data5 = expand.grid(n.sim = 1, n = c(60000, 80000), resamp = "stratified", prior = "orig", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, stringsAsFactors = FALSE)
+data6 = expand.grid(n.sim = 1, n = c(60000, 80000), resamp = "stratified", prior = "disp", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
+mydata = rbind(data3, data4, data5, data6)
 
 require(plyr)
 require(doMC)
