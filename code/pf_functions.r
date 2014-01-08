@@ -117,7 +117,7 @@ pf_plot <- function(n, params, filt, n.sim, probs, cols, create.label, load.labe
       {
         if(k < 3) lines(x, mysim$sim[[1]]$x[k,], col="gray47") else lines(x, 1 - mysim$sim[[1]]$x[1,] - mysim$sim[[1]]$x[2,], col="gray47")
       } else {
-        abline(h=mysim$sim[[n.sim]]$true.params$theta[k],col="gray47",lwd=6)
+        abline(h=mysim$true.params$theta[k],col="gray47",lwd=6)
       }
       if(k == 1 & i == 1) # add legend
       {
@@ -175,7 +175,7 @@ pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE)
 # cex.lab, cex.main, cex.axis, cex.leg - expansion factors for plot labels - same as those in functions plot() and legend()
 # pic.fac - factor by which to multiply the length of n and params to get the height and width, respectively, of output pdf file
 # burn - vector of length equal to params, how many beginning time points to ignore when finding ymins and ymaxs (only used if ymins and ymaxs are missing)
-pf_coverage_plot <- function(coverage, alpha, params, cols, create.label, ymins, ymaxs, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, pic.fac = 10, burn = 0)
+pf_coverage_plot <- function(coverage, alpha, n.sim, params, cols, create.label, ymins, ymaxs, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, pic.fac = 10, burn = 0)
 {
   n <- dimnames(coverage)[[1]]
   filt <- dimnames(coverage)[[2]]
@@ -240,6 +240,9 @@ pf_coverage_plot <- function(coverage, alpha, params, cols, create.label, ymins,
 
       # Add nominal coverage level line
       abline(h = alpha, col = "gray", lwd = 6)
+      me = 1.96*sqrt(alpha*(1-alpha)/n.sim)
+      abline(h = alpha - me, col = "gray", lwd = 6, lty = 2)
+      abline(h = alpha + me, col = "gray", lwd = 6, lty = 2)
 
       if(k == 1 & i == 1) # add legend
       {
