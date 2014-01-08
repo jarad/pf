@@ -128,13 +128,9 @@ pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
 create.label <- "../graphs/PF-coverage-KD-lognormal-stratified-delta-states.pdf"
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
-###################
-
-# Set graphics and data path
-gpath = "../graphs/"
-dpath = "../data/"
-
-## Figure 2 - Create scatterplots of beta v gamma over time
+## Create scatterplots of beta v gamma over time
+source("pf_functions.r")
+source("sir_functions.r")
 
 # Set graphical parameters
 xlim=c(.17,.33); ylim=c(.07,.17)
@@ -143,20 +139,16 @@ msize=5; labsize=5; axsize=3; ptsize=3
 ptsty=20; ptcol="gray75"; rline = -2.3; rsize = 1.8
 
 # Load simulated data to get true values of beta and gamma
-load(paste(dpath,"sim-orig.rdata",sep=""))
+load("../data/sim-orig.rdata")
 
 # Panel 1 - uniform prior draws, logit transformation
-# Panel 2 - uniform prior draws, no transformation
-# Panel 3 - uniform prior draws, log transformation
-# Panel 4 - lognormal prior draws, log transformation 
-n = 10000
-priors = c("uniform","semi-uniform","lognormal","lognormal")
-prior.samps = c("uniform","uniform","uniform","lognormal")
-for(k in 1:length(priors))
+# Panel 2 - uniform prior draws, log transformation
+trans = c("logit", "log")
+for(k in 1:length(trans))
 {
   # Load particle filtered data
-  load(paste(dpath,"PF-orig-orig-KD-",prior.samps[k],"-",priors[k],"-systematic-",n,"-ess-80.rdata",sep=""))
-
+  load(paste("../data/PF-uniform-systematic-KD-10000-",trans[k],"-61-1.rdata",sep=""))
+  
   # Resample particles at cutoff points to have equal weights
   cutoff = seq(16, 61, len=4)
   betas = pf.out$ftheta(pf.out$out$theta[1,,],1)
@@ -165,14 +157,14 @@ for(k in 1:length(priors))
   myout[1,,] = betas
   myout[2,,] = gammas
   myscat = pf.scat(myout,pf.out$out$weight,cutoff)
-
+  
   # Scatterplots over time
-  file = paste(gpath,"Hist-KD-nor-",prior.samps[k],"-",priors[k],"-systematic-",n,"-betagamma.pdf",sep="")
+  file = paste("../graphs/PF-betaGammaScat-uniform-systematic-KD-10000-",trans[k],"-61-1.pdf",sep="")
   pdf(file,width=20,height=5)
   par(mfrow=c(1,4),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
   for(i in 1:length(cutoff))
   {
-    if(priors[k] == "uniform")
+    if(k == 1)
     {
       if(i == 1)
       {
@@ -184,67 +176,20 @@ for(k in 1:length(priors))
       abline(v=borderx,lty=2)
       abline(h=bordery,lty=2)
       points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
-#      mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
-      points(theta[1],theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
+      points(mysim$true.params$theta[1],mysim$true.params$theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
     } else {
       plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",axes=FALSE)
       box()
       abline(v=borderx,lty=2)
       abline(h=bordery,lty=2)
       points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
-#      mtext(line=rline,cex=rsize,paste("r = ",round(myscat$r[i],2),sep=""))
-      points(theta[1],theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
+      points(mysim$true.params$theta[1],mysim$true.params$theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
     }
   }
   dev.off()
 }
 
-## Figure 2a - plot correlations over time for uniform, semi-uniform, normal priors
-
-# Load data and compute correlations
-load(paste(dpath,"sim-orig.rdata",sep=""))
-n = 10000
-tt = nt + 1
-priors = c("uniform","semi-uniform","lognormal")
-prior.samps = c("uniform","uniform","lognormal")
-cutoff = 2:tt
-r = matrix(NA,nr=length(cutoff),length(priors))
-for(k in 1:length(priors))
-{
-  # Load particle filtered data
-  load(paste(dpath,"PF-orig-orig-KD-",prior.samps[k],"-",priors[k],"-systematic-",n,"-ess-80.rdata",sep=""))
-
-  # Resample particles at cutoff points to have equal weights
-  betas = pf.out$ftheta(pf.out$out$theta[1,,],1)
-  gammas = pf.out$ftheta(pf.out$out$theta[2,,],2)
-  myout = array(NA,dim=c(2,dim(betas)[1],dim(betas)[2]))
-  myout[1,,] = betas
-  myout[2,,] = gammas
-  myscat = pf.scat(myout,pf.out$out$weight,cutoff)
- 
-  # Save correlations
-  r[,k] = myscat$r
-}
-
-# Set graphical parameters
-msize=1; labsize=1; axsize=1
-col = c(1,2,4)
-
-# Construct plot
-file = paste(gpath,"Hist-KD-systematic-",n,"-betagamma-corrs.pdf",sep="")
-pdf(file)
-#par(mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
-for(k in 1:dim(r)[2])
-{
-  if(k == 1)
-  {
-    plot(cutoff-1,r[,k],type="l",main="Correlation Coefficient vs Time",xlab="Time (days)",ylab=expression(r),cex.main=msize,cex.lab=labsize,cex.axis=axsize)
-  } else {
-    lines(cutoff-1,r[,k],col=col[k])
-  }
-  legend("topright",c("Unif draws, logit transf.","Unif draws, no transf.","Normal draws, log transf."),lty=c(1,1,1),col=c(1,2,4))
-}
-dev.off()
+###################
 
 ## Figure 3 - Compare resampling schemes over different # particles using normal priors, kernel density PF
 
