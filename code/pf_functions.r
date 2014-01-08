@@ -167,7 +167,8 @@ pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE)
 # pf_coverage_plot - function to plot coverage probabilities over time for particle filters for each parameter (columns) with increasing number of particles (rows)
 # Arguments:
 # coverage - 4-dimensional array where first two dimensions are different number of particles and types of particle filter, and last two dimensions are different parameters and total time points
-# alpha - scaler, nominal proportion of time truth should be covered, to be plotted as horizontal gray line
+# alpha - scalar, nominal proportion of time truth should be covered, to be plotted as horizontal gray line
+# n.sim - scalar, how many simulations for each dimension of coverage were run?
 # params - vector of parameter names, should be of length equal to third dimension of coverage
 # cols - vector of colors of lines in plots (should be same length as 'filt')
 # create.label - character label for output file
