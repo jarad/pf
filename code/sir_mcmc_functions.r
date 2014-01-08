@@ -9,6 +9,7 @@ source("sir_functions.r")
 # mcmc.details - optionally, a list containing scalars n.thin, n.sims, and n.burn for the how often to save iterations, total number of iterations, and burn in period, respectively, and boolean tune to specify whether tuning parameters should be adjusted during burn-in period
 # steps - optionally, a character vector specifying which states/unknown parameters to sample from in the Gibbs sampler. May contain any of 'x', 'beta', 'gamma', or 'nu'.
 # progress - boolean, should progress bar be displayed?
+# print.iter - boolean, should iteration number be printed? If yes, overrides progress bar
 sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE, print.iter=FALSE) {
   nt = dim(y)[2] # How many time points?
 
@@ -59,10 +60,15 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
   accept.theta <- rep(0, 3)
 
   # Run mcmc
-  if(progress) pb = txtProgressBar(0,n.sims,style=3)
+  if(progress & !print.iter) pb = txtProgressBar(0,n.sims,style=3)
   for (i in 1:n.sims) {
-    if(progress) setTxtProgressBar(pb,i)
-    if(print.iter & (i %% n.thin == 0)) print(i)
+    if(print.iter & (i %% n.thin == 0))
+    {
+      print(i)
+    } else if(progress) {
+      setTxtProgressBar(pb,i)
+    }
+    
     if(i <= n.burn & tune) tune.burn = TRUE else tune.burn = FALSE
     
     if('x'  %in% steps)
