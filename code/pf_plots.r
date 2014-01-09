@@ -27,7 +27,7 @@ for(i in n.sim)
 }
 
 ## Compare resampling schemes over different # particles using KD pf and lognormal priors
-n = c(100, 1000, 10000, 20000, 40000)
+n = c(100, 1000, 10000, 20000, 40000, 60000, 80000)
 filt = c("multinomial", "residual", "stratified", "systematic")
 cols = rainbow(length(filt))
 probs = c(4, 5)
@@ -75,7 +75,7 @@ for(i in n.sim)
 }
 
 ## Compare delta parameter over different # particles using lognormal priors and stratified resampling
-n = c(100, 1000, 10000, 20000, 40000)
+n = c(100, 1000, 10000, 20000, 40000, 60000, 80000)
 filt = c(0.9, 0.95, 0.96, 0.97, 0.98, 0.99)
 cols = rainbow(length(filt))
 probs = c(4, 5)
@@ -174,6 +174,24 @@ cols = rainbow(6)
 create.label <- "../graphs/PF-coverage-KD-lognormal-stratified-delta-params.pdf"
 pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
 create.label <- "../graphs/PF-coverage-KD-lognormal-stratified-delta-states.pdf"
+pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
+
+# Plot coverage probabilities for different lognormal priors, stratified resampling, delta = .99
+my_pf_coverage <- function(n, filt, states)
+{
+  load.label <- function(filt, n, n.sim) paste("../data/PF-quant-KD-lognormal-stratified-",n,"-",filt,"-0.99-61-",n.sim,".rdata",sep="")
+  pf_coverage(20, n, filt, c(2, 3), load.label, states) 
+}
+mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = c("orig","disp"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
+require(plyr)
+coverage <- maply(mydata, my_pf_coverage)
+alpha = 0.5
+params = expression(beta, gamma, nu)
+states = expression(s, i, r)
+cols = rainbow(6)
+create.label <- "../graphs/PF-coverage-KD-lognormal-stratified-priors-params.pdf"
+pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
+create.label <- "../graphs/PF-coverage-KD-lognormal-stratified-priors-states.pdf"
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
 ## Create scatterplots of beta v gamma over time
