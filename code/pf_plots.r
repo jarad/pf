@@ -30,6 +30,8 @@ for(i in n.sim)
 n = c(100, 1000, 10000, 20000, 40000)
 filt = c("multinomial", "residual", "stratified", "systematic")
 cols = rainbow(length(filt))
+probs = c(4, 5)
+n.sim = 1
 load.label <- function(filt, n, n.sim) paste("../data/PF-quant-KD-lognormal-",filt,"-",n,"-orig-0.99-61-",n.sim,".rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -41,12 +43,34 @@ for(i in n.sim)
     {
       params <- expression(s,i,r)
       burn = 0
+      create.label <- paste("../graphs/PF-KD-lognormal-resamp-",states.label[j],"-",i,".pdf",sep="")
+      pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
     } else {
       params <- expression(beta,gamma,nu)
       burn = c(15, 0, 0)
+      
+      pf_average <- function(n.param)
+      {
+        load("../data/sim-orig.rdata")
+        tt = dim(mysim$sim[[1]]$x)[2]
+        avg.quant = matrix(0, nr=tt, nc = 2)
+        for(k in 1:length(filt))
+        {
+          load(load.label(filt[k], n[length(n)], i))
+          avg.quant[,1] = avg.quant[,1] + pf.quant.out$theta.quant[,n.param,probs[1]]
+          avg.quant[,2] = avg.quant[,2] + pf.quant.out$theta.quant[,n.param,probs[2]]
+        }
+        avg.quant = avg.quant / length(filt)
+        return(avg.quant)
+      }  
+      
+      require(plyr)
+      mydata = expand.grid(n.param = 1:length(params))
+      out.avg = maply(mydata, pf_average)
+        
+      create.label <- paste("../graphs/PF-KD-lognormal-resamp-",states.label[j],"-",i,".pdf",sep="")
+      pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], out.avg = out.avg, burn = c(15, 0, 0))
     }
-    create.label <- paste("../graphs/PF-KD-lognormal-resamp-",states.label[j],"-",i,".pdf",sep="")
-    pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
   }
 }
 
@@ -54,6 +78,8 @@ for(i in n.sim)
 n = c(100, 1000, 10000, 20000, 40000)
 filt = c(0.9, 0.95, 0.96, 0.97, 0.98, 0.99)
 cols = rainbow(length(filt))
+probs = c(4, 5)
+n.sim = 1
 load.label <- function(filt, n, n.sim) paste("../data/PF-quant-KD-lognormal-stratified-",n,"-orig-",filt,"-61-",n.sim,".rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -65,12 +91,34 @@ for(i in n.sim)
     {
       params <- expression(s,i,r)
       burn = 0
+      create.label <- paste("../graphs/PF-lognormal-stratified-delta-",states.label[j],"-",i,".pdf",sep="")
+      pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
     } else {
       params <- expression(beta,gamma,nu)
       burn = c(15, 0, 0)
+      
+      pf_average <- function(n.param)
+      {
+        load("../data/sim-orig.rdata")
+        tt = dim(mysim$sim[[1]]$x)[2]
+        avg.quant = matrix(0, nr=tt, nc = 2)
+        for(k in 1:length(filt))
+        {
+          load(load.label(filt[k], n[length(n)], i))
+          avg.quant[,1] = avg.quant[,1] + pf.quant.out$theta.quant[,n.param,probs[1]]
+          avg.quant[,2] = avg.quant[,2] + pf.quant.out$theta.quant[,n.param,probs[2]]
+        }
+        avg.quant = avg.quant / length(filt)
+        return(avg.quant)
+      }  
+      
+      require(plyr)
+      mydata = expand.grid(n.param = 1:length(params))
+      out.avg = maply(mydata, pf_average)
+      
+      create.label <- paste("../graphs/PF-lognormal-stratified-delta-",states.label[j],"-",i,".pdf",sep="")
+      pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], out.avg = out.avg, burn = c(15, 0, 0))      
     }
-    create.label <- paste("../graphs/PF-lognormal-stratified-delta-",states.label[j],"-",i,".pdf",sep="")
-    pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
   }
 }
 
@@ -190,96 +238,6 @@ for(k in 1:length(trans))
 }
 
 ###################
-
-## Figure 3 - Compare resampling schemes over different # particles using normal priors, kernel density PF
-
-# Set graphical parameters
-ymins = c(0.15,0.085,0.85)
-ymaxs = c(0.35,0.165,1.5)
-require(RColorBrewer)
-cols = brewer.pal(4,"Set1")
-#cols = c(2,3,4,5)
-cex.lab = 6
-cex.main = 7
-cex.axis = 4
-cex.leg = 4
-
-# 4 by 3 figure of panels (rows = num particles, cols = params)
-require(graphics)
-resamps = c("multinomial","residual","stratified","systematic")
-ns = c(1000,10000,20000,40000)
-params = expression(beta,gamma,nu)
-
-# Construct plot
-pdf(paste(gpath,"PF-KD-normal-",ns[length(ns)],".pdf",sep=""),width=30,height=40)
-par(mfrow=c(4,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
-for(i in 1:length(ns))
-{
-  for(k in 1:length(params))
-  {
-    # Calculate average quantiles of 4 resampling methods at most particles
-    load(paste(dpath,"sim-orig.rdata",sep=""))
-    nt = dim(sim$y)[2]
-    out.avg = matrix(0,nr=nt,nc=2)
-    for(j in 1:length(resamps))
-    {
-      load(paste(dpath,"PF-quant-orig-orig-KD-lognormal-lognormal-",resamps[j],"-",ns[length(ns)],"-ess-80.rdata",sep=""))
-      out.avg[,1] = out.avg[,1] + pf.quant.out$theta.quant[-1,k,2]
-      out.avg[,2] = out.avg[,2] + pf.quant.out$theta.quant[-1,k,3]
-    }
-    out.avg = out.avg / length(resamps)
-    x = 1:nt
-    for(j in 0:length(resamps))
-    {
-      if(j == 0) # call plot function
-      {
-        if(k == 1 & i == 1) # label y axis and title
-        {
-          plot(1:nt,out.avg[,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab=paste("J = ",ns[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-          lines(1:nt,out.avg[,2],col="gray")
-        } else if(k == 1 & i == length(ns)) { # label x and y axes
-          plot(1:nt,out.avg[,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="Time (days)",ylab=paste("J = ",ns[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
-          lines(1:nt,out.avg[,2],col="gray")
-        } else if(k == 1) { # label y axis only
-          plot(1:nt,out.avg[,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab=paste("J = ",ns[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
-          lines(1:nt,out.avg[,2],col="gray")
-        } else if(i == 1) { # label title only
-          plot(1:nt,out.avg[,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
-          lines(1:nt,out.avg[,2],col="gray")
-        } else if(i == length(ns)) { # label x axis only
-          plot(1:nt,out.avg[,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
-          lines(1:nt,out.avg[,2],col="gray")
-        } else { # label nothing
-          plot(1:nt,out.avg[,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab="",cex.axis=cex.axis)
-          lines(1:nt,out.avg[,2],col="gray")
-        }
-        y = out.avg[,1]
-        polygon(c(x[length(x)],x[1],x[1],x,x[length(x)]),c(ymins[k],ymins[k],y[1],y,y[length(y)]),col="gray",border=NA)
-        y = out.avg[,2]
-	  polygon(c(x[length(x)],x[1],x[1],x,x[length(x)]),c(ymaxs[k],ymaxs[k],y[1],y,y[length(y)]),col="gray",border=NA)
-      } else { # lines only
-        load(paste(dpath,"PF-quant-orig-orig-KD-lognormal-lognormal-",resamps[j],"-",ns[i],"-ess-80.rdata",sep=""))
-        out = pf.quant.out$theta.quant
-        tt = dim(out)[1]; nt = tt - 1
-        lines(1:nt,out[-1,k,2],col=cols[j],lwd=6)
-        lines(1:nt,out[-1,k,3],col=cols[j],lwd=6)
-      }
-    }
-    # Whiten borders
-    edgex = 0
-    edgey = 1
-    polygon(c(x[length(x)],x[1],x[1],x[length(x)]),c(ymins[k],ymins[k],ymins[k]-edgey,ymins[k]-edgey),col="white",border=NA) # bottom border
-    polygon(c(x[length(x)],x[1],x[1],x[length(x)]),c(ymaxs[k],ymaxs[k],ymaxs[k]+edgey,ymaxs[k]+edgey),col="white",border=NA) # top border
-    polygon(c(x[length(x)],x[length(x)]+edgex,x[length(x)]+edgex,x[length(x)]),c(ymins[k]-edgey,ymins[k]-edgey,ymaxs[k]+edgey,ymaxs[k]+edgey),col="white",border=NA) # right border
-    polygon(c(x[1],x[1]-edgex,x[1]-edgex,x[1]),c(ymins[k]-edgey,ymins[k]-edgey,ymaxs[k]+edgey,ymaxs[k]+edgey),col="white",border=NA) # left border
-    box()
-    if(k == 1 & i == 1) # add legend
-    {
-      legend("topright",legend=resamps,col=cols,lty=rep(1,4),lwd=c(6,6,6,6),cex=cex.leg,bg="white")
-    }
-  }
-}
-dev.off()
 
 ## Figure 4 - Extended model: KD PF for n particles with normal priors and stratified resampling
 
