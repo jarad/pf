@@ -1,12 +1,16 @@
 source("pf_functions.r")
 
+# Set data and graphics path
+dpath = "../data/"
+gpath = "../graphs/"
+
 ## Compare particle filters over different # particles using systematic resampling, uniform priors
-n = c(100, 1000, 10000, 20000, 40000)
+n = c(100)
 filt = c("BF", "APF", "KD")
 cols = c(2, 4, 3)
-probs = c(4, 5)
+probs = c(2, 3)
 n.sim = 1
-load.label <- function(filt, n, n.sim) paste("../data/PF-quant-uniform-systematic-",filt,"-",n,"-logit-61-",n.sim,".rdata",sep="")
+load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-systematic-unif-logit-0.99-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
 for(i in n.sim)
@@ -21,18 +25,18 @@ for(i in n.sim)
       params <- expression(beta,gamma,nu)
       burn = c(15, 0, 0)
     }
-    create.label <- paste("../graphs/PF-uniform-systematic-filt-",states.label[j],"-",i,".pdf",sep="")
+    create.label <- paste(gpath,"PF-",n.sim,"-",n,"-systematic-unif-logit-0.99-61-",states.label[j],".pdf",sep="")
     pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
   }
 }
 
 ## Compare resampling schemes over different # particles using KD pf and lognormal priors
-n = c(100, 1000, 10000, 20000, 40000, 60000, 80000)
+n = c(100)
 filt = c("multinomial", "residual", "stratified", "systematic")
 cols = rainbow(length(filt))
-probs = c(4, 5)
+probs = c(2, 3)
 n.sim = 1
-load.label <- function(filt, n, n.sim) paste("../data/PF-quant-KD-lognormal-",filt,"-",n,"-orig-0.99-61-",n.sim,".rdata",sep="")
+load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-",filt,"-orig-log-0.99-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
 for(i in n.sim)
@@ -43,7 +47,7 @@ for(i in n.sim)
     {
       params <- expression(s,i,r)
       burn = 0
-      create.label <- paste("../graphs/PF-KD-lognormal-resamp-",states.label[j],"-",i,".pdf",sep="")
+      create.label <- paste(gpath,"PF-",n.sim,"-",n,"-KD-resamp-orig-log-0.99-61-",states.label[j],".pdf",sep="")
       pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
     } else {
       params <- expression(beta,gamma,nu)
@@ -52,7 +56,7 @@ for(i in n.sim)
       pf_average <- function(n.param)
       {
         load("../data/sim-orig.rdata")
-        tt = dim(mysim$sim[[1]]$x)[2]
+        tt = dim(mysims[[i]]$sim$x)[2]
         avg.quant = matrix(0, nr=tt, nc = 2)
         for(k in 1:length(filt))
         {
@@ -67,8 +71,7 @@ for(i in n.sim)
       require(plyr)
       mydata = expand.grid(n.param = 1:length(params))
       out.avg = maply(mydata, pf_average)
-        
-      create.label <- paste("../graphs/PF-KD-lognormal-resamp-",states.label[j],"-",i,".pdf",sep="")
+      create.label <- paste(gpath,"PF-",n.sim,"-",n,"-KD-resamp-orig-log-0.99-61-",states.label[j],".pdf",sep="")
       pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], out.avg = out.avg, burn = c(15, 0, 0))
     }
   }
@@ -123,75 +126,77 @@ for(i in n.sim)
 }
 
 # Plot coverage probabilities for different particle filters with uniform priors, systematic resampling
+quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
+probs <- c(6, 7)
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste("../data/PF-quant-uniform-systematic-",filt,"-",n,"-logit-61-",n.sim,".rdata",sep="")
-  pf_coverage(20, n, filt, c(2, 3), load.label, states) 
+  pf_coverage(20, n, filt, probs, load.label, states) 
 }
 mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = c("BF", "APF", "KD"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
 require(plyr)
 coverage <- maply(mydata, my_pf_coverage)
-alpha = 0.5
+alpha = quantiles[probs[2]]-quantiles[probs[1]]
 params = expression(beta, gamma, nu)
 states = expression(s, i, r)
 cols = c(2,4,3)
-create.label <- "../graphs/PF-coverage-uniform-systematic-filt-params.pdf"
+create.label <- paste("../graphs/PF-coverage-",alpha,"-uniform-systematic-filt-params.pdf",sep="")
 pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
-create.label <- "../graphs/PF-coverage-uniform-systematic-filt-states.pdf"
+create.label <- paste("../graphs/PF-coverage-",alpha,"-uniform-systematic-filt-states.pdf",sep="")
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
 # Plot coverage probabilities for resampling schemes with KD pf, lognormal priors
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste("../data/PF-quant-KD-lognormal-",filt,"-",n,"-orig-0.99-61-",n.sim,".rdata",sep="")
-  pf_coverage(20, n, filt, c(2, 3), load.label, states) 
+  pf_coverage(20, n, filt, probs, load.label, states) 
 }
 mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = c("multinomial", "residual", "stratified", "systematic"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
 require(plyr)
 coverage <- maply(mydata, my_pf_coverage)
-alpha = 0.5
+alpha = quantiles[probs[2]]-quantiles[probs[1]]
 params = expression(beta, gamma, nu)
 states = expression(s, i, r)
 cols = rainbow(4)
-create.label <- "../graphs/PF-coverage-KD-lognormal-resamp-params.pdf"
+create.label <- paste("../graphs/PF-coverage-",alpha,"-KD-lognormal-resamp-params.pdf",sep="")
 pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
-create.label <- "../graphs/PF-coverage-KD-lognormal-resamp-states.pdf"
+create.label <- paste("../graphs/PF-coverage-",alpha,"-KD-lognormal-resamp-states.pdf",sep="")
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
 # Plot coverage probabilities for delta values with lognormal priors, stratified resampling
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste("../data/PF-quant-KD-lognormal-stratified-",n,"-orig-",filt,"-61-",n.sim,".rdata",sep="")
-  pf_coverage(20, n, filt, c(2, 3), load.label, states) 
+  pf_coverage(20, n, filt, probs, load.label, states) 
 }
 mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = c(0.9,0.95,0.96,0.97,0.98,0.99), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
 require(plyr)
 coverage <- maply(mydata, my_pf_coverage)
-alpha = 0.5
+alpha = quantiles[probs[2]]-quantiles[probs[1]]
 params = expression(beta, gamma, nu)
 states = expression(s, i, r)
 cols = rainbow(6)
-create.label <- "../graphs/PF-coverage-KD-lognormal-stratified-delta-params.pdf"
+create.label <- paste("../graphs/PF-coverage-",alpha,"-KD-lognormal-stratified-delta-params.pdf",sep="")
 pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
-create.label <- "../graphs/PF-coverage-KD-lognormal-stratified-delta-states.pdf"
+create.label <- paste("../graphs/PF-coverage-",alpha,"-KD-lognormal-stratified-delta-states.pdf",sep="")
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
 # Plot coverage probabilities for different lognormal priors, stratified resampling, delta = .99
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste("../data/PF-quant-KD-lognormal-stratified-",n,"-",filt,"-0.99-61-",n.sim,".rdata",sep="")
-  pf_coverage(20, n, filt, c(2, 3), load.label, states) 
+  pf_coverage(20, n, filt, probs, load.label, states) 
 }
 mydata = expand.grid(n = c(100, 1000, 10000, 20000, 40000), filt = c("orig","disp"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
 require(plyr)
 coverage <- maply(mydata, my_pf_coverage)
-alpha = 0.5
+alpha = quantiles[probs[2]]-quantiles[probs[1]]
 params = expression(beta, gamma, nu)
 states = expression(s, i, r)
 cols = rainbow(6)
-create.label <- "../graphs/PF-coverage-KD-lognormal-stratified-priors-params.pdf"
+create.label <- paste("../graphs/PF-coverage-",alpha,"-KD-lognormal-stratified-priors-params.pdf",sep="")
 pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
-create.label <- "../graphs/PF-coverage-KD-lognormal-stratified-priors-states.pdf"
+create.label <- paste("../graphs/PF-coverage-",alpha,"-KD-lognormal-stratified-priors-states.pdf",sep="")
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
 ## Create scatterplots of beta v gamma over time

@@ -19,7 +19,7 @@ pf <- function(n.sim, n, filt, resamp, prior, transform, delta, seed, progress =
   
   # Define functions to transform theta to original scale
   if(transform == "logit"){
-    ftheta = function(theta,param=1:3) theta2u(theta,c(0.1400, 0.0900, 0.9500)[param], c(0.1400, 0.0900, 0.9500)[param])
+    ftheta = function(theta,param=1:3) theta2u(theta,c(0.1400, 0.0900, 0.9500)[param], c(0.5, 0.143, 1.3)[param])
   } else if(transform == "log") {
     ftheta = function(theta,param=1) exp(theta)
   } else if(transform == "none"){
@@ -104,10 +104,10 @@ pf <- function(n.sim, n, filt, resamp, prior, transform, delta, seed, progress =
 }
 
 # Create data frame and use plyr to run particle filters in parallel
-data1 = expand.grid(n.sim = 1, n = 100, filt = c("BF","APF","KD"), resamp = "systematic", prior = "unif", transform = "logit", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
-data2 = expand.grid(n.sim = 1, n = c(100), filt = "KD", resamp = c("multinomial","residual","stratified","systematic"), prior="orig", transform="log", delta = .99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
-data3 = expand.grid(n.sim = 1, n = c(100), filt = "KD", resamp = "stratified", prior="orig", transform="log", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, progress = FALSE, stringsAsFactors = FALSE)
-data4 = expand.grid(n.sim = 1, n = c(100), filt = "KD", resamp = "stratified", prior = "disp", transform = "log", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
+data1 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = c("BF","APF","KD"), resamp = "systematic", prior = "unif", transform = "logit", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
+data2 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = c("multinomial","residual","stratified","systematic"), prior="orig", transform="log", delta = .99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+data3 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior="orig", transform="log", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+data4 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "disp", transform = "log", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
 mydata = rbind(data1, data2, data3, data4)
 
 require(plyr)

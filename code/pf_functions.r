@@ -151,9 +151,9 @@ pf_plot <- function(n, params, filt, n.sim, probs, cols, create.label, load.labe
       load("../data/sim-orig.rdata")
       if(states)
       {
-        if(k < 3) lines(x, mysim$sim[[1]]$x[k,], col="gray47") else lines(x, 1 - mysim$sim[[1]]$x[1,] - mysim$sim[[1]]$x[2,], col="gray47")
+        if(k < 3) lines(x, mysims[[n.sim]]$sim$x[k,], col="gray47") else lines(x, 1 - mysims[[n.sim]]$sim$x[1,] - mysims[[n.sim]]$sim$x[2,], col="gray47")
       } else {
-        abline(h=mysim$true.params$theta[k],col="gray47",lwd=6)
+        abline(h=mysims[[n.sim]]$true.params$theta[k],col="gray47",lwd=6)
       }
       
       # Whiten borders
