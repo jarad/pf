@@ -17,15 +17,6 @@ robs = function(x,b,varsigma,sigma,eta)
   return(y)
 }
 
-# rinit - function to initialize values of initial state
-# Arguments:
-# i0 - scalar between 0 and 1, initial proportion of infected individuals in population
-rinit = function(i0=.002)
-{
-  if(i0 < 0 | i0 > 1) stop("i0 must be between 0 and 1")
-  return(c(1-i0,i0))
-}
-
 # revo - function that propagates state forward given previous state x and parameters theta
 # Arguments:
 # x - 2-element vector, current state (s,i)
@@ -94,7 +85,7 @@ dlx0 <- function(x)
 {
   if(all(x >= 0) & sum(x) <= 1)
   {
-    dnorm(x[2], .002, .0005, log=TRUE)
+    dnorm(x[2], .002, .0005, log=TRUE) # up to proportionality constant
   } else { return(-Inf) }
 }
 

@@ -1,8 +1,8 @@
 source("sir_functions.r")
 source("ss_sim.r")
 
-# Initialize .Random.seed
-rnorm(1)
+# Set .Random.seed
+set.seed(60)
 
 # Set data and graphics path
 gpath = "../graphs/"
@@ -15,64 +15,113 @@ varsigma = c(1.07, 1.05, 1.01, .98)
 sigma = c(.0012, .0008, .0010, .0011)
 eta = rep(0,4)
 
-# Set unknown parameter values
-theta = c(0.2399, 0.1066, 1)
-
-# Simulate epidemic
-revo_sim = function(x){ revo(x, theta, P)}
-robs_sim = function(x){ robs(x, b, varsigma, sigma, eta)}
-rinit_sim = function(){ rinit(10/P)}
 nt = 125
-sim = ss.sim(nt, revo_sim, robs_sim, rinit_sim)
-mysim = list(sim=sim,true.params=list(theta=theta,b=b,sigma=sigma,varsigma=varsigma,eta=eta,P=P))
-save(mysim,file=paste(dpath,"sim-orig.rdata",sep=""))
+n.sims = 20
+sims = list()
+mysims = list()
+for(i in 1:n.sims)
+{
+  # Set unknown parameter values and initial proportion of population infected
+  rtheta <- function()
+  {
+    theta <- rep(NA, 3)
+    log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
+    theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
+    theta[1] <- theta[2]*runif(1, 1.2, 3)
+    return(theta)
+  }
+  init <- rprior(rtheta)
+  
+  # Simulate epidemic
+  revo_sim = function(x){ revo(x, init$theta, P)}
+  robs_sim = function(x){ robs(x, b, varsigma, sigma, eta)}
+  rinit_sim = function(){ return(init$x)}
+  sim = ss.sim(nt, revo_sim, robs_sim, rinit_sim)
+  mysims[[i]] = list(sim=sim,true.params=list(theta=init$theta,b=b,sigma=sigma,varsigma=varsigma,eta=eta,P=P))
+}
+save(mysims,file=paste(dpath,"sim-orig.rdata",sep=""))
 
-# Write data to .csv file
-epid.data = data.frame(seq(0,125,1),cbind(sim$x[2,],sim$x[1,],1-sim$x[2,]-sim$x[1,]),t(cbind(rep(NA,dim(sim$y)[1]),sim$y)))
-streams = rep(NA, dim(sim$y)[1])
-for(i in 1:dim(sim$y)[1]) streams[i] = paste("Stream ",i,sep="")
-names(epid.data) = c("Day","s","i","r",streams)
-write.csv(epid.data,file=paste(dpath,"simdata-orig.csv",sep=""),row.names=FALSE)
-
-# Export epid.data as latex xtable
-latex.streams = rep(NA, dim(sim$y)[1])
-for(i in 1:dim(sim$y)[1]) latex.streams[i] = paste("$y_{",i,",t}$",sep="")
-names(epid.data) = c("Day","$s$","$i$","$r$",latex.streams)
-require(xtable)
-caption = "Simulated epidemic and syndromic data"
-label = "tab:data"
-align = c("|c","|c|","c","c","c|",rep("c",length(streams)),"|")
-digits = c(0,0,rep(6,3+length(streams)))
-print(xtable(epid.data,caption,label,align,digits),type="latex",file="../latex/simdata-orig.txt",include.rownames=FALSE)
+# Write data to .csv files
+for(i in 1:n.sims)
+{
+  epid.data = data.frame(seq(0,125,1),cbind(mysims[[i]]$sim$x[2,],mysims[[i]]$sim$x[1,],1-mysims[[i]]$sim$x[2,]-mysims[[i]]$sim$x[1,]),t(cbind(rep(NA,dim(mysims[[i]]$sim$y)[1]),mysims[[i]]$sim$y)))
+  streams = rep(NA, dim(mysims[[i]]$sim$y)[1])
+  for(j in 1:dim(mysims[[i]]$sim$y)[1]) streams[j] = paste("Stream ",j,sep="")
+  names(epid.data) = c("Day","s","i","r",streams)
+  write.csv(epid.data,file=paste(dpath,"simdata-orig-",i,".csv",sep=""),row.names=FALSE)
+}
 
 # Plot the data
 # Epidemic curves
 pdf(paste(gpath,"sim-orig-epid.pdf",sep=""))
 par(mar=c(5,7,4,1)+.1)
-plot(0:nt,1 - sim$x[1,] - sim$x[2,],type="l",ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
-lines(0:nt,sim$x[1,])
-lines(0:nt,sim$x[2,],col=2)
+plot(0:nt,1 - mysims[[i]]$sim$x[1,] - mysims[[i]]$sim$x[2,],type="l",ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
+lines(0:nt,mysims[[i]]$sim$x[1,])
+lines(0:nt,mysims[[i]]$sim$x[2,],col=2)
+if(n.sims > 1)
+{
+  for(i in 2:n.sims)
+  {
+    lines(0:nt,1 - mysims[[i]]$sim$x[1,] - mysims[[i]]$sim$x[2,],col=4)
+    lines(0:nt,mysims[[i]]$sim$x[1,])
+    lines(0:nt,mysims[[i]]$sim$x[2,],col=2)
+  }
+} 
 legend("topright",legend=c("Susceptible","Infected","Recovered"),lty=rep(1,3),col=c(1,2,4),cex=1.5)
 dev.off()
 
-# Observed data (z)
-no = dim(sim$y)[1]
+# Observed data (z) over all simulations
 pdf(paste(gpath,"sim-orig-z.pdf",sep=""))
 par(mar=c(5,5,4,1)+.1)
-x = which(!is.na(sim$y[1,]))
-z = sim$y[1,x]
-plot(x,z,ylim=c(min(sim$y,na.rm=T),max(sim$y,na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observed data (",y[t],")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
+miny = min(sapply(mysims, function(x) min(x$sim$y,na.rm=T)))
+maxy = max(sapply(mysims, function(x) max(x$sim$y,na.rm=T)))
+no = dim(mysims[[1]]$sim$y)[1]
+x = which(!is.na(mysims[[1]]$sim$y[1,]))
+z = mysims[[1]]$sim$y[1,x]
+plot(x,z,ylim=c(miny,maxy),xlim=c(0,nt),type="l",xlab="Time (Days)",ylab=expression(paste("Observed data (",y[t],")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
 if(no > 1)
 {
   for(i in 2:no)
   {
-     x = which(!is.na(sim$y[i,]))
-     z = sim$y[i,x]
-     points(x,z,col=i)
+     x = which(!is.na(mysims[[1]]$sim$y[i,]))
+     z = mysims[[1]]$sim$y[i,x]
+     lines(x,z,col=i)
+  }
+}
+if(n.sims > 1)
+{
+  for(j in 2:n.sims)
+  {
+    no = dim(mysims[[j]]$sim$y)[1]
+    for(i in 1:no)
+    {
+      x = which(!is.na(mysims[[j]]$sim$y[i,]))
+      z = mysims[[j]]$sim$y[i,x]
+      lines(x,z,col=i)
+    }
   }
 }
 legend("topright",legend=seq(1,length(streams),1),pch=rep(1,length(streams)),col=seq(1,length(streams),1),title="Stream",cex=1.5)
 dev.off()
 
-# Clear objects
-rm(list=ls(all=TRUE))
+# Observed data for each individual simulation
+for(j in 1:n.sims)
+{
+  no = dim(mysims[[j]]$sim$y)[1]
+  pdf(paste(gpath,"sim-orig-z-",j,".pdf",sep=""))
+  par(mar=c(5,5,4,1)+.1)
+  x = which(!is.na(mysims[[j]]$sim$y[1,]))
+  z = mysims[[j]]$sim$y[1,x]
+  plot(x,z,ylim=c(miny,maxy),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observed data (",y[t],")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
+  if(no > 1)
+  {
+    for(i in 2:no)
+    {
+       x = which(!is.na(mysims[[j]]$sim$y[i,]))
+       z = mysims[[j]]$sim$y[i,x]
+       points(x,z,col=i)
+    }
+  }
+  legend("topright",legend=seq(1,length(streams),1),pch=rep(1,length(streams)),col=seq(1,length(streams),1),title="Stream",cex=1.5)
+  dev.off()
+}
