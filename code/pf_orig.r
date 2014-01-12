@@ -1,7 +1,8 @@
 source("sir_functions.r")
+source("sir_mcmc_functions.r")
 
 # Set data path
-dpath = "../data/"
+dpath = "/storage/sheinson_research/"
 
 # pf - function to run particle filter given n number of particles, n.sim-th data set, resamp = "multinomial", "residual", "stratified", or "systematic", prior = "orig" or "disp", and delta amount of jitter to particles
 # KD particle filter, lognormal priors on beta, gamma, and nu
@@ -29,41 +30,60 @@ pf <- function(n.sim, n, filt, resamp, prior, transform, delta, seed, progress =
   # Define functions to sample prior draws of fixed parameters
   if(prior == "orig")
   {
-    rtheta <- function()
+    if(transform == "log")
     {
-      theta <- rep(NA, 3)
-      log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
-      theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
-      theta[1] <- theta[2]*runif(1, 1.2, 3)
-      if(transform == "log"){
+      rtheta <- function()
+      {
+        theta <- rep(NA, 3)
+        log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
+        theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
+        theta[1] <- theta[2]*runif(1, 1.2, 3)
         return(log(theta))
-      } else if(transform == "none") {
+      }
+    } else if(transform == "none") { 
+      rtheta <- function()
+      {
+        theta <- rep(NA, 3)
+        log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
+        theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
+        theta[1] <- theta[2]*runif(1, 1.2, 3)
         return(theta)
-      } else { stop("Must use log or no transformation with original prior") }
-    }
+      }
+    } else { stop("Must use log or no transformation with original prior") }
   } else if(prior == "disp") {
-    rtheta <- function()
-    {
-      theta <- rep(NA, 3)
-      log.params <- find.mu.sigma(c(.05, .75), c(.25, 1.5))
-      theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
-      theta[1] <- theta[2]*runif(1, 1.05, 3)
-      if(transform == "log"){
+    if(transform == "log") {
+      rtheta <- function()
+      {
+        theta <- rep(NA, 3)
+        log.params <- find.mu.sigma(c(.05, .75), c(.25, 1.5))
+        theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
+        theta[1] <- theta[2]*runif(1, 1.05, 3)
         return(log(theta))
-      } else if(transform == "none") {
+      }
+    } else if(transform == "none") {
+      rtheta <- function()
+      {
+        theta <- rep(NA, 3)
+        log.params <- find.mu.sigma(c(.05, .75), c(.25, 1.5))
+        theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
+        theta[1] <- theta[2]*runif(1, 1.05, 3)
         return(theta)
-      } else { stop("Must use log or no transformation with disperse prior") }
-    }
+      }
+    } else {stop("Must use log or no transformation with dispersed prior")}
   } else if(prior == "unif") {
-    rtheta <- function()
-    {
-      theta = runif(3, c(0.1400, 0.0900, 0.9500), c(0.5000, 0.1430, 1.3000))
-      if(transform == "logit"){
+    if(transform == "logit") {
+      rtheta <- function()
+      {
+        theta = runif(3, c(0.1400, 0.0900, 0.9500), c(0.5000, 0.1430, 1.3000))
         return(u2theta(theta, c(0.1400, 0.0900, 0.9500), c(0.5000, 0.1430, 1.3000)))
-      } else if(transform == "none") {
+      }
+    } else if(transform == "none") {
+      rtheta <- function()
+      {
+        theta = runif(3, c(0.1400, 0.0900, 0.9500), c(0.5000, 0.1430, 1.3000))
         return(theta)
-      } else { stop("Must use logit or no transformation with uniform prior") }
-    }
+      }
+    } else {stop("Must use logit or no transformation with uniform prior")}
   } else { stop("prior must be 'orig', 'disp', or 'unif'") }
   
   # Set seed
@@ -94,6 +114,13 @@ pf <- function(n.sim, n, filt, resamp, prior, transform, delta, seed, progress =
     myrprior = function() rprior(rtheta)
     source("kd_pf.r")
     out = kd_pf(y, mydllik, pstate, myrevo, myrprior, n, delta, progress, method=resamp, nonuniformity = "ess", threshold = 0.8, log=F)
+  } else if(filt == "RM"){
+    mydllik = function(y, x, theta) dllik(y, x, b, varsigma, sigma, eta)
+    myrevo = function(x, theta) revo(x, ftheta(theta), P)
+    myrprior = function() rprior(rtheta)
+    myrmove = function(y, x, theta) rmove(y, x, ftheta(theta), list(b=b, varsigma=varsigma, sigma=sigma, eta=eta, P=P))
+    source("rm_pf.r")
+    out = rm_pf(y, mydllik, myrevo, myrprior, myrmove, n, progress=progress, method=resamp, nonuniformity = "ess", threshold = 0.8, log=F)
   } else { stop("filt must be one of 'BF', 'APF', or 'KD'") }
   
   # Save output
