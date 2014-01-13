@@ -6,19 +6,23 @@ dpath = "../data/"
 
 # Load simulated data and redefine data / known parameter values
 load(paste(dpath,"sim-orig.rdata",sep=""))
-y = mysim$sim[[1]]$y
-P = mysim$true.params$P
-b = mysim$true.params$b
-varsigma = mysim$true.params$varsigma
-sigma = mysim$true.params$sigma
-eta = mysim$true.params$eta
+y = mysims[[1]]$sim$y
+P = mysims[[1]]$true.params$P
+b = mysims[[1]]$true.params$b
+varsigma = mysims[[1]]$true.params$varsigma
+sigma = mysims[[1]]$true.params$sigma
+eta = mysims[[1]]$true.params$eta
 
 # Define function to draw prior values of parameters and transform to original scale
-log.params = find.mu.sigma(c(.14, .09, .95), c(.50, .143, 1.3))
-theta.mean = log.params[[1]]
-theta.sd = log.params[[2]]
+rtheta <- function()
+{
+  theta <- rep(NA, 3)
+  log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
+  theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
+  theta[1] <- theta[2]*runif(1, 1.2, 3)
+  return(log(theta))
+}
 ftheta = function(theta,param=1) exp(theta)
-rtheta = function() rnorm(3, theta.mean, theta.sd)
 n = 100
 
 # Run kernel density particle filter
@@ -35,7 +39,14 @@ out_kd = kd_pf(y, dllik_kd, pstate_kd, revo_kd, rprior_kd, n, log=F, method="res
 source("sir_mcmc_functions.r")
 dllik_rm = function(y, x, theta) dllik(y, x, b, varsigma, sigma, eta)
 revo_rm = function(x, theta) revo(x, theta, P)
-rtheta = function() exp(rnorm(3, theta.mean, theta.sd))
+rtheta <- function()
+{
+  theta <- rep(NA, 3)
+  log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
+  theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
+  theta[1] <- theta[2]*runif(1, 1.2, 3)
+  return(theta)
+}
 rprior_rm = function() rprior(rtheta)
 rmove_rm = function(y, x, theta) rmove(y, x, theta, list(b=b, varsigma=varsigma, sigma=sigma, eta=eta, P=P))
 source("rm_pf.r")
@@ -49,8 +60,8 @@ state.quant.rm = pf.quantile(out_rm$state, out_rm$weight, function(x, p=1) x, c(
 nt = dim(state.quant.kd)[1] - 1
 plot(0:nt, state.quant.kd[,1,1], type="l", ylim=c(0,1), col = 3, xlab="Time",ylab="% Population",main="Estimated Epidemic Curves")
 mtext(paste(n," particles",sep=""),side=3)
-lines(0:nt, mysim$sim[[1]]$x[1,])
-lines(0:nt, mysim$sim[[1]]$x[2,])
+lines(0:nt, mysims[[1]]$sim$x[1,])
+lines(0:nt, mysims[[1]]$sim$x[2,])
 lines(0:nt, state.quant.kd[,1,2], col = 3)
 lines(0:nt, state.quant.kd[,2,1], col = 3)
 lines(0:nt, state.quant.kd[,2,2], col = 3)
@@ -69,15 +80,15 @@ plot(0:nt, theta.quant.kd[,1,1], type = "l", col = 3, main=paste(n, " particles"
 lines(0:nt, theta.quant.kd[,1,2], col = 3)
 lines(0:nt, theta.quant.rm[,1,1], col = 6)
 lines(0:nt, theta.quant.rm[,1,2], col = 6)
-abline(h=mysim$true.params$theta[1])
+abline(h=mysims[[1]]$true.params$theta[1])
 plot(0:nt, theta.quant.kd[,2,1], type = "l", col = 3, main=paste(n, " particles",sep=""), xlab="Time", ylab=expression(gamma), ylim = c(min(theta.quant.kd[,2,],theta.quant.rm[,2,]),max(theta.quant.kd[,2,],theta.quant.rm[,2,])))
 lines(0:nt, theta.quant.kd[,2,2], col = 3)
 lines(0:nt, theta.quant.rm[,2,1], col = 6)
 lines(0:nt, theta.quant.rm[,2,2], col = 6)
-abline(h=mysim$true.params$theta[2])
+abline(h=mysims[[1]]$true.params$theta[2])
 plot(0:nt, theta.quant.kd[,3,1], type = "l", col = 3, main=paste(n, " particles",sep=""), xlab="Time", ylab=expression(nu), ylim = c(min(theta.quant.kd[,3,],theta.quant.rm[,3,]),max(theta.quant.kd[,3,],theta.quant.rm[,3,])))
 lines(0:nt, theta.quant.kd[,3,2], col = 3)
 lines(0:nt, theta.quant.rm[,3,1], col = 6)
 lines(0:nt, theta.quant.rm[,3,2], col = 6)
-abline(h=mysim$true.params$theta[3])
+abline(h=mysims[[1]]$true.params$theta[3])
 
