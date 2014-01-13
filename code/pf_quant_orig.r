@@ -11,8 +11,10 @@ pf.quant = function(n.sim, n, filt, resamp, prior, transform, delta, seed)
   out = pf.out$out
   ftheta = pf.out$ftheta
   
-  # Calculate 2.5%, 50%, and 97.5% quantiles of states over time
-  probs = c(.5, 0.025, 0.975)
+  # Which quantiles to calculate
+  probs = c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
+  
+  # Calculate quantiles of states over time
   tt = dim(out$state)[3]
   states = array(NA,dim=c(3,n,tt))
   states[1:2,,] = out$state[1:2,,]
