@@ -263,28 +263,25 @@ pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
 create.label <- paste(gpath,"PF-coverage-",alpha,"-KD-stratified-priors-states.pdf",sep="")
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
-############
-
 ## Create scatterplots of beta v gamma over time
-source("pf_functions.r")
 source("sir_functions.r")
 
 # Set graphical parameters
-xlim=c(.17,.33); ylim=c(.07,.17)
+xlim=c(.135,.33); ylim=c(.08,.16)
 borderx=c(.14,.5); bordery=c(.09,.143)
 msize=5; labsize=5; axsize=3; ptsize=3
 ptsty=20; ptcol="gray75"; rline = -2.3; rsize = 1.8
 
 # Load simulated data to get true values of beta and gamma
-load("../data/sim-orig.rdata")
+load(paste(dpath,"sim-orig.rdata",sep=""))
 
 # Panel 1 - uniform prior draws, logit transformation
 # Panel 2 - uniform prior draws, log transformation
-trans = c("logit", "log")
+trans = c("logit", "none")
 for(k in 1:length(trans))
 {
   # Load particle filtered data
-  load(paste("../data/PF-uniform-systematic-KD-10000-",trans[k],"-61-1.rdata",sep=""))
+  load(paste(dpath,"PF-1-10000-KD-systematic-unif-",trans[k],"-0.99-61.rdata",sep=""))
   
   # Resample particles at cutoff points to have equal weights
   cutoff = seq(16, 61, len=4)
@@ -296,7 +293,7 @@ for(k in 1:length(trans))
   myscat = pf.scat(myout,pf.out$out$weight,cutoff)
   
   # Scatterplots over time
-  file = paste("../graphs/PF-betaGammaScat-uniform-systematic-KD-10000-",trans[k],"-61-1.pdf",sep="")
+  file = paste("../graphs/PF-betaGammaScat-1-10000-KD-systematic-unif-",trans[k],"-0.99-61.pdf",sep="")
   pdf(file,width=20,height=5)
   par(mfrow=c(1,4),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
   for(i in 1:length(cutoff))
@@ -313,14 +310,14 @@ for(k in 1:length(trans))
       abline(v=borderx,lty=2)
       abline(h=bordery,lty=2)
       points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
-      points(mysim$true.params$theta[1],mysim$true.params$theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
+      points(mysims[[1]]$true.params$theta[1],mysims[[1]]$true.params$theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
     } else {
       plot(myscat$xrw1[,i],myscat$xrw2[,i],col="white",xlim=xlim,ylim=ylim,xlab="",ylab="",axes=FALSE)
       box()
       abline(v=borderx,lty=2)
       abline(h=bordery,lty=2)
       points(myscat$xrw1[,i],myscat$xrw2[,i],col=ptcol,pch=ptsty,cex=ptsize)
-      points(mysim$true.params$theta[1],mysim$true.params$theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
+      points(mysims[[1]]$true.params$theta[1],mysims[[1]]$true.params$theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
     }
   }
   dev.off()
@@ -341,7 +338,7 @@ delta = 0.99
 seed = 61
 
 load(paste(dpath,"sim-ext.rdata",sep=""))
-load(paste(dpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep="")
+load(paste(dpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
 
 # Get points where resampling done for extended model
 tt = dim(mysim$sim$x)[2]; nt = tt - 1
@@ -353,7 +350,7 @@ spts.ext = which(as.logical(resampled))
 resampled = rep(0,nt)
 
 # Get points where resampling done for original model
-load(paste(dpath,"PF-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
+load(paste(dpath,"PF-ext.orig-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
 parents = pf.out$out$parent
 for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
 spts.org = which(as.logical(resampled))
@@ -368,11 +365,11 @@ cex.axis = 4
 cex.leg = 4
 
 # Construct plot
-pdf(paste(gpath,"PF-ext-KD-stratified-normal-",n,".pdf",sep=""),width=30,height=30)
+pdf(paste(gpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".pdf",sep=""),width=30,height=30)
 par(mfrow=c(3,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
 for(k in 1:length(params))
 {
-  load(paste(dpath,"PF-quant-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
+  load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
   out = pf.quant.out$theta.quant
   tt = dim(out)[1]; nt = tt - 1
   if(k == 1) # label y axis, title, legend
@@ -386,46 +383,47 @@ for(k in 1:length(params))
   } else { # label title only
      plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=4)
-#     points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
-#     points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
-#     points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
+     points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
+     points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
+     points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
   }
   load(paste(dpath,"sim-ext.rdata",sep=""))
-  theta = c(theta,b,varsigma,sigma,mu)
+  theta = c(mysim$true.params$theta,mysim$true.params$b,mysim$true.params$varsigma,mysim$true.params$sigma,mysim$true.params$eta)
   abline(h=theta[k],col="gray47")
   if(k %in% 1:3)
   {
-    load(paste(dpath,"PF-quant-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
+    load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
     out = pf.quant.out$theta.quant
     tt = dim(out)[1]; nt = tt - 1
     lines(1:nt,out[-1,k,2],col=2)
     lines(1:nt,out[-1,k,3],col=2)
   }
 }
-params = expression(i,s,r)
+
+params = expression(s,i,r)
 ymin = 0; ymax = 1
-for(k in 2:1)
+for(k in 1:2)
 {
-  load(paste(dpath,"PF-quant-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
+  load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
   out = pf.quant.out$state.quant
   tt = dim(out)[1]; nt = tt - 1
   if(k == 2) # label x axis, title
   {
      plot(1:nt,out[-1,k,2],type="l",ylim=c(ymin,1),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=4)
-     lines(1:nt,sim$x[k,-1],col="gray47")
-#     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-#     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-#     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+     lines(1:nt,mysim$sim$x[k,-1],col="gray47")
+     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
   } else { # label title only
      plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
      lines(1:nt,out[-1,k,3],col=4)
-     lines(1:nt,sim$x[k,-1],col="gray47")
-#     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-#     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-#     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+     lines(1:nt,mysim$sim$x[k,-1],col="gray47")
+     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
   }
-  load(paste(dpath,"PF-quant-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
+  load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
   out = pf.quant.out$state.quant
   tt = dim(out)[1]; nt = tt - 1
   lines(1:nt,out[-1,k,2],col=2)
@@ -435,7 +433,7 @@ for(k in 2:1)
 #load(paste(dpath,"PF-quant-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
 #out = pf.quant.out$state.quant
 #tt = dim(out)[1]; nt = tt - 1
-#truex = 1 - apply(sim$x[,-1],2,sum)
+#truex = 1 - apply(mysim$sim$x[,-1],2,sum)
 #plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
 #lines(1:nt,out[-1,k,3],col=4)
 #lines(1:nt,truex,col="gray47")
