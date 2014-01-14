@@ -1,5 +1,5 @@
 # Set data and graphics path
-dpath = "/storage/sheinson_research/"
+dpath = "../data/MCMC/"
 gpath = "../graphs/"
 
 # Load simulated data
