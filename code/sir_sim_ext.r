@@ -1,8 +1,8 @@
 source("sir_functions.r")
 source("ss_sim.r")
 
-# Initialize .Random.seed
-rnorm(1)
+# Set .Random.seed
+set.seed(60)
 
 # Set data and graphics path
 dpath = "../data/"
@@ -10,10 +10,13 @@ gpath = "../graphs/"
 
 # Load simulated data from original model
 load(paste(dpath,"sim-orig.rdata",sep=""))
-sim.orig = mysim
-sim = list(x=sim.orig$sim$x)
-theta = sim.orig$true.params$theta
-P = sim.orig$true.params$P
+require(plyr)
+sim = list()
+length(sim) = 2
+names(sim) = c("x","y")
+sim$x <- mysims[[1]]$sim$x
+theta = mysims[[1]]$true.params$theta
+P = mysims[[1]]$true.params$P
 nt = dim(sim$x)[2] - 1
 
 # Set parameters in observation equation
@@ -24,11 +27,8 @@ eta = 2
 
 # Generate new observations
 robs_sim = function(x){ robs(x, b, varsigma, sigma, eta)}
-z = matrix(NA,nr=1,nc=nt)
-for(i in 1:nt) z[1,i] = robs_sim(sim$x[,i+1])
-
-# Add new observations to list
-sim$y = z
+sim$y = matrix(NA,nr=1,nc=nt)
+for(i in 1:nt) sim$y[1,i] = robs_sim(sim$x[,i+1])
 
 # Save data
 mysim = list(sim=sim,true.params=list(theta=theta,b=b,sigma=sigma,varsigma=varsigma,eta=eta,P=P))
@@ -38,15 +38,6 @@ save(mysim,file=paste(dpath,"sim-ext.rdata",sep=""))
 epid.data = data.frame(seq(0,125,1),cbind(sim$x[2,],sim$x[1,],1-sim$x[2,]-sim$x[1,],c(NA,sim$y[1,])))
 names(epid.data) = c("Day","s","i","r","Stream 1")
 write.csv(epid.data,file=paste(dpath,"simdata-ext.csv",sep=""),row.names=FALSE)
-
-# Export epid.data as latex xtable
-names(epid.data) = c("Day","$s$","$i$","$r$","$y_{1,t}$")
-require(xtable)
-caption = "Simulated epidemic and syndromic data"
-label = "tab:data"
-align = "|c|c|ccc|c|"
-digits = c(0,0,rep(6,4))
-print(xtable(epid.data,caption,label,align,digits),type="latex",file="../latex/simdata-ext.txt",include.rownames=FALSE)
 
 # Plot the data
 no = dim(sim$y)[1]
@@ -66,6 +57,3 @@ if(no > 1)
 }
 legend("topright",legend=1,pch=1,col=1,title="Stream",cex=1.5)
 dev.off()
-
-# Clear objects
-rm(list=ls(all=TRUE))

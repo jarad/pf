@@ -201,13 +201,13 @@ pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE)
       out = pf.quant.out$state.quant
       for(k in 1:n.params)
       { 
-        if(k < 3) covered[i,k,] = out[,k,probs[1]] < mysim$sim[[i]]$x[k,] & out[,k,probs[2]] > mysim$sim[[i]]$x[k,] else covered[i,k,] = out[,k,probs[1]] < (1 -  mysim$sim[[i]]$x[1,] - mysim$sim[[i]]$x[2,]) & out[,k,probs[2]] > (1 -  mysim$sim[[i]]$x[1,] - mysim$sim[[i]]$x[2,])
+        if(k < 3) covered[i,k,] = out[,k,probs[1]] < mysims[[i]]$sim$x[k,] & out[,k,probs[2]] > mysims[[i]]$sim$x[k,] else covered[i,k,] = out[,k,probs[1]] < (1 -  mysims[[i]]$sim$x[1,] - mysims[[i]]$sim$x[2,]) & out[,k,probs[2]] > (1 -  mysims[[i]]$sim$x[1,] - mysims[[i]]$sim$x[2,])
       }
     } else {
       out = pf.quant.out$theta.quant
       for(k in 1:n.params)
       {
-        covered[i,k,] = out[,k,probs[1]] < mysim$true.params$theta[k] & out[,k,probs[2]] > mysim$true.params$theta[k]
+        covered[i,k,] = out[,k,probs[1]] < mysims[[i]]$true.params$theta[k] & out[,k,probs[2]] > mysims[[i]]$true.params$theta[k]
       }
     }
   }

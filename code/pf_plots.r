@@ -9,7 +9,7 @@ n = c(100, 1000, 10000, 20000)
 filt = c("BF", "APF", "KD")
 cols = c(2, 4, 3)
 probs = c(4, 5)
-n.sim = 1
+n.sim = 1:20
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-systematic-unif-logit-0.99-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -25,7 +25,7 @@ for(i in n.sim)
       params <- expression(beta,gamma,nu)
       burn = c(15, 0, 0)
     }
-    create.label <- paste(gpath,"PF-",n.sim,"-",n,"-systematic-unif-logit-0.99-61-",states.label[j],".pdf",sep="")
+    create.label <- paste(gpath,"PF-",i,"-systematic-unif-logit-0.99-61-",states.label[j],".pdf",sep="")
     pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
   }
 }
@@ -35,7 +35,7 @@ n = c(100, 1000, 10000, 20000)
 filt = c("multinomial", "residual", "stratified", "systematic")
 cols = rainbow(length(filt))
 probs = c(4, 5)
-n.sim = 1
+n.sim = 1:20
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-",filt,"-orig-log-0.99-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -47,7 +47,7 @@ for(i in n.sim)
     {
       params <- expression(s,i,r)
       burn = 0
-      create.label <- paste(gpath,"PF-",n.sim,"-",n,"-KD-resamp-orig-log-0.99-61-",states.label[j],".pdf",sep="")
+      create.label <- paste(gpath,"PF-",i,"-KD-resamp-orig-log-0.99-61-",states.label[j],".pdf",sep="")
       pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
     } else {
       params <- expression(beta,gamma,nu)
@@ -71,7 +71,7 @@ for(i in n.sim)
       require(plyr)
       mydata = expand.grid(n.param = 1:length(params))
       out.avg = maply(mydata, pf_average)
-      create.label <- paste(gpath,"PF-",n.sim,"-",n,"-KD-resamp-orig-log-0.99-61-",states.label[j],".pdf",sep="")
+      create.label <- paste(gpath,"PF-",i,"-KD-resamp-orig-log-0.99-61-",states.label[j],".pdf",sep="")
       pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], out.avg = out.avg, burn = c(15, 0, 0))
     }
   }
@@ -82,7 +82,7 @@ n = c(100, 1000, 10000, 20000)
 filt = c(0.9, 0.95, 0.96, 0.97, 0.98, 0.99)
 cols = rainbow(length(filt))
 probs = c(4, 5)
-n.sim = 1
+n.sim = 1:20
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-stratified-orig-log-",filt,"-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -94,7 +94,7 @@ for(i in n.sim)
     {
       params <- expression(s,i,r)
       burn = 0
-      create.label <- paste(gpath,"PF-",n.sim,"-",n,"-KD-stratified-orig-log-delta-61-",states.label[j],".pdf",sep="")
+      create.label <- paste(gpath,"PF-",i,"-KD-stratified-orig-log-delta-61-",states.label[j],".pdf",sep="")
       pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
     } else {
       params <- expression(beta,gamma,nu)
@@ -103,7 +103,7 @@ for(i in n.sim)
       pf_average <- function(n.param)
       {
         load(paste(dpath,"sim-orig.rdata",sep=""))
-        tt = dim(mysims[[n.sim]]$sim$x)[2]
+        tt = dim(mysims[[i]]$sim$x)[2]
         avg.quant = matrix(0, nr=tt, nc = 2)
         for(k in 1:length(filt))
         {
@@ -119,7 +119,7 @@ for(i in n.sim)
       mydata = expand.grid(n.param = 1:length(params))
       out.avg = maply(mydata, pf_average)
       
-      create.label <- paste(gpath,"PF-",n.sim,"-",n,"-KD-stratified-orig-log-delta-61-",states.label[j],".pdf",sep="")
+      create.label <- paste(gpath,"PF-",i,"-KD-stratified-orig-log-delta-61-",states.label[j],".pdf",sep="")
       pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], out.avg = out.avg, burn = c(15, 0, 0))      
     }
   }
@@ -150,10 +150,34 @@ for(i in n.sim)
       params <- expression(beta,gamma,nu)
       burn = c(15, 0, 0)
     }
-    create.label <- paste(gpath,"PF-",n.sim,"-",n,"-stratified-orig-0.99-61-",states.label[j],".pdf",sep="")
+    create.label <- paste(gpath,"PF-",n.sim,"-stratified-orig-0.99-61-",states.label[j],".pdf",sep="")
     pf_plot(n, params, filt, i, probs, cols, create.label, load.label, states[j], burn = c(15, 0, 0))
   }
 }
+
+# Plot coverage probabilities for different particle filters with uniform priors, systematic resampling
+quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
+probs <- c(2, 3)
+my_pf_coverage <- function(n, filt, states)
+{
+  load.label <- function(filt, n, n.sim)
+  {
+    if(filt != "RM") return(paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-systematic-unif-logit-0.99-61.rdata",sep=""))
+    if(filt == "RM") return(paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-systematic-unif-none-0.99-61.rdata",sep=""))
+  }
+  pf_coverage(20, n, filt, probs, load.label, states) 
+}
+mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("BF", "APF", "KD"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
+require(plyr)
+coverage <- maply(mydata, my_pf_coverage)
+alpha = quantiles[probs[2]]-quantiles[probs[1]]
+params = expression(beta, gamma, nu)
+states = expression(s, i, r)
+cols = c(2,4,3)
+create.label <- paste(gpath,"PF-coverage-",alpha,"-systematic-unif-filt-params.pdf",sep="")
+pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
+create.label <- paste(gpath,"PF-coverage-",alpha,"-systematic-unif-filt-states.pdf",sep="")
+pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
 # Plot coverage probabilities for different particle filters with original priors, stratified resampling
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
@@ -180,6 +204,8 @@ create.label <- paste(gpath,"PF-coverage-",alpha,"-stratified-orig-filt-states.p
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
 # Plot coverage probabilities for resampling schemes with KD pf, original priors
+quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
+probs <- c(2, 3)
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-",filt,"-orig-log-0.99-61.rdata",sep="")
@@ -198,6 +224,8 @@ create.label <- paste(gpath,"PF-coverage-",alpha,"-KD-orig-resamp-states.pdf",se
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
 # Plot coverage probabilities for delta values with lognormal priors, stratified resampling (KD filter only)
+quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
+probs <- c(2, 3)
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-stratified-orig-log-",filt,"-61.rdata",sep="")
@@ -216,9 +244,11 @@ create.label <- paste(gpath,"PF-coverage-",alpha,"-KD-stratified-orig-delta-stat
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
 # Plot coverage probabilities for original versus disperse priors, stratified resampling, delta = .99 (KD pf)
+quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
+probs <- c(2, 3)
 my_pf_coverage <- function(n, filt, states)
 {
-  load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"KD-stratified-",filt,"-log-0.99-61.rdata",sep="")
+  load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-stratified-",filt,"-log-0.99-61.rdata",sep="")
   pf_coverage(20, n, filt, probs, load.label, states) 
 }
 mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("orig","disp"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
@@ -298,19 +328,31 @@ for(k in 1:length(trans))
 
 ###################
 
-## Figure 4 - Extended model: KD PF for n particles with normal priors and stratified resampling
+## Figure 4 - Extended model: KD PF for n particles with original priors and stratified resampling
 
-# Load data and get points where resampling done
-n = 40000
+# Load data
+n = 1000
+n.sim = 1
+filt = "KD"
+resamp = "stratified"
+prior = "orig"
+transform = "log"
+delta = 0.99
+seed = 61
+
 load(paste(dpath,"sim-ext.rdata",sep=""))
-tt = dim(sim$x)[2]; nt = tt - 1
-dpts = which(!is.na(sim$y[1,]))
+load(paste(dpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep="")
+
+# Get points where resampling done for extended model
+tt = dim(mysim$sim$x)[2]; nt = tt - 1
+dpts = which(!is.na(mysim$sim$y[1,]))
 resampled = rep(0,nt)
-load(paste(dpath,"PF-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
 parents = pf.out$out$parent
 for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
 spts.ext = which(as.logical(resampled))
 resampled = rep(0,nt)
+
+# Get points where resampling done for original model
 load(paste(dpath,"PF-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
 parents = pf.out$out$parent
 for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)

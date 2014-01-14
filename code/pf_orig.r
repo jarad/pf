@@ -7,16 +7,27 @@ dpath = "/storage/sheinson_research/"
 # pf - function to run particle filter given n number of particles, n.sim-th data set, resamp = "multinomial", "residual", "stratified", or "systematic", prior = "orig" or "disp", and delta amount of jitter to particles
 # KD particle filter, lognormal priors on beta, gamma, and nu
 # Returns nothing; saves .rdata data file
-pf <- function(n.sim, n, filt, resamp, prior, transform, delta, seed, progress = TRUE)
+pf <- function(data = "", n.sim, n, filt, resamp, prior, transform, delta, seed, progress = TRUE)
 {
   # Load simulated data
-  load(paste(dpath,"sim-orig.rdata",sep=""))
-  y = mysims[[n.sim]]$sim$y
-  P = mysims[[n.sim]]$true.params$P
-  b = mysims[[n.sim]]$true.params$b
-  varsigma = mysims[[n.sim]]$true.params$varsigma
-  sigma = mysims[[n.sim]]$true.params$sigma
-  eta = mysims[[n.sim]]$true.params$eta  
+  if(data != "ext.orig-")
+  {
+    load(paste(dpath,"sim-orig.rdata",sep=""))
+    y = mysims[[n.sim]]$sim$y
+    P = mysims[[n.sim]]$true.params$P
+    b = mysims[[n.sim]]$true.params$b
+    varsigma = mysims[[n.sim]]$true.params$varsigma
+    sigma = mysims[[n.sim]]$true.params$sigma
+    eta = mysims[[n.sim]]$true.params$eta  
+  } else {
+    load(paste(dpath,"sim-ext.rdata",sep=""))
+    y = mysim$sim$y
+    P = mysim$true.params$P
+    b = mysim$true.params$b
+    varsigma = mysim$true.params$varsigma
+    sigma = mysim$true.params$sigma
+    eta = mysim$true.params$eta  
+  }
   
   # Define functions to transform theta to original scale
   if(transform == "logit"){
@@ -121,24 +132,25 @@ pf <- function(n.sim, n, filt, resamp, prior, transform, delta, seed, progress =
     myrmove = function(y, x, theta) rmove(y, x, ftheta(theta), list(b=b, varsigma=varsigma, sigma=sigma, eta=eta, P=P))
     source("rm_pf.r")
     out = rm_pf(y, mydllik, myrevo, myrprior, myrmove, n, progress=progress, method=resamp, nonuniformity = "ess", threshold = 0.8, log=F)
-  } else { stop("filt must be one of 'BF', 'APF', or 'KD'") }
+  } else { stop("filt must be one of 'BF', 'APF', 'KD', or 'RM'") }
   
   # Save output
   pf.out = list(out=out,ftheta=ftheta)
-  file = paste(dpath,"PF-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep="")
+  file = paste(dpath,"PF-",data,n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep="")
   print(file)
   save(pf.out, file=file)
 }
 
 # Create data frame and use plyr to run particle filters in parallel
-#data1 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = c("BF","APF","KD"), resamp = "systematic", prior = "unif", transform = "logit", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
-#data2 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = c("multinomial","residual","stratified","systematic"), prior="orig", transform="log", delta = .99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
-#data3 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior="orig", transform="log", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, progress = FALSE, stringsAsFactors = FALSE)
-#data4 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "disp", transform = "log", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
-data5 = data.frame(n.sim = 1, n = 10000, filt = "KD", resamp = "systematic", prior = "unif", transform = "none", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
-data6 = data.frame(n.sim = 1, n = c(100, 1000, 10000, 20000), filt = "RM", resamp = "stratified", prior = "orig", transform = "none", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
-#mydata = rbind(data1, data2, data3, data4)
-mydata = rbind(data5, data6)
+#data1 = expand.grid(data = "", n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = c("BF","APF","KD"), resamp = "systematic", prior = "unif", transform = "logit", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
+#data2 = expand.grid(data = "", n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = c("multinomial","residual","stratified","systematic"), prior="orig", transform="log", delta = .99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+#data3 = expand.grid(data = "", n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior="orig", transform="log", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+#data4 = expand.grid(data = "", n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "disp", transform = "log", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
+#data5 = data.frame(data = "", n.sim = 1, n = 10000, filt = "KD", resamp = "systematic", prior = "unif", transform = "none", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+data6 = expand.grid(data = c("ext.orig-",""), n.sim = 1, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+data7 = data.frame(data = "", n.sim = 1, n = c(100, 1000, 10000, 20000), filt = "RM", resamp = "stratified", prior = "orig", transform = "none", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors = FALSE)
+#mydata = rbind(data1, data2, data3, data4, data5, data6, data7)
+mydata = rbind(data6, data7)
 
 require(plyr)
 require(doMC)
