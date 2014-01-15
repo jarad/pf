@@ -2,12 +2,12 @@ source("pf_functions.r")
 source("sir_functions.r")
 
 # Set data path
-dpath = "/storage/sheinson_research/"
+dpath = "../data/"
 
-pf.quant = function(mod = "", n.sim, n, filt, resamp, prior, transform, delta, seed)
+pf.quant = function(data = "", n.sim, n, filt, resamp, prior, transform, delta, seed)
 {
   # Load data
-  load(paste(dpath,"PF-",mod,n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+  load(paste(dpath,"PF-",data,n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
   out = pf.out$out
   ftheta = pf.out$ftheta
   
@@ -34,21 +34,20 @@ pf.quant = function(mod = "", n.sim, n, filt, resamp, prior, transform, delta, s
   
   # Save data
   pf.quant.out = list(state.quant=state.quant,theta.quant=theta.quant,probs=probs)
-  file = paste(dpath,"PF-",mod,"quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep="")
+  file = paste(dpath,"PF-",data,"quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep="")
   print(file)
   save(pf.quant.out, file=file)
 }
 
 # Create data frame and use plyr to run particle filters
-#data1 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = c("BF","APF","KD"), resamp = "systematic", prior = "unif", transform = "logit", delta = 0.99, seed = 61, stringsAsFactors=FALSE)
-#data2 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = c("multinomial","residual","stratified","systematic"), prior="orig", transform="log", delta = .99, seed = 61, stringsAsFactors = FALSE)
-#data3 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior="orig", transform="log", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, stringsAsFactors = FALSE)
-#data4 = expand.grid(n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "disp", transform = "log", delta = 0.99, seed = 61, stringsAsFactors=FALSE)
-#data5 = data.frame(n.sim = 1, n = c(100, 1000, 10000, 20000), filt = "RM", resamp = "stratified", prior = "orig", transform = "none", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
-data6 = expand.grid(data = c("ext-", ext.orig-",""), n.sim = 1, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
+data1 = expand.grid(data = "", n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = c("BF","APF","KD"), resamp = "systematic", prior = "unif", transform = "logit", delta = 0.99, seed = 61, stringsAsFactors=FALSE)
+data2 = expand.grid(data = "", n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = c("multinomial","residual","stratified","systematic"), prior="orig", transform="log", delta = .99, seed = 61, stringsAsFactors = FALSE)
+data3 = expand.grid(data = "", n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior="orig", transform="log", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, stringsAsFactors = FALSE)
+data4 = expand.grid(data = "", n.sim = 1:20, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "disp", transform = "log", delta = 0.99, seed = 61, stringsAsFactors=FALSE)
+data5 = expand.grid(data = "ext-", n.sim = 1, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
+data6 = expand.grid(data = c("ext.orig-"), n.sim = 1, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
 data7 = data.frame(data = "", n.sim = 1, n = c(100, 1000, 10000, 20000), filt = "RM", resamp = "stratified", prior = "orig", transform = "none", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
-#mydata = rbind(data1, data2, data3, data4, data5, data6, data7)
-mydata = rbind(data6, data7)
+mydata = rbind(data1, data2, data3, data4, data5, data6, data7)
 
 require(plyr)
 require(doMC)

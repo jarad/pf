@@ -127,7 +127,7 @@ for(i in n.sim)
 
 ## Compare particle filters over different # particles using stratified resampling, original priors
 n = c(100, 1000, 10000, 20000)
-filt = c("BF", "APF", "KD", "RM")
+filt = c("KD", "RM")
 cols = c(2, 4, 3, 6)
 probs = c(4, 5)
 n.sim = 1
@@ -323,12 +323,10 @@ for(k in 1:length(trans))
   dev.off()
 }
 
-###################
-
 ## Figure 4 - Extended model: KD PF for n particles with original priors and stratified resampling
 
 # Load data
-n = 1000
+n = 20000
 n.sim = 1
 filt = "KD"
 resamp = "stratified"

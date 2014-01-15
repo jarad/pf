@@ -1,7 +1,7 @@
 source("sir_functions.r")
 
 # Set data path
-dpath = "/storage/sheinson_research/"
+dpath = "../data/"
 
 # pf - function to run particle filter given n number of particles, n.sim-th data set, resamp = "multinomial", "residual", "stratified", or "systematic", prior = "orig" or "disp", and delta amount of jitter to particles
 # KD particle filter, lognormal priors on beta, gamma, and nu
@@ -41,18 +41,18 @@ pf <- function(n, filt, resamp, prior, transform, delta, seed, progress = TRUE)
       rtheta <- function()
       {
         theta <- rep(NA, 7)
-        log.params <- find.mu.sigma(c(.09, .95, .1, .85, .0005), c(.143, 1.3, .4, 1.15, .0015))
-        theta[2:7] <- exp(rnorm(6, c(log.params[[1]], 2.5), c(log.params[[2]], 1)))
-        theta[1] <- theta[2]*runif(1, 1.2, 3)
+        log.params <- find.mu.sigma(c(1.5, .09, .95, .1, .85, .0005), c(3, .143, 1.3, .4, 1.15, .0015))
+        theta[2:7] <- exp(rnorm(6, c(log.params[[1]][2:6], 2.5), c(log.params[[2]][2:6], 1)))
+        theta[1] <- theta[2]*exp(rnorm(1, log.params[[1]][1], log.params[[2]][1]))
         return(log(theta))
       }
     } else if(transform == "none") { 
       rtheta <- function()
       {
         theta <- rep(NA, 7)
-        log.params <- find.mu.sigma(c(.09, .95, .1, .85, .0005), c(.143, 1.3, .4, 1.15, .0015))
-        theta[2:7] <- exp(rnorm(6, c(log.params[[1]], 2.5), c(log.params[[2]], 1)))
-        theta[1] <- theta[2]*runif(1, 1.2, 3)
+        log.params <- find.mu.sigma(c(1.5, .09, .95, .1, .85, .0005), c(3, .143, 1.3, .4, 1.15, .0015))
+        theta[2:7] <- exp(rnorm(6, c(log.params[[1]][2:6], 2.5), c(log.params[[2]][2:6], 1)))
+        theta[1] <- theta[2]*exp(rnorm(1, log.params[[1]][1], log.params[[2]][1]))
         return(theta)
       }
     } else { stop("Must use log or no transformation with original prior") }
