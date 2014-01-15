@@ -2,7 +2,7 @@ source("pf_functions.r")
 source("sir_functions.r")
 
 # Set data path
-dpath = "../data/"
+dpath = "/storage/sheinson_research/"
 
 pf.quant = function(data = "", n.sim, n, filt, resamp, prior, transform, delta, seed)
 {

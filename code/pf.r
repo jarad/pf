@@ -2,7 +2,7 @@ source("sir_functions.r")
 source("sir_mcmc_functions.r")
 
 # Set data path
-dpath = "../data/"
+dpath = "/storage/sheinson_research/"
 
 # pf - function to run particle filter given n number of particles, n.sim-th data set, resamp = "multinomial", "residual", "stratified", or "systematic", prior = "orig" or "disp", and delta amount of jitter to particles
 # KD particle filter, lognormal priors on beta, gamma, and nu
