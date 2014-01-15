@@ -1,5 +1,5 @@
 # Set data and graphics path
-dpath = "../data/MCMC/"
+dpath = "../data/1-10-14/"
 gpath = "../graphs/"
 
 # Load simulated data
@@ -133,3 +133,57 @@ sir_mcmc_plots <- function(n.chains, x, beta, gamma, nu)
 mydata = data.frame(n.chains=3,x=1,beta=1,gamma=1,nu=1)
 require(plyr)
 m_ply(.data = mydata, .fun = sir_mcmc_plots)
+
+# Compute 95% credible intervals and compare with KD particle filter
+sir_mcmc_quant <- function(n.chains, x, beta, gamma, nu)
+{
+  for(i in 1:n.chains)
+  {
+    load(paste(dpath,"sir_mcmc_test-",paste(i,x,beta,gamma,nu,sep="-"),".rdata",sep=""))
+    if(i == 1)
+    {
+      if(as.logical(x)) out.x = array(NA, dim = c(n.chains*dim(out$x)[1], dim(out$x)[2], dim(out$x)[3]))
+      if(as.logical(sum(c(beta,gamma,nu)))) out.theta = matrix(NA, nr = n.chains*dim(out$theta)[1], nc = dim(out$theta)[2])
+    }
+    if(as.logical(x)) out.x[((i-1)*dim(out$x)[1] + 1):(i*dim(out$x)[1]),,] = out$x
+    if(as.logical(sum(c(beta,gamma,nu)))) out.theta[((i-1)*dim(out$theta)[1] + 1):(i*dim(out$theta)[1]),] = out$theta
+  }
+  out.quant = list()
+  if(as.logical(x)) out.quant$x = apply(out.x, 2:3, function(x) quantile(x, probs = c(0.025, 0.975)))
+  if(as.logical(sum(c(beta,gamma,nu)))) out.quant$theta = apply(out.theta, 2, function(x) quantile(x, probs = c(0.025, 0.975)))
+
+  return(out.quant)
+}
+
+# Calculate 95% CI for mcmc estimates of states and unknown parameters
+mcmc.quant = sir_mcmc_quant(3,1,1,1,1)
+colnames(mcmc.quant$theta) = c("beta","gamma","nu")
+
+# Calculate 95% CI for kd_pf estimates of states and unknown parameters
+load(paste(dpath,"PF-quant-KD-lognormal-stratified-20000-orig-0.99-61-1.rdata",sep=""))
+kd.quant = list()
+kd.quant$theta = t(pf.quant.out$theta.quant[126,,4:5])
+dimnames(kd.quant$theta)[[1]] = c("2.5%","97.5%")
+dimnames(kd.quant$theta)[[2]] = c("beta","gamma","nu")
+
+# Plot 95% credible intervals for states over time
+ymins.mcmc = apply(mcmc.quant$x[1,,], 1, min)
+ymaxs.mcmc = apply(mcmc.quant$x[2,,], 1, max)
+ymins.kd = apply(pf.quant.out$state.quant[,1:2,4], 2, min)
+ymaxs.kd = apply(pf.quant.out$state.quant[,1:2,5], 2, max)
+ymins = c(min(ymins.mcmc[1], ymins.kd[1], mysim$sim[[1]]$x[1,]), min(ymins.mcmc[2], ymins.kd[2], mysim$sim[[1]]$x[2,]))
+ymaxs = c(max(ymaxs.mcmc[1], ymaxs.kd[1], mysim$sim[[1]]$x[1,]), max(ymaxs.mcmc[2], ymaxs.kd[2], mysim$sim[[1]]$x[2,]))
+nt = dim(mcmc.quant$x)[3] - 1
+windows(width = 10, height = 5)
+par(mfrow = c(1,2))
+plot(0:nt, mysim$sim[[1]]$x[1,], type = "l", xlab = expression(t), ylab = expression(s), main = "% Susceptible Over Time")
+lines(0:nt, mcmc.quant$x[1,1,], col = 2)
+lines(0:nt, mcmc.quant$x[2,1,], col = 2)
+lines(0:nt, pf.quant.out$state.quant[,1,4], col = 4)
+lines(0:nt, pf.quant.out$state.quant[,1,5], col = 4)
+legend("topright", c("MCMC", "KD"), lty = c(1, 1), col = c(2, 4))
+plot(0:nt, mysim$sim[[1]]$x[2,], type = "l", , xlab = expression(t), ylab = expression(i), main = "% Infected Over Time")
+lines(0:nt, mcmc.quant$x[1,2,], col = 2)
+lines(0:nt, mcmc.quant$x[2,2,], col = 2)
+lines(0:nt, pf.quant.out$state.quant[,2,4], col = 4)
+lines(0:nt, pf.quant.out$state.quant[,2,5], col = 4)
