@@ -35,7 +35,7 @@ mysim = list(sim=sim,true.params=list(theta=theta,b=b,sigma=sigma,varsigma=varsi
 save(mysim,file=paste(dpath,"sim-ext.rdata",sep=""))
 
 # Create table of data for .csv file
-epid.data = data.frame(seq(0,125,1),cbind(sim$x[2,],sim$x[1,],1-sim$x[2,]-sim$x[1,],c(NA,sim$y[1,])))
+epid.data = data.frame(seq(0,125,1),cbind(sim$x[1,],sim$x[2,],1-sim$x[2,]-sim$x[1,],c(NA,sim$y[1,])))
 names(epid.data) = c("Day","s","i","r","Stream 1")
 write.csv(epid.data,file=paste(dpath,"simdata-ext.csv",sep=""),row.names=FALSE)
 

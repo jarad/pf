@@ -25,9 +25,9 @@ for(i in 1:n.sims)
   rtheta <- function()
   {
     theta <- rep(NA, 3)
-    log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
-    theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
-    theta[1] <- theta[2]*runif(1, 1.2, 3)
+    log.params <- find.mu.sigma(c(1.5, .09, .95), c(3, .143, 1.3))
+    theta[2:3] <- exp(rnorm(2, log.params[[1]][2:3], log.params[[2]][2:3]))
+    theta[1] <- theta[2]*exp(rnorm(1, log.params[[1]][1], log.params[[2]][1]))
     return(theta)
   }
   init <- rprior(rtheta)
@@ -44,7 +44,7 @@ save(mysims,file=paste(dpath,"sim-orig.rdata",sep=""))
 # Write data to .csv files
 for(i in 1:n.sims)
 {
-  epid.data = data.frame(seq(0,125,1),cbind(mysims[[i]]$sim$x[2,],mysims[[i]]$sim$x[1,],1-mysims[[i]]$sim$x[2,]-mysims[[i]]$sim$x[1,]),t(cbind(rep(NA,dim(mysims[[i]]$sim$y)[1]),mysims[[i]]$sim$y)))
+  epid.data = data.frame(seq(0,125,1),cbind(mysims[[i]]$sim$x[1,],mysims[[i]]$sim$x[2,],1-mysims[[i]]$sim$x[2,]-mysims[[i]]$sim$x[1,]),t(cbind(rep(NA,dim(mysims[[i]]$sim$y)[1]),mysims[[i]]$sim$y)))
   streams = rep(NA, dim(mysims[[i]]$sim$y)[1])
   for(j in 1:dim(mysims[[i]]$sim$y)[1]) streams[j] = paste("Stream ",j,sep="")
   names(epid.data) = c("Day","s","i","r",streams)
@@ -55,9 +55,9 @@ for(i in 1:n.sims)
 # Epidemic curves
 pdf(paste(gpath,"sim-orig-epid.pdf",sep=""))
 par(mar=c(5,7,4,1)+.1)
-plot(0:nt,1 - mysims[[i]]$sim$x[1,] - mysims[[i]]$sim$x[2,],type="l",ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
-lines(0:nt,mysims[[i]]$sim$x[1,])
-lines(0:nt,mysims[[i]]$sim$x[2,],col=2)
+plot(0:nt,1 - mysims[[1]]$sim$x[1,] - mysims[[1]]$sim$x[2,],type="l",ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
+lines(0:nt,mysims[[1]]$sim$x[1,])
+lines(0:nt,mysims[[1]]$sim$x[2,],col=2)
 if(n.sims > 1)
 {
   for(i in 2:n.sims)
@@ -69,6 +69,18 @@ if(n.sims > 1)
 } 
 legend("topright",legend=c("Susceptible","Infected","Recovered"),lty=rep(1,3),col=c(1,2,4),cex=1.5)
 dev.off()
+
+# Epidemic curves for each simulation
+for(j in 1:n.sims)
+{
+  pdf(paste(gpath,"sim-orig-epid-",j,".pdf",sep=""))
+  par(mar=c(5,7,4,1)+.1)
+  plot(0:nt,1 - mysims[[j]]$sim$x[1,] - mysims[[j]]$sim$x[2,],type="l",ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
+  lines(0:nt,mysims[[j]]$sim$x[1,])
+  lines(0:nt,mysims[[j]]$sim$x[2,],col=2)
+  legend("topright",legend=c("Susceptible","Infected","Recovered"),lty=rep(1,3),col=c(1,2,4),cex=1.5)
+  dev.off()
+}
 
 # Observed data (z) over all simulations
 pdf(paste(gpath,"sim-orig-z.pdf",sep=""))
