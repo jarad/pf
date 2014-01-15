@@ -17,9 +17,9 @@ eta = mysims[[1]]$true.params$eta
 rtheta <- function()
 {
   theta <- rep(NA, 3)
-  log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
-  theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
-  theta[1] <- theta[2]*runif(1, 1.2, 3)
+  log.params <- find.mu.sigma(c(1.5, .09, .95), c(3, .143, 1.3))
+  theta[2:3] <- exp(rnorm(2, log.params[[1]][2:3], log.params[[2]][2:3]))
+  theta[1] <- theta[2]*exp(rnorm(1, log.params[[1]][1], log.params[[2]][1]))
   return(log(theta))
 }
 ftheta = function(theta,param=1) exp(theta)
@@ -42,9 +42,9 @@ revo_rm = function(x, theta) revo(x, theta, P)
 rtheta <- function()
 {
   theta <- rep(NA, 3)
-  log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
-  theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
-  theta[1] <- theta[2]*runif(1, 1.2, 3)
+  log.params <- find.mu.sigma(c(1.5, .09, .95), c(3, .143, 1.3))
+  theta[2:3] <- exp(rnorm(2, log.params[[1]][2:3], log.params[[2]][2:3]))
+  theta[1] <- theta[2]*exp(rnorm(1, log.params[[1]][1], log.params[[2]][1]))
   return(theta)
 }
 rprior_rm = function() rprior(rtheta)
