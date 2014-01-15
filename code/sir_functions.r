@@ -80,36 +80,6 @@ rprior = function(rtheta)
   return(list(x=c(s0,i0),theta=theta0))
 }
 
-# dlx0 - function that evaluates the log density of the prior state (s,i)
-dlx0 <- function(x)
-{
-  if(all(x >= 0) & sum(x) <= 1)
-  {
-    dnorm(x[2], .002, .0005, log=TRUE) # up to proportionality constant
-  } else { return(-Inf) }
-}
-
-# dlbeta0 - function that evaluates the log density of the prior on beta
-dlbeta0 <- function(beta)
-{
-  log.params = find.mu.sigma(.14, .50)
-  return(dlnorm(beta, log.params$mu, log.params$sigma, log=TRUE))
-}
-
-# dlgamma0 - function that evaluates the log density of the prior on gamma
-dlgamma0 <- function(gamma)
-{
-  log.params = find.mu.sigma(.09, .143)
-  return(dlnorm(gamma, log.params$mu, log.params$sigma, log=TRUE))
-}
-
-# dlnu0 - function that evaluates the log density of the prior on nu
-dlnu0 <- function(nu)
-{
-  log.params = find.mu.sigma(0.95, 1.3)
-  dlnorm(nu, log.params$mu, log.params$sigma, log=TRUE)
-}
-
 # Functions to reparameterize theta to [a,b] from the real line and vice versa
 theta2u = function(theta,a,b)
 {

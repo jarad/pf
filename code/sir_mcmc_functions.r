@@ -15,15 +15,27 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
 
   # Deal with missing arguments
   if(missing(initial)) {
-    # Set up initial values
-    log.params = find.mu.sigma(c(.14, .09, .95), c(.5, .143, 1.3))
-    tmp = rprior(function() exp(rnorm(3, log.params[[1]], log.params[[2]])))
+    # Set up initial values    
+    rtheta <- function()
+    {
+      theta <- rep(NA, 3)
+      log.params <- find.mu.sigma(c(.09, .95), c(.143, 1.3))
+      theta[2:3] <- exp(rnorm(2, log.params[[1]], log.params[[2]]))
+      theta[1] <- theta[2]*runif(1, 1.2, 3)
+      return(theta)
+    }
+    tmp = rprior(rtheta)
     theta = tmp$theta
     x = matrix(NA, 2, nt + 1)
     x[,1] = tmp$x
-    beta.x <- exp(rnorm(nt, log.params[[1]][1], log.params[[2]][1]))
-    gamma.x <- exp(rnorm(nt, log.params[[1]][2], log.params[[2]][2]))
-    nu.x <- exp(rnorm(nt, log.params[[1]][3], log.params[[2]][3]))
+    beta.x <- gamma.x <- nu.x <- rep(NA, nt)
+    for(i in 1:nt)
+    {
+      tmp2 = rtheta()
+      beta.x[i] = tmp2[1]
+      gamma.x[i] = tmp2[2]
+      nu.x[i] = tmp2[3]
+    }
     for(i in 1:nt) x[,i+1] = revo(x[,i], c(beta.x[i], gamma.x[i], nu.x[i]), psi$P)
   } else {
     x = initial$x
@@ -113,8 +125,8 @@ sir_mcmc <- function(y, psi, initial, tuning, mcmc.details, steps, progress=TRUE
 rmove <- function(y, x, theta, psi, tuning.x, tuning.theta, n.iter = 1)
 {
   # Deal with missing arguments
-  if(missing(tuning.x)) tuning.x <- matrix(0.0001, nr=dim(x)[1], nc=dim(x)[2])
-  if(missing(tuning.theta)) tuning.theta <- c(0.0005, 0.00018, 0.00038)
+  if(missing(tuning.x)) tuning.x <- matrix(0.0005, nr=dim(x)[1], nc=dim(x)[2])
+  if(missing(tuning.theta)) tuning.theta <- c(0.00045, 0.00015, 0.00035)
 
   # Check dimensions of y and x
   nt = dim(y)[2]
@@ -202,7 +214,7 @@ sample.beta <- function(y, x, theta, psi, tuning, tune = FALSE)
     dlevo.prop = dlevo.prop + dlevo(x[,i+1], x[,i], c(beta.prop,theta[2:3]), psi$P)
     dlevo.curr = dlevo.curr + dlevo(x[,i+1], x[,i], theta, psi$P)
   }
-  logMH = dlevo.prop + dlbeta0(beta.prop) - dlevo.curr - dlbeta0(beta.curr)
+  logMH = dlevo.prop + dlbeta0gamma0(beta.prop, theta[2]) - dlevo.curr - dlbeta0gamma0(beta.curr, theta[2])
   if(log(runif(1)) < logMH & beta.prop > 0)
   { 
     beta.curr = beta.prop
@@ -233,7 +245,7 @@ sample.gamma <- function(y, x, theta, psi, tuning, tune = FALSE)
     dlevo.prop = dlevo.prop + dlevo(x[,i+1], x[,i], c(theta[1],gamma.prop,theta[3]), psi$P)
     dlevo.curr = dlevo.curr + dlevo(x[,i+1], x[,i], theta, psi$P)
   }
-  logMH = dlevo.prop + dlgamma0(gamma.prop) - dlevo.curr - dlgamma0(gamma.curr)
+  logMH = dlevo.prop + dlbeta0gamma0(theta[1], gamma.prop) - dlevo.curr - dlbeta0gamma0(theta[1], gamma.curr)
   if(log(runif(1)) < logMH & gamma.prop > 0)
   {
     gamma.curr = gamma.prop
@@ -289,6 +301,31 @@ save.iteration <- function(current.iter, n.burn, n.thin) {
 
 # rx - samples a new state x from the proposal density of x given a tuning parameter
 rx <- function(x, tuning = c(0.001, 0.001)) rnorm(2, x, tuning)
+
+# dlx0 - function that evaluates the log density of the prior state (s,i) (up to proportionality constant)
+dlx0 <- function(x)
+{
+  if(all(x >= 0) & sum(x) <= 1)
+  {
+    dnorm(x[2], .002, .0005, log=TRUE)
+  } else { return(-Inf) }
+}
+
+# dlbeta0gamma0 - function that evaluates the log of the joint prior density of beta and gamma (up to proportionality constant)
+dlbeta0gamma0 <- function(beta, gamma, lR = 1.5, uR = 3, lgamma = 0.09, ugamma = 0.143)
+{
+  log.params = find.mu.sigma(c(lR, lgamma), c(uR, ugamma))
+  mu = log.params[[1]]
+  sigma = log.params[[2]]
+  return(-log(gamma) - 0.5*(((1/sigma[1]^2)*(log(beta/gamma) - mu[1])^2) + ((1/sigma[2]^2)*(log(gamma) - mu[2])^2)))
+}
+
+# dlnu0 - function that evaluates the log density of the prior on nu
+dlnu0 <- function(nu, lnu = 0.95, unu = 1.3)
+{
+  log.params = find.mu.sigma(lnu, unu)
+  dlnorm(nu, log.params$mu, log.params$sigma, log=TRUE)
+}
 
 # in.Omega - returns TRUE if all elements of x are nonnegative and sum to less than or equal to 1
 in.Omega <- function(x) all(x >= 0) & sum(x) <= 1
