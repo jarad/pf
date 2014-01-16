@@ -13,13 +13,17 @@ varsigma = mysims[[1]]$true.params$varsigma
 sigma = mysims[[1]]$true.params$sigma
 eta = mysims[[1]]$true.params$eta
 
-# Set up initial values of MCMC
-initial.chains = list()
-n.chains = 3
-nt = dim(y)[2]
-for(j in 1:n.chains)
+# Test mcmc
+psi = list(b=b, varsigma=varsigma, sigma=sigma, eta=eta, P=P)
+mcmc.details = list(n.thin=1000, n.sims=10100000, n.burn=100000, tune = TRUE)
+my_sir_mcmc <- function(n.chain, x, beta, gamma, nu, ymax, progress, print.iter)
 {
-  set.seed(60 + j)  
+  if(missing(ymax)) ymax = dim(y)[2]
+  t = 1:ymax
+  nt = length(t)
+  
+  # Set initial values
+  set.seed(60 + n.chain)  
   rtheta <- function()
   {
     theta <- rep(NA, 3)
@@ -30,29 +34,20 @@ for(j in 1:n.chains)
   }  
   tmp = rprior(rtheta)
   theta = tmp$theta
-  x = mysims[[1]]$sim$x
-  initial.chains[[j]] = list(x = x, theta = theta)
-}
-
-# Test mcmc
-psi = list(b=b, varsigma=varsigma, sigma=sigma, eta=eta, P=P)
-mcmc.details = list(n.thin=1000, n.sims=10100000, n.burn=100000, tune = TRUE)
-my_sir_mcmc <- function(n.chain, x, beta, gamma, nu, ymax, progress, print.iter)
-{
-  if(missing(ymax)) ymax = dim(y)[2]
-  t = 1:ymax
-    
+  x.init = mysims[[1]]$sim$x[,c(t,ymax+1)]
+  initial.chains = list(x = x.init, theta = theta)
+  
   tuning = list(tuning.x = matrix(0.001, nr=2, nc = nt+1), tuning.theta = c(0.01, 0.001, 0.01))
   steps = c('x','beta','gamma','nu')
   params.est <- which(as.logical(c(x,beta,gamma,nu)))
   steps = steps[params.est]
-  if(!('x' %in% steps)) initial.chains[[n.chain]]$x = mysims[[1]]$sim$x
-  if(!('beta' %in% steps)) initial.chains[[n.chain]]$theta[1] = mysims[[1]]$true.params$theta[1]
-  if(!('gamma' %in% steps)) initial.chains[[n.chain]]$theta[2] = mysims[[1]]$true.params$theta[2]
-  if(!('nu' %in% steps)) initial.chains[[n.chain]]$theta[3] = mysims[[1]]$true.params$theta[3]
+  if(!('x' %in% steps)) initial.chains$x = mysims[[1]]$sim$x
+  if(!('beta' %in% steps)) initial.chains$theta[1] = mysims[[1]]$true.params$theta[1]
+  if(!('gamma' %in% steps)) initial.chains$theta[2] = mysims[[1]]$true.params$theta[2]
+  if(!('nu' %in% steps)) initial.chains$theta[3] = mysims[[1]]$true.params$theta[3]
 
   cat(n.chain,x,beta,gamma,nu,ymax,"\n",sep=" ")
-  out = sir_mcmc(y[,t], psi, initial.chains[[n.chain]], tuning, mcmc.details, steps, progress, print.iter)
+  out = sir_mcmc(y[,t], psi, initial.chains, tuning, mcmc.details, steps, progress, print.iter)
   file = paste(dpath,"sir_mcmc_test-",paste(n.chain,x,beta,gamma,nu,ymax,sep="-"),".rdata",sep="")
   save(out, file = file)
 }
@@ -61,5 +56,5 @@ require(plyr)
 require(doMC)
 registerDoMC()
 
-mydata = data.frame(n.chain=1:3, x=1, beta=1, gamma=1, nu=1, ymax = 125, progress=TRUE, print.iter=FALSE)
+mydata = data.frame(n.chain=1:3, x=1, beta=1, gamma=1, nu=1, ymax = 125, progress=FALSE, print.iter=TRUE)
 m_ply(.data = mydata, .fun = my_sir_mcmc, .parallel = TRUE)
