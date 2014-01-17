@@ -179,30 +179,6 @@ pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
 create.label <- paste(gpath,"PF-coverage-",alpha,"-systematic-unif-filt-states.pdf",sep="")
 pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
 
-# Plot coverage probabilities for different particle filters with original priors, stratified resampling
-quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
-probs <- c(2, 3)
-my_pf_coverage <- function(n, filt, states)
-{
-  load.label <- function(filt, n, n.sim)
-  {
-    if(filt != "RM") return(paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-stratified-orig-log-0.99-61.rdata",sep=""))
-    if(filt == "RM") return(paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-stratified-orig-none-0.99-61.rdata",sep=""))
-  }
-  pf_coverage(20, n, filt, probs, load.label, states) 
-}
-mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("BF", "APF", "KD", "RM"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
-require(plyr)
-coverage <- maply(mydata, my_pf_coverage)
-alpha = quantiles[probs[2]]-quantiles[probs[1]]
-params = expression(beta, gamma, nu)
-states = expression(s, i, r)
-cols = c(2,4,3)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-stratified-orig-filt-params.pdf",sep="")
-pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-stratified-orig-filt-states.pdf",sep="")
-pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
-
 # Plot coverage probabilities for resampling schemes with KD pf, original priors
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(2, 3)
@@ -277,7 +253,7 @@ load(paste(dpath,"sim-orig.rdata",sep=""))
 
 # Panel 1 - uniform prior draws, logit transformation
 # Panel 2 - uniform prior draws, log transformation
-trans = c("logit", "none")
+trans = c("logit", "log")
 for(k in 1:length(trans))
 {
   # Load particle filtered data
@@ -334,6 +310,7 @@ prior = "orig"
 transform = "log"
 delta = 0.99
 seed = 61
+probs = c(4, 5)
 
 load(paste(dpath,"sim-ext.rdata",sep=""))
 load(paste(dpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
@@ -372,15 +349,15 @@ for(k in 1:length(params))
   tt = dim(out)[1]; nt = tt - 1
   if(k == 1) # label y axis, title, legend
   {
-     plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab=paste("J = ",n,sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-     lines(1:nt,out[-1,k,3],col=4)
+     plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab=paste("J = ",n,sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+     lines(1:nt,out[-1,k,probs[2]],col=4)
      points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
      points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
      points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
      legend("topright",legend=c("Truth","Original","Extended"),col=c("gray47",2,4),lty=c(1,1,1),cex=cex.leg)
   } else { # label title only
-     plot(1:nt,out[-1,k,2],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
-     lines(1:nt,out[-1,k,3],col=4)
+     plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
+     lines(1:nt,out[-1,k,probs[2]],col=4)
      points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
      points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
      points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
@@ -393,8 +370,8 @@ for(k in 1:length(params))
     load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
     out = pf.quant.out$theta.quant
     tt = dim(out)[1]; nt = tt - 1
-    lines(1:nt,out[-1,k,2],col=2)
-    lines(1:nt,out[-1,k,3],col=2)
+    lines(1:nt,out[-1,k,probs[1]],col=2)
+    lines(1:nt,out[-1,k,probs[2]],col=2)
   }
 }
 
@@ -407,15 +384,15 @@ for(k in 1:2)
   tt = dim(out)[1]; nt = tt - 1
   if(k == 2) # label x axis, title
   {
-     plot(1:nt,out[-1,k,2],type="l",ylim=c(ymin,1),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-     lines(1:nt,out[-1,k,3],col=4)
+     plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymin,1),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+     lines(1:nt,out[-1,k,probs[2]],col=4)
      lines(1:nt,mysim$sim$x[k,-1],col="gray47")
      points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
      points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
      points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
   } else { # label title only
-     plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-     lines(1:nt,out[-1,k,3],col=4)
+     plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+     lines(1:nt,out[-1,k,probs[2]],col=4)
      lines(1:nt,mysim$sim$x[k,-1],col="gray47")
      points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
      points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
@@ -424,16 +401,16 @@ for(k in 1:2)
   load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
   out = pf.quant.out$state.quant
   tt = dim(out)[1]; nt = tt - 1
-  lines(1:nt,out[-1,k,2],col=2)
-  lines(1:nt,out[-1,k,3],col=2)
+  lines(1:nt,out[-1,k,probs[1]],col=2)
+  lines(1:nt,out[-1,k,probs[2]],col=2)
 }
 #k = 3
 #load(paste(dpath,"PF-quant-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
 #out = pf.quant.out$state.quant
 #tt = dim(out)[1]; nt = tt - 1
 #truex = 1 - apply(mysim$sim$x[,-1],2,sum)
-#plot(1:nt,out[-1,k,2],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-#lines(1:nt,out[-1,k,3],col=4)
+#plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+#lines(1:nt,out[-1,probs[2],3],col=4)
 #lines(1:nt,truex,col="gray47")
 ##points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
 ##points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
