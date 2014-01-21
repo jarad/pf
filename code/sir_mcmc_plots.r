@@ -130,7 +130,7 @@ sir_mcmc_plots <- function(n.chains, x, beta, gamma, nu, ymax)
   }
 }
 
-mydata = data.frame(n.chains=3,x=1,beta=1,gamma=1,nu=1,ymax=125)
+mydata = data.frame(n.chains=3,x=1,beta=1,gamma=1,nu=1,ymax=c(30))
 require(plyr)
 m_ply(.data = mydata, .fun = sir_mcmc_plots)
 
@@ -156,16 +156,21 @@ sir_mcmc_quant <- function(n.chains, x, beta, gamma, nu, ymax)
 }
 
 # Calculate 95% CI for mcmc estimates of states and unknown parameters
-mcmc.quant = sir_mcmc_quant(3,1,1,1,1,125)
-colnames(mcmc.quant$x) = c("s","i")
-colnames(mcmc.quant$theta) = c("beta","gamma","nu")
+mcmc.quant = mlply(.data = mydata, .fun = sir_mcmc_quant)
+for(i in 1:length(mcmc.quant)) colnames(mcmc.quant[[i]]$x) = c("s","i")
+for(i in 1:length(mcmc.quant)) colnames(mcmc.quant[[i]]$theta) = c("beta","gamma","nu")
 
 # Calculate 95% CI for kd_pf estimates of states and unknown parameters
 load(paste(dpath,"/1-14-14/PF-quant-1-20000-KD-stratified-orig-log-0.99-61.rdata",sep=""))
-kd.quant = list()
-kd.quant$theta = t(pf.quant.out$theta.quant[ymax+1,,4:5])
-dimnames(kd.quant$theta)[[1]] = c("2.5%","97.5%")
-dimnames(kd.quant$theta)[[2]] = c("beta","gamma","nu")
-kd.quant$x = t(pf.quant.out$state.quant[ymax+1,1:2,4:5])
-dimnames(kd.quant$x)[[1]] = c("2.5%","97.5%")
-dimnames(kd.quant$x)[[2]] = c("s", "i")
+kd_quant <- function(ymax)
+{
+  kd.quant = list()
+  kd.quant$theta = t(pf.quant.out$theta.quant[ymax,,4:5])
+  dimnames(kd.quant$theta)[[1]] = c("2.5%","97.5%")
+  dimnames(kd.quant$theta)[[2]] = c("beta","gamma","nu")
+  kd.quant$x = t(pf.quant.out$state.quant[ymax,1:2,4:5])
+  dimnames(kd.quant$x)[[1]] = c("2.5%","97.5%")
+  dimnames(kd.quant$x)[[2]] = c("s", "i")
+  return(kd.quant)
+}
+kd.quant = mlply(.data = data.frame(ymax = 30), .fun = kd_quant)
