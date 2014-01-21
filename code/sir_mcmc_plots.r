@@ -161,7 +161,7 @@ for(i in 1:length(mcmc.quant)) colnames(mcmc.quant[[i]]$x) = c("s","i")
 for(i in 1:length(mcmc.quant)) colnames(mcmc.quant[[i]]$theta) = c("beta","gamma","nu")
 
 # Calculate 95% CI for kd_pf estimates of states and unknown parameters
-load(paste(dpath,"/1-14-14/PF-quant-1-20000-KD-stratified-orig-log-0.99-61.rdata",sep=""))
+load(paste(dpath,"PF-quant-1-20000-KD-stratified-orig-log-0.99-61.rdata",sep=""))
 kd_quant <- function(ymax)
 {
   kd.quant = list()
