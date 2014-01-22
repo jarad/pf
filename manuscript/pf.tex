@@ -60,6 +60,8 @@ x_t \sim p(x_t|x_{t-1},\theta).
 \]
 A fully specified Bayesian model is obtained by also specifying the prior $p(x_0,\theta)$.
 
+The dimension of $x_t$ need not remain constant with respect to $t$. For instance, we could describe a process where $x_t$ depends on the entire history of states up to $t$ by letting $x_{t-1} = (x^*_1, x^*_2, \ldots, x^*_{t-1})'$ and defining $x_t = (x^*_t, x_{t-1})'$, where the $x^*_t$ is the new state generated at time $t$.
+
 Special cases of these state-space models include hidden Markov models \citep{cappe2005inference,petris2009dynamic}, where the state $x_t$ has discrete support, and dynamic linear models (DLMs) \citep{West:Harr:baye:1997}, where each distribution is Gaussian whose mean is a linear function of the states and whose variance does not depend on the mean. The disease outbreak models discussed in Section \ref{sec:apply} are specific cases of state-space models, but we introduce these models in generality here because the particle filtering methods discussed in Section \ref{sec:filtering} apply to any model with this form.
 
 \subsection{Sequential estimation \label {sec:sequential}}
