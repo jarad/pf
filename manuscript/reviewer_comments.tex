@@ -18,7 +18,7 @@ We've expanded from analyzing a single simulated data set to 20 simulated data s
 
 \noindent \emph{(2) The analysis and estimation is based on very informative priors on the model parameters, expressed as narrow uniform distributions or matched low-variance log-normal distributions. These are taken to be the same as in an earlier publication to facilitate comparisons, but raise several issues regarding the general applicability of the methods presented here: would the methods provide good inference if the priors were non-informative? For example, and very importantly, would they be applicable with real data where prior information could be limited?} \\
 
-Non-informative priors cannot be used with SMC methods, since we need to sample reasonable values from a prior distribution in order to avoid degeneracy. However, we argue that general applicability is not limited by this, as the priors used in our paper are actually not that informative and allow the data to overwhelm the prior and dictate the posterior distribution. \\
+Non-informative priors cannot be used with SMC methods, since we initialize an SMC algorithm by sampling from a proper prior distribution. However, we argue that general applicability is not limited by this, as the priors used in our paper are actually not that informative and allow the data to overwhelm the prior and dictate the posterior distribution. \\
 
 \noindent \emph{Also related to this point, one of the main conclusions of the presented work is that bounded priors influence estimation. This is a trivial point that should be expected when such restricted priors are used. The primary (and more general) issue here is that these priors are strongly informative.} \\
 
@@ -43,6 +43,8 @@ We compare 95\% credible intervals of MCMC samples conditional the first 30, 60,
 \noindent \emph{(8) The choice of the numerical value of the <DELTA> parameter for the kernel smoother in the applications seems arbitrary. At the very least the sensitivity to changes of this value should be explored or discussed.} \\
 
 \noindent \emph{(9) The various resampling techniques (e.g. p7, l14) should be briefly described in the paper for completeness.} \\
+
+Included in the first paragraph of Section 3.4 are brief descriptions of stratified, residual, and systematic resampling, and we refer the reader to a paper that describes these methods and their asymptotic properties in more detail. If desired, we could include a more formal write-up of these resampling algorithms in an appendix, but we decided against including too much detail in the main body of the paper because we did not think it essential to the main points of the paper. \\
 
 \noindent \emph{(10) Section 3.5 could perhaps go to an appendix as I do not think that it contains information that is essential to the understanding of the paper.} \\
 
