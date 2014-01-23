@@ -5,11 +5,11 @@ dpath = "../data/"
 gpath = "../graphs/"
 
 ## Compare particle filters over different # particles using systematic resampling, uniform priors
-n = c(100, 1000, 10000, 20000)
+n = c(1000, 10000, 20000, 40000)
 filt = c("BF", "APF", "KD")
 cols = c(2, 4, 3)
 probs = c(4, 5)
-n.sim = 1:20
+n.sim = 1
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-systematic-unif-logit-0.99-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -31,11 +31,11 @@ for(i in n.sim)
 }
 
 ## Compare resampling schemes over different # particles using KD pf and lognormal priors
-n = c(100, 1000, 10000, 20000)
+n = c(1000, 10000, 20000, 40000)
 filt = c("multinomial", "residual", "stratified", "systematic")
 cols = rainbow(length(filt))
 probs = c(4, 5)
-n.sim = 1:20
+n.sim = 1
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-",filt,"-orig-log-0.99-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -78,11 +78,11 @@ for(i in n.sim)
 }
 
 ## Compare delta parameter over different # particles using lognormal priors and stratified resampling
-n = c(100, 1000, 10000, 20000)
+n = c(1000, 10000, 20000, 40000)
 filt = c(0.9, 0.95, 0.96, 0.97, 0.98, 0.99)
 cols = rainbow(length(filt))
 probs = c(4, 5)
-n.sim = 1:20
+n.sim = 1
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-stratified-orig-log-",filt,"-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -158,6 +158,8 @@ for(i in n.sim)
 # Plot coverage probabilities for different particle filters with uniform priors, systematic resampling
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(2, 3)
+n.sims = 40
+n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim)
@@ -165,79 +167,85 @@ my_pf_coverage <- function(n, filt, states)
     if(filt != "RM") return(paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-systematic-unif-logit-0.99-61.rdata",sep=""))
     if(filt == "RM") return(paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-systematic-unif-none-0.99-61.rdata",sep=""))
   }
-  pf_coverage(20, n, filt, probs, load.label, states) 
+  pf_coverage(n.sims, n, filt, probs, load.label, states) 
 }
-mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("BF", "APF", "KD"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
+mydata = expand.grid(n = n, filt = c("BF", "APF", "KD"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
 require(plyr)
 coverage <- maply(mydata, my_pf_coverage)
 alpha = quantiles[probs[2]]-quantiles[probs[1]]
 params = expression(beta, gamma, nu)
 states = expression(s, i, r)
 cols = c(2,4,3)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-systematic-unif-filt-params.pdf",sep="")
-pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-systematic-unif-filt-states.pdf",sep="")
-pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-systematic-unif-filt-params.pdf",sep="")
+pf_coverage_plot(coverage[,,1,,], alpha, n.sims, params, cols, create.label, ymins = rep(0,3), ymaxs = rep(1, 3))
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-systematic-unif-filt-states.pdf",sep="")
+pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymins = rep(0,3), ymaxs = rep(1, 3))
 
 # Plot coverage probabilities for resampling schemes with KD pf, original priors
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(2, 3)
+n.sims = 40
+n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-",filt,"-orig-log-0.99-61.rdata",sep="")
-  pf_coverage(20, n, filt, probs, load.label, states) 
+  pf_coverage(n.sims, n, filt, probs, load.label, states) 
 }
-mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("multinomial", "residual", "stratified", "systematic"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
+mydata = expand.grid(n = n, filt = c("multinomial", "residual", "stratified", "systematic"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
 require(plyr)
 coverage <- maply(mydata, my_pf_coverage)
 alpha = quantiles[probs[2]]-quantiles[probs[1]]
 params = expression(beta, gamma, nu)
 states = expression(s, i, r)
 cols = rainbow(4)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-KD-orig-resamp-params.pdf",sep="")
-pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-KD-orig-resamp-states.pdf",sep="")
-pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-orig-resamp-params.pdf",sep="")
+pf_coverage_plot(coverage[,,1,,], alpha, n.sims, params, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-orig-resamp-states.pdf",sep="")
+pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
 
 # Plot coverage probabilities for delta values with lognormal priors, stratified resampling (KD filter only)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(2, 3)
+n.sims = 40
+n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-stratified-orig-log-",filt,"-61.rdata",sep="")
-  pf_coverage(20, n, filt, probs, load.label, states) 
+  pf_coverage(n.sims, n, filt, probs, load.label, states) 
 }
-mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c(0.9,0.95,0.96,0.97,0.98,0.99), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
+mydata = expand.grid(n = n, filt = c(0.9,0.95,0.96,0.97,0.98,0.99), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
 require(plyr)
 coverage <- maply(mydata, my_pf_coverage)
 alpha = quantiles[probs[2]]-quantiles[probs[1]]
 params = expression(beta, gamma, nu)
 states = expression(s, i, r)
 cols = rainbow(6)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-KD-stratified-orig-delta-params.pdf",sep="")
-pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-KD-stratified-orig-delta-states.pdf",sep="")
-pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-stratified-orig-delta-params.pdf",sep="")
+pf_coverage_plot(coverage[,,1,,], alpha, n.sims, params, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-stratified-orig-delta-states.pdf",sep="")
+pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
 
 # Plot coverage probabilities for original versus disperse priors, stratified resampling, delta = .99 (KD pf)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(2, 3)
+n.sims = 40
+n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-stratified-",filt,"-log-0.99-61.rdata",sep="")
-  pf_coverage(20, n, filt, probs, load.label, states) 
+  pf_coverage(n.sims, n, filt, probs, load.label, states) 
 }
-mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("orig","disp"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
+mydata = expand.grid(n = n, filt = c("orig","disp"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
 require(plyr)
 coverage <- maply(mydata, my_pf_coverage)
 alpha = quantiles[probs[2]]-quantiles[probs[1]]
 params = expression(beta, gamma, nu)
 states = expression(s, i, r)
 cols = rainbow(6)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-KD-stratified-priors-params.pdf",sep="")
-pf_coverage_plot(coverage[,,1,,], alpha, 20, params, cols, create.label)
-create.label <- paste(gpath,"PF-coverage-",alpha,"-KD-stratified-priors-states.pdf",sep="")
-pf_coverage_plot(coverage[,,2,,], alpha, 20, states, cols, create.label)
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-stratified-priors-params.pdf",sep="")
+pf_coverage_plot(coverage[,,1,,], alpha, n.sims, params, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-stratified-priors-states.pdf",sep="")
+pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
 
 ## Create scatterplots of beta v gamma over time
 source("sir_functions.r")
@@ -301,9 +309,9 @@ for(k in 1:length(trans))
 
 ## Figure 4 - Extended model: KD PF for n particles with original priors and stratified resampling
 
-# Load data
-n = 20000
-n.sim = 1
+# Set loading parameters
+n = 40000
+n.sims = 1:20
 filt = "KD"
 resamp = "stratified"
 prior = "orig"
@@ -311,113 +319,130 @@ transform = "log"
 delta = 0.99
 seed = 61
 probs = c(4, 5)
+burn = 1
 
+# Load simulated data sets
 load(paste(dpath,"sim-ext.rdata",sep=""))
-load(paste(dpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
 
-# Get points where resampling done for extended model
-tt = dim(mysim$sim$x)[2]; nt = tt - 1
-dpts = which(!is.na(mysim$sim$y[1,]))
-resampled = rep(0,nt)
-parents = pf.out$out$parent
-for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
-spts.ext = which(as.logical(resampled))
-resampled = rep(0,nt)
+for(n.sim in n.sims)
+{ 
+  # Get points where resampling done for extended model
+  load(paste(dpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+  tt = dim(mysims[[n.sim]]$sim$x)[2]; nt = tt - 1
+  dpts = which(!is.na(mysims[[n.sim]]$sim$y[1,]))
+  resampled = rep(0,nt)
+  parents = pf.out$out$parent
+  for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
+  spts.ext = which(as.logical(resampled))
+  resampled = rep(0,nt)
 
-# Get points where resampling done for original model
-load(paste(dpath,"PF-ext.orig-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
-parents = pf.out$out$parent
-for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
-spts.org = which(as.logical(resampled))
+  # Get points where resampling done for original model
+  load(paste(dpath,"PF-ext.orig-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+  parents = pf.out$out$parent
+  for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
+  spts.org = which(as.logical(resampled))
 
-# Set graphical parameters
-params = expression(beta,gamma,nu,b,varsigma,sigma,eta)
-ymins = c(0.10,0.075,0.85,0.05,.75,0.0004,1.99)
-ymaxs = c(0.40,0.15,1.55,.45,1.2,.0016,2.01)
-cex.lab = 6
-cex.main = 7
-cex.axis = 4
-cex.leg = 4
+  # Set graphical parameters
+  params = expression(beta,gamma,nu,b,varsigma,sigma,eta)
+  cex.lab = 6
+  cex.main = 7
+  cex.axis = 4
+  cex.leg = 4
 
-# Construct plot
-pdf(paste(gpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".pdf",sep=""),width=30,height=30)
-par(mfrow=c(3,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
-for(k in 1:length(params))
-{
-  load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
-  out = pf.quant.out$theta.quant
-  tt = dim(out)[1]; nt = tt - 1
-  if(k == 1) # label y axis, title, legend
+  # Find minimum and maximum quantiles of extended analysis
+  theta = c(mysims[[n.sim]]$true.params$theta,mysims[[n.sim]]$true.params$b,mysims[[n.sim]]$true.params$varsigma,mysims[[n.sim]]$true.params$sigma,mysims[[n.sim]]$true.params$eta)
+  ymins = ymaxs = rep(NA, 7)
+  for(k in 1:7)
   {
-     plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab=paste("J = ",n,sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-     lines(1:nt,out[-1,k,probs[2]],col=4)
-     points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
-     points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
-     points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
-     legend("topright",legend=c("Truth","Original","Extended"),col=c("gray47",2,4),lty=c(1,1,1),cex=cex.leg)
-  } else { # label title only
-     plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
-     lines(1:nt,out[-1,k,probs[2]],col=4)
-     points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
-     points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
-     points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
+    load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+    ymins[k] = min(pf.quant.out$theta.quant[-burn,k,probs[1]], theta[k])
+    ymaxs[k] = max(pf.quant.out$theta.quant[-burn,k,probs[2]], theta[k])
+    if(k <= 3)
+    {
+      load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+      ymins[k] = min(pf.quant.out$theta.quant[-burn,k,probs[1]],ymins[k])
+      ymaxs[k] = max(pf.quant.out$theta.quant[-burn,k,probs[2]], ymaxs[k])
+    }
   }
-  load(paste(dpath,"sim-ext.rdata",sep=""))
-  theta = c(mysim$true.params$theta,mysim$true.params$b,mysim$true.params$varsigma,mysim$true.params$sigma,mysim$true.params$eta)
-  abline(h=theta[k],col="gray47")
-  if(k %in% 1:3)
+
+  # Construct plot
+  pdf(paste(gpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".pdf",sep=""),width=30,height=30)
+  par(mfrow=c(3,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
+  for(k in 1:length(params))
   {
-    load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+    load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
     out = pf.quant.out$theta.quant
+    tt = dim(out)[1]; nt = tt - 1
+    if(k == 1) # label y axis, title, legend
+    {
+       plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab=paste("J = ",n,sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+       lines(1:nt,out[-1,k,probs[2]],col=4)
+       points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
+       points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
+       points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
+       legend("topright",legend=c("Truth","Original","Extended"),col=c("gray47",2,4),lty=c(1,1,1),cex=cex.leg)
+    } else { # label title only
+       plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
+       lines(1:nt,out[-1,k,probs[2]],col=4)
+       points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
+       points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
+       points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
+    }
+    abline(h=theta[k],col="gray47")
+    if(k %in% 1:3)
+    {
+      load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+      out = pf.quant.out$theta.quant
+      tt = dim(out)[1]; nt = tt - 1
+      lines(1:nt,out[-1,k,probs[1]],col=2)
+      lines(1:nt,out[-1,k,probs[2]],col=2)
+    }
+  }
+
+  params = expression(s,i,r)
+  ymin = 0; ymax = 1
+  for(k in 1:2)
+  {
+    load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+    out = pf.quant.out$state.quant
+    tt = dim(out)[1]; nt = tt - 1
+    if(k == 2) # label x axis, title
+    {
+       plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymin,1),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+       lines(1:nt,out[-1,k,probs[2]],col=4)
+       lines(1:nt,mysims[[n.sim]]$sim$x[k,-1],col="gray47")
+       points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+       points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+       points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+    } else { # label title only
+       plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+       lines(1:nt,out[-1,k,probs[2]],col=4)
+       lines(1:nt,mysims[[n.sim]]$sim$x[k,-1],col="gray47")
+       points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+       points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+       points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+    }
+    load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+    out = pf.quant.out$state.quant
     tt = dim(out)[1]; nt = tt - 1
     lines(1:nt,out[-1,k,probs[1]],col=2)
     lines(1:nt,out[-1,k,probs[2]],col=2)
   }
+  #k = 3
+  #load(paste(dpath,"PF-quant-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
+  #out = pf.quant.out$state.quant
+  #tt = dim(out)[1]; nt = tt - 1
+  #truex = 1 - apply(mysim$sim$x[,-1],2,sum)
+  #plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+  #lines(1:nt,out[-1,probs[2],3],col=4)
+  #lines(1:nt,truex,col="gray47")
+  ##points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+  ##points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+  ##points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+  #load(paste(dpath,"PF-quant-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
+  #out = pf.quant.out$state.quant
+  #tt = dim(out)[1]; nt = tt - 1
+  #lines(1:nt,out[-1,k,2],col=2)
+  #lines(1:nt,out[-1,k,3],col=2)
+  dev.off()
 }
-
-params = expression(s,i,r)
-ymin = 0; ymax = 1
-for(k in 1:2)
-{
-  load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
-  out = pf.quant.out$state.quant
-  tt = dim(out)[1]; nt = tt - 1
-  if(k == 2) # label x axis, title
-  {
-     plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymin,1),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-     lines(1:nt,out[-1,k,probs[2]],col=4)
-     lines(1:nt,mysim$sim$x[k,-1],col="gray47")
-     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
-  } else { # label title only
-     plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-     lines(1:nt,out[-1,k,probs[2]],col=4)
-     lines(1:nt,mysim$sim$x[k,-1],col="gray47")
-     points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-     points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-     points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
-  }
-  load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
-  out = pf.quant.out$state.quant
-  tt = dim(out)[1]; nt = tt - 1
-  lines(1:nt,out[-1,k,probs[1]],col=2)
-  lines(1:nt,out[-1,k,probs[2]],col=2)
-}
-#k = 3
-#load(paste(dpath,"PF-quant-ext-ext-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
-#out = pf.quant.out$state.quant
-#tt = dim(out)[1]; nt = tt - 1
-#truex = 1 - apply(mysim$sim$x[,-1],2,sum)
-#plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-#lines(1:nt,out[-1,probs[2],3],col=4)
-#lines(1:nt,truex,col="gray47")
-##points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-##points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-##points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
-#load(paste(dpath,"PF-quant-ext-orig-KD-lognormal-lognormal-stratified-",n,"-ess-80.rdata",sep=""))
-#out = pf.quant.out$state.quant
-#tt = dim(out)[1]; nt = tt - 1
-#lines(1:nt,out[-1,k,2],col=2)
-#lines(1:nt,out[-1,k,3],col=2)
-dev.off()

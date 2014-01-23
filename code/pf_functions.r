@@ -41,7 +41,7 @@ pf.quantile = function(out, wts, ftheta, probs=.5, normwt=TRUE)
 # cex.lab, cex.main, cex.axis, cex.leg - expansion factors for plot labels - same as those in functions plot() and legend()
 # pic.fac - factor by which to multiply the length of n and params to get the height and width, respectively, of output pdf file
 # burn - vector of length equal to params, how many beginning time points to ignore when finding ymins and ymaxs (only used if ymins and ymaxs are missing)
-pf_plot <- function(n, params, filt, n.sim, probs, cols, create.label, load.label, states = FALSE, ymins, ymaxs, out.avg, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, pic.fac = 10, burn = 0)
+pf_plot <- function(n, params, filt, n.sim, probs, cols, create.label, load.label, states = FALSE, ymins, ymaxs, out.avg, lwd = 4, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, pic.fac = 10, burn = 0)
 {
   # If missing ymins and ymaxs, find values to make plot windows consistent across columns (parameters)
   if(missing(ymins))
@@ -97,23 +97,23 @@ pf_plot <- function(n, params, filt, n.sim, probs, cols, create.label, load.labe
             x = 0:(dim(out.avg)[2]-1)
             if(k == 1 & i == 1) # label y axis and title
             {
-              plot(x,out.avg[k,,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-              lines(x,out.avg[k,,2],col="gray")
+              plot(x,out.avg[k,,1],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+              lines(x,out.avg[k,,2],col="gray",lwd=lwd)
             } else if(k == 1 & i == length(n)) { # label x and y axes
-              plot(x,out.avg[k,,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
-              lines(x,out.avg[k,,2],col="gray")
+              plot(x,out.avg[k,,1],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+              lines(x,out.avg[k,,2],col="gray",lwd=lwd)
             } else if(k == 1) { # label y axis only
-              plot(x,out.avg[k,,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
-              lines(x,out.avg[k,,2],col="gray")
+              plot(x,out.avg[k,,1],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+              lines(x,out.avg[k,,2],col="gray",lwd=lwd)
             } else if(i == 1) { # label title only
-              plot(x,out.avg[k,,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
-              lines(x,out.avg[k,,2],col="gray")
+              plot(x,out.avg[k,,1],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
+              lines(x,out.avg[k,,2],col="gray",lwd=lwd)
             } else if(i == length(n)) { # label x axis only
-              plot(x,out.avg[k,,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
-              lines(x,out.avg[k,,2],col="gray")
+              plot(x,out.avg[k,,1],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
+              lines(x,out.avg[k,,2],col="gray",lwd=lwd)
             } else { # label nothing
-              plot(x,out.avg[k,,1],type="l",ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab="",cex.axis=cex.axis)
-              lines(x,out.avg[k,,2],col="gray")
+              plot(x,out.avg[k,,1],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col="gray",xlab="",ylab="",cex.axis=cex.axis)
+              lines(x,out.avg[k,,2],col="gray",lwd=lwd)
             }          
             y = out.avg[k,,1]
             polygon(c(x[length(x)],x[1],x[1],x,x[length(x)]),c(ymins[k],ymins[k],y[1],y,y[length(y)]),col="gray",border=NA)
@@ -123,27 +123,27 @@ pf_plot <- function(n, params, filt, n.sim, probs, cols, create.label, load.labe
         } else if(j == 1 & missing(out.avg)) { # call plot function
           if(k == 1 & i == 1) # label y axis and title
           {
-            plot(x,quant[,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
-            lines(x,quant[,probs[2]],col=cols[j])
+            plot(x,quant[,probs[1]],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+            lines(x,quant[,probs[2]],col=cols[j],lwd=lwd)
           } else if(k == 1 & i == length(n)) { # label x and y axes
-            plot(x,quant[,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
-            lines(x,quant[,probs[2]],col=cols[j])
+            plot(x,quant[,probs[1]],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+            lines(x,quant[,probs[2]],col=cols[j],lwd=lwd)
           } else if(k == 1) { # label y axis only
-            plot(x,quant[,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
-            lines(x,quant[,probs[2]],col=cols[j])
+            plot(x,quant[,probs[1]],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+            lines(x,quant[,probs[2]],col=cols[j],lwd=lwd)
           } else if(i == 1) { # label title only
-            plot(x,quant[,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
-            lines(x,quant[,probs[2]],col=cols[j])
+            plot(x,quant[,probs[1]],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
+            lines(x,quant[,probs[2]],col=cols[j],lwd=lwd)
           } else if(i == length(n)) { # label x axis only
-            plot(x,quant[,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
-            lines(x,quant[,probs[2]],col=cols[j])
+            plot(x,quant[,probs[1]],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
+            lines(x,quant[,probs[2]],col=cols[j],lwd=lwd)
           } else { # label nothing
-            plot(x,quant[,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
-            lines(x,quant[,probs[2]],col=cols[j])
+            plot(x,quant[,probs[1]],type="l",lwd=lwd,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
+            lines(x,quant[,probs[2]],col=cols[j],lwd=lwd)
           }
         } else { # lines only
-          lines(x,quant[,probs[1]],col=cols[j])
-          lines(x,quant[,probs[2]],col=cols[j])
+          lines(x,quant[,probs[1]],col=cols[j],lwd=lwd)
+          lines(x,quant[,probs[2]],col=cols[j],lwd=lwd)
         }
       }
       
