@@ -16,7 +16,7 @@ sigma = c(.0012, .0008, .0010, .0011)
 eta = rep(0,4)
 
 nt = 125
-n.sims = 20
+n.sims = 40
 sims = list()
 mysims = list()
 for(i in 1:n.sims)

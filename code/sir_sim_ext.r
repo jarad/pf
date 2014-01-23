@@ -1,9 +1,6 @@
 source("sir_functions.r")
 source("ss_sim.r")
 
-# Set .Random.seed
-set.seed(60)
-
 # Set data and graphics path
 dpath = "../data/"
 gpath = "../graphs/"
@@ -11,49 +8,98 @@ gpath = "../graphs/"
 # Load simulated data from original model
 load(paste(dpath,"sim-orig.rdata",sep=""))
 require(plyr)
-sim = list()
-length(sim) = 2
-names(sim) = c("x","y")
-sim$x <- mysims[[1]]$sim$x
-theta = mysims[[1]]$true.params$theta
-P = mysims[[1]]$true.params$P
-nt = dim(sim$x)[2] - 1
+n.sims = length(mysims)
+nt = dim(mysims[[1]]$sim$y)[2]
 
-# Set parameters in observation equation
-b = .25
-varsigma = 1
-sigma = 0.001
-eta = 2
+# Set .Random.seed
+set.seed(60)
 
-# Generate new observations
-robs_sim = function(x){ robs(x, b, varsigma, sigma, eta)}
-sim$y = matrix(NA,nr=1,nc=nt)
-for(i in 1:nt) sim$y[1,i] = robs_sim(sim$x[,i+1])
+for(i in 1:n.sims)
+{
+  # Set parameters in observation equation
+  log.params = find.mu.sigma(c(.1, .85, .0005), c(.4, 1.15, .0015))
+  b = exp(rnorm(1, log.params[[1]][1], log.params[[2]][1]))
+  varsigma = exp(rnorm(1, log.params[[1]][2], log.params[[2]][2]))
+  sigma = exp(rnorm(1, log.params[[1]][3], log.params[[2]][3]))
+  eta = rnorm(1, 2.5, 1)
+  mysims[[i]]$true.params$b = b
+  mysims[[i]]$true.params$varsigma = varsigma
+  mysims[[i]]$true.params$sigma = sigma
+  mysims[[i]]$true.params$eta = eta
+  
+  # Generate new observations
+  robs_sim = function(x){ robs(x, b, varsigma, sigma, eta)}
+  mysims[[i]]$sim$y = matrix(NA,nr=1,nc=nt)
+  for(j in 1:nt) mysims[[i]]$sim$y[1,j] = robs_sim(mysims[[i]]$sim$x[,j+1])
+}
 
 # Save data
-mysim = list(sim=sim,true.params=list(theta=theta,b=b,sigma=sigma,varsigma=varsigma,eta=eta,P=P))
-save(mysim,file=paste(dpath,"sim-ext.rdata",sep=""))
+save(mysims,file=paste(dpath,"sim-ext.rdata",sep=""))
 
-# Create table of data for .csv file
-epid.data = data.frame(seq(0,125,1),cbind(sim$x[1,],sim$x[2,],1-sim$x[2,]-sim$x[1,],c(NA,sim$y[1,])))
-names(epid.data) = c("Day","s","i","r","Stream 1")
-write.csv(epid.data,file=paste(dpath,"simdata-ext.csv",sep=""),row.names=FALSE)
+# Write data to .csv files
+for(i in 1:n.sims)
+{
+  epid.data = data.frame(seq(0,125,1),cbind(mysims[[i]]$sim$x[1,],mysims[[i]]$sim$x[2,],1-mysims[[i]]$sim$x[2,]-mysims[[i]]$sim$x[1,]),t(cbind(rep(NA,dim(mysims[[i]]$sim$y)[1]),mysims[[i]]$sim$y)))
+  streams = rep(NA, dim(mysims[[i]]$sim$y)[1])
+  for(j in 1:dim(mysims[[i]]$sim$y)[1]) streams[j] = paste("Stream ",j,sep="")
+  names(epid.data) = c("Day","s","i","r",streams)
+  write.csv(epid.data,file=paste(dpath,"simdata-ext-",i,".csv",sep=""),row.names=FALSE)
+}
 
-# Plot the data
-no = dim(sim$y)[1]
+# Observed data (z) over all simulations
 pdf(paste(gpath,"sim-ext-z.pdf",sep=""))
 par(mar=c(5,5,4,1)+.1)
-x = which(!is.na(sim$y[1,]))
-z = sim$y[1,x]
-plot(x,z,ylim=c(min(sim$y,na.rm=T),max(sim$y,na.rm=T)),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observed data (",y[t],")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
+miny = min(sapply(mysims, function(x) min(x$sim$y,na.rm=T)))
+maxy = max(sapply(mysims, function(x) max(x$sim$y,na.rm=T)))
+no = dim(mysims[[1]]$sim$y)[1]
+x = which(!is.na(mysims[[1]]$sim$y[1,]))
+z = mysims[[1]]$sim$y[1,x]
+plot(x,z,ylim=c(miny,maxy),xlim=c(0,nt),type="l",xlab="Time (Days)",ylab=expression(paste("Observed data (",y[t],")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
 if(no > 1)
 {
   for(i in 2:no)
   {
-     x = which(!is.na(sim$y[i,]))
-     z = sim$y[i,x]
-     points(x,z,col=i)
+    x = which(!is.na(mysims[[1]]$sim$y[i,]))
+    z = mysims[[1]]$sim$y[i,x]
+    lines(x,z,col=i)
   }
 }
-legend("topright",legend=1,pch=1,col=1,title="Stream",cex=1.5)
+if(n.sims > 1)
+{
+  for(j in 2:n.sims)
+  {
+    no = dim(mysims[[j]]$sim$y)[1]
+    for(i in 1:no)
+    {
+      x = which(!is.na(mysims[[j]]$sim$y[i,]))
+      z = mysims[[j]]$sim$y[i,x]
+      lines(x,z,col=i)
+    }
+  }
+}
+legend("topright",legend=seq(1,length(streams),1),pch=rep(1,length(streams)),col=seq(1,length(streams),1),title="Stream",cex=1.5)
 dev.off()
+
+# Observed data for each individual simulation
+for(j in 1:n.sims)
+{
+  no = dim(mysims[[j]]$sim$y)[1]
+  pdf(paste(gpath,"sim-ext-z-",j,".pdf",sep=""))
+  par(mar=c(5,5,4,1)+.1)
+  x = which(!is.na(mysims[[j]]$sim$y[1,]))
+  z = mysims[[j]]$sim$y[1,x]
+  miny = min(mysims[[j]]$sim$y, na.rm=T)
+  maxy = max(mysims[[j]]$sim$y, na.rm=T)  
+  plot(x,z,ylim=c(miny,maxy),xlim=c(0,nt),xlab="Time (Days)",ylab=expression(paste("Observed data (",y[t],")",sep="")),main="Syndromic Data",cex.lab=2,cex.main=2,cex.axis=1.6)
+  if(no > 1)
+  {
+    for(i in 2:no)
+    {
+      x = which(!is.na(mysims[[j]]$sim$y[i,]))
+      z = mysims[[j]]$sim$y[i,x]
+      points(x,z,col=i)
+    }
+  }
+  legend("topright",legend=seq(1,length(streams),1),pch=rep(1,length(streams)),col=seq(1,length(streams),1),title="Stream",cex=1.5)
+  dev.off()
+}
