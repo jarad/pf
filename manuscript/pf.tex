@@ -155,8 +155,8 @@ The BF, APF, and KDPF algorithms described in the previous sections were constru
 
 \subsection{Theoretical justification of particle filters}
 
-The methods described above are all theoretically justified as the number of particles gets large. Specifically, from Section 3.5.1 of \cite{del2004feynman}, for bounded functions $f_t$ and any $p>1$, the following result holds
-\[ E_{\eta_0}^J \left[ \left| \eta_t^J(f_t)-\eta_t(f_t)\right|^p\right]^{1/p} \le \frac{a(p) b(t) ||f||}{\sqrt{J}} \]
+The methods described above are all theoretically justified as the number of particles increases. Specifically, the following result from Section 3.5.1 of \cite{del2004feynman} holds for bounded functions $f_t$ and any $p>1$:
+\[ E_{\eta_t}^J \left[ \left| \eta_t^J(f_t)-\eta_t(f_t)\right|^p\right]^{1/p} \le \frac{a(p) b(t) ||f||}{\sqrt{J}} \]
 where $\eta_t(f_t)$ is the expectation of $f_t$ under the true filtered distribution shown in equation \eqref{eqn:filtered} at time $t$, $\eta_t^J(f_t)$ is the expectation of $f_t$ under the particle approximation given by equation \eqref{eqn:approx} at time $t$ using $J$ particles, $a(p)$ is a function of $p$, $b(t)$ is an increasing function of $t$ that depends on which algorithm is used, and $||\cdot||$ is the supremum norm. The key here is that for a fixed $t$, we can increase the number of particles $J$ to reduce our Monte Carlo error, and this is true for all of the algorithms above, including the BF and APF. The question then becomes what does $b(t)$ look like for each algorithm, but this is a difficult question to answer. Instead, in Section \ref{sec:results}, we compare the performance of these algorithms at various values for $J$ within a specific model.
 
 \section{Particle filtering in epidemiological models \label{sec:apply}}
