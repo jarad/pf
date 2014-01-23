@@ -6,12 +6,12 @@ dpath = "/storage/sheinson_research/"
 # pf - function to run particle filter given n number of particles, n.sim-th data set, resamp = "multinomial", "residual", "stratified", or "systematic", prior = "orig" or "disp", and delta amount of jitter to particles
 # KD particle filter, lognormal priors on beta, gamma, and nu
 # Returns nothing; saves .rdata data file
-pf <- function(n, filt, resamp, prior, transform, delta, seed, progress = TRUE)
+pf <- function(n.sim, n, filt, resamp, prior, transform, delta, seed, progress = TRUE)
 {
   # Load simulated data
   load(paste(dpath,"sim-ext.rdata",sep=""))
-  y = mysim$sim$y
-  P = mysim$true.params$P  
+  y = mysims[[n.sim]]$sim$y
+  P = mysims[[n.sim]]$true.params$P  
   
   # Define function to transform theta to original scale
   if(transform == "log") {
@@ -31,7 +31,7 @@ pf <- function(n, filt, resamp, prior, transform, delta, seed, progress = TRUE)
     }
   } else if(transform == "none"){
     ftheta = function(theta, param=NULL) theta 
-  } else { stop("transform 'log', or 'none'")}
+  } else { stop("transform must be 'log', or 'none'")}
   
   # Define functions to sample prior draws of fixed parameters
   if(prior == "orig")
@@ -90,13 +90,13 @@ pf <- function(n, filt, resamp, prior, transform, delta, seed, progress = TRUE)
   
   # Save output
   pf.out = list(out=out,ftheta=ftheta)
-  file = paste(dpath,"PF-ext-1-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep="")
+  file = paste(dpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep="")
   print(file)
   save(pf.out, file=file)
 }
 
 # Create data frame and use plyr to run particle filters in parallel
-mydata = expand.grid(n = c(100, 1000, 10000, 20000), filt = c("KD"), resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
+mydata = expand.grid(n.sim = 1:20, n = c(10000, 20000, 40000), filt = c("KD"), resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
 
 require(plyr)
 require(doMC)
