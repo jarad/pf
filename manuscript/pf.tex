@@ -155,13 +155,13 @@ The BF, APF, and KDPF algorithms described in the previous sections were constru
 
 \subsection{Theoretical justification of particle filters}
 
-The methods described above are all theoretically justified as the number of particles increases. Specifically, the following result from Section 3.5.1 of \cite{del2004feynman} holds for bounded functions $f_t$ and any $p>1$:
+The methods described above are all theoretically justified as the number of particles becomes large. Specifically, the following result from Section 3.5.1 of \cite{del2004feynman} holds for bounded functions $f_t$ and any $p>1$:
 \[ E_{\eta_t}^J \left[ \left| \eta_t^J(f_t)-\eta_t(f_t)\right|^p\right]^{1/p} \le \frac{a(p) b(t) ||f||}{\sqrt{J}} \]
 where $\eta_t(f_t)$ is the expectation of $f_t$ under the true filtered distribution shown in equation \eqref{eqn:filtered} at time $t$, $\eta_t^J(f_t)$ is the expectation of $f_t$ under the particle approximation given by equation \eqref{eqn:approx} at time $t$ using $J$ particles, $a(p)$ is a function of $p$, $b(t)$ is an increasing function of $t$ that depends on which algorithm is used, and $||\cdot||$ is the supremum norm. The key here is that for a fixed $t$, we can increase the number of particles $J$ to reduce our Monte Carlo error, and this is true for all of the algorithms above, including the BF and APF. The question then becomes what does $b(t)$ look like for each algorithm, but this is a difficult question to answer. Instead, in Section \ref{sec:results}, we compare the performance of these algorithms at various values for $J$ within a specific model.
 
 \section{Particle filtering in epidemiological models \label{sec:apply}}
 
-The methodology described in Section \ref{sec:ss} and Section \ref{sec:filtering} provides a general framework applicable to a wide array of scientific questions in many fields. Estimation of parameters governing a disease outbreak, within the context of epidemiological monitoring using syndromic surveillance systems, is one area of application that is conducive to state-space modeling and sequential estimation using particle filtering. In this section, we describe a stochastic version of an SIR model of a disease epidemic similar to one used in \citet{skvortsov2012monitoring} and explain how it fits into the general framework outlined in Sections \ref{sec:ss} and \ref{sec:filtering} \citep{herwaarden1995stochepid, dangerfield2009stochepid, anderson2004sars}. In Section \ref{sec:results}, we analyze the performance particle filter algorithms in this specific case.
+The methodology described in Section \ref{sec:ss} and Section \ref{sec:filtering} provides a general framework applicable to a wide array of scientific questions in many fields. Estimation of parameters governing a disease outbreak, within the context of epidemiological monitoring using syndromic surveillance systems, is one area of application that is conducive to state-space modeling and sequential estimation using particle filtering. In this section, we describe a stochastic version of an SIR model of a disease epidemic similar to one used in \citet{skvortsov2012monitoring} and explain how it fits into the general framework outlined in Sections \ref{sec:ss} and \ref{sec:filtering} \citep{herwaarden1995stochepid, dangerfield2009stochepid, anderson2004sars}. In Section \ref{sec:results}, we analyze the performance the particle filter algorithms in this specific case.
 
 \subsection{Model \label{sec:model}}
 
@@ -171,11 +171,12 @@ First, we describe the state equation. Let $x_t = (s_t,i_t)'$ denote the state o
 
 \begin{itemize}
 \item $\beta$, the contact rate of spread of disease,
-\item $\gamma$, the recovery time from infection, and
+\item $\gamma$, the recovery time from infection (i.e. the reciprocal of the average infectious period), and
 \item $\nu$, the mixing intensity of the population.
 \end{itemize}
 
 \noindent $\beta$, $\gamma$, and $\nu$ are each restricted to be nonnegative. Define $\theta = (\beta,\gamma,\nu)'$ to be the vector of unknown parameters in our model, and let $P$ be the size of the population. Then, we describe the evolution of the epidemic from time $t$ to $t + 1$ by
+
 \begin{equation}
 x_{t+1}\left|x_t,\theta\right. \sim N_\Omega\left(x_{t+1};f(x_t,\theta),Q(\theta)\right) \label{eqn:state}
 \end{equation}
@@ -183,7 +184,7 @@ x_{t+1}\left|x_t,\theta\right. \sim N_\Omega\left(x_{t+1};f(x_t,\theta),Q(\theta
 \[
 f(x_t,\theta) = \left(
 \begin{array}{c}
-s_t - \beta i_ts^{\nu}_t \phantom{- \gamma i_t}\,\, \\
+s_t - \beta i_ts^\nu_t \phantom{- \gamma i_t}\,\, \\
 i_t +  \beta i_ts^\nu_t - \gamma i_t
 \end{array}
 \right)
@@ -197,6 +198,17 @@ Q(\theta) = \frac{\beta}{P^2} \left(
 \]
 
 \noindent and $\Omega = \{(s_t,i_t): s_t \ge 0, i_t \ge 0, s_t + i_t \le 1\}$. $N_{\Omega}(.; \mu,\Sigma)$ represents the pdf of the truncated normal distribution onto the set $\Omega$ with mean and covariance matrix of its corresponding untruncated normal distribution given by $\mu$ and $\Sigma$, respectively.
+
+In equation \eqref{eqn:state}, $Q(\theta)$ was calculated by taking the variances and covariance of $s_t$ and $i_t$ in the discrete time approximation of the modified SIR model with stochastic fluctuations considered in \citet{skvortsov2012monitoring}, given by
+
+\begin{align*}
+s_{t+1} &= s_t - \beta i_ts^\nu_t + \epsilon_\beta \\
+i_{t+1} &= i_t + \beta i_ts^\nu_t - \gamma i_t - \epsilon_\beta + \epsilon_\gamma
+\end{align*}
+
+\noindent where $\epsilon_\beta$ and $\epsilon_\gamma$ are random components with $\epsilon_\beta \sim N(0, \sqrt{\beta} / P)$ and $\epsilon_\gamma \sim N(0, \sqrt{\gamma} / P)$. The variances of these terms are derived from an established scaling law of stochastic fluctuations in population size in dynamical systems \citep{ovaskainen2010extinction, herwaarden1995stochepid, dangerfield2009stochepid}
+
+$R_0 = \beta / \gamma$ is called the \emph{basic reproductive number}, which gives the average number of people infected by a sick person in a population where everyone is susceptible, and $R_0 > 1$ is required for an infection to spread into an epidemic. In many cases, prior information about this quantity for specific types of infections is more readily available than about $\beta$. The mixing parameter $\nu$ describes the heterogeneity of contacts within the population, where $\nu = 1$ corresponds to a population with homogenous mixing, i.e. an infectious person is equally likely to infect any susceptible, and $\nu = 0$ corresponds to a population with no social interaction. Other values of $\nu$ represent populations with heterogenous mixing \citet{stroud2006powerlaw}.
 
 We consider observed data that are positive real numbers related to counts of emergency room visits, prescription sales, or calls to a hotline, for example, and we can observe data from these different streams/sources asynchronously in time. That is, at any time $t$, we can observe data from any subset of the streams (or possibly none of them). Let $y_{l,t}$ represent data coming from stream $l$ at time $t$, where $l = 1,2,\ldots,L$ and $t = 1,2,\ldots,T$. We model the log of the observations (so that $y_{l,t}$ is restricted to be positive) by
 \begin{equation}
