@@ -5,11 +5,11 @@ dpath = "../data/"
 gpath = "../graphs/"
 
 ## Compare particle filters over different # particles using systematic resampling, uniform priors
-n = c(1000, 10000, 20000, 40000)
+n = c(100, 1000, 10000, 20000)
 filt = c("BF", "APF", "KD")
 cols = c(2, 4, 3)
 probs = c(4, 5)
-n.sim = 1
+n.sim = 1:20
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-",filt,"-systematic-unif-logit-0.99-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
