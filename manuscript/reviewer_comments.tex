@@ -6,8 +6,6 @@
 
 \noindent \emph{{\bf Handling Editor:}  I have read through the paper.  The epidemic model used in this paper seems to be essentially that of Skvortsov and Ristic (2012), which was published in Mathematical Biosciences.  However, the model is not described very clearly in the present paper, nor is it given any biological justification.  There is no justification for the choice of parameter values used in the simulated examples, except that many of them are the same as those used by Skvortsov and Ristic (2012).  Given that the epidemic model is essentially that of Skvortsov and Ristic (2012), the novelty of the paper seems to me to lie more in its statistical algorithms than in the application, so perhaps the paper is better suited to a statistics journal.  The reviewer has concerns about the scope of the present paper.  Taking all of this into account, I suggest that the authors are given an opportunity to revise their paper to address the above concerns and those of the reviewer but that no promises are made at this stage concerning the likely acceptance of such a revision.} \\
 
-Perhaps we can address the handling editor's concerns about scope by being more explicit about our reasoning behind specifying the model in the way that we do, and stating the biological justification used in Skvortsov and Ristic instead of just referring to their paper? \\
-
 \noindent \emph{{\bf Reviewer \#1:} The work in this paper concerns the application of Sequential Monte Carlo methods to the estimation of basic characteristics of an infectious epidemic outbreak in a Bayesian framework, and comparisons under different particle filters, resampling methods and prior distributions. The paper is very well written and its major contribution is the use of a kernel density particle filter in the context of epidemic modelling and estimation - which, to my knowledge, is novel.} \\
 
 \noindent \emph{However, I feel that the work presented here is limited in the following ways:} \\
@@ -48,11 +46,17 @@ Included in the first paragraph of Section 3.4 are brief descriptions of stratif
 
 \noindent \emph{(10) Section 3.5 could perhaps go to an appendix as I do not think that it contains information that is essential to the understanding of the paper.} \\
 
-\noindent \emph{(11) P8, l47: The role of parameter <nu> must be explained and discussed. How does it control the mixing of the population?} \\
+\noindent \emph{(11) P8, l47: The role of parameter $\nu$ must be explained and discussed. How does it control the mixing of the population?} \\
+
+We've elaborated on this in Section 4.1. \\
 
 \noindent \emph{(12) Is the covariance in Eq. (3) obvious? It should be explained - or a reference should be given.} \\
 
-\noindent \emph{(13) P9, l25: the physical interpretation of parameters b and <zeta> is not clear (to me). It should be discussed.} \\
+We've explained how this was calculated in Section 4.1. \\
+
+\noindent \emph{(13) P9, l25: the physical interpretation of parameters $b$ and $\varsigma$ is not clear (to me). It should be discussed.} \\
+
+In Section 4.1, we've elaborated more on where the power-law relationship between $\log y_{l,t}$ and $i$ comes from and the role these parameters play in the observation equation.
 
 \noindent \emph{(14) Figure numbering (Fig 3, 4, 5).} \\
 
