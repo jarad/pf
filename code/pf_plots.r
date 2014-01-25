@@ -247,6 +247,30 @@ pf_coverage_plot(coverage[,,1,,], alpha, n.sims, params, cols, create.label, ymi
 create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-stratified-priors-states.pdf",sep="")
 pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
 
+# Plot coverage probabilities for original versus uniform priors, systematic resampling, delta = .99 (KD pf)
+quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
+probs <- c(2, 3)
+n.sims = 20
+n = c(100, 1000, 10000, 20000)
+my_pf_coverage <- function(n, filt, states)
+{
+  if(filt != "unif") load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-systematic-",filt,"-log-0.99-61.rdata",sep="")
+  if(filt == "unif") load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-systematic-",filt,"-logit-0.99-61.rdata",sep="")
+  pf_coverage(n.sims, n, filt, probs, load.label, states) 
+}
+mydata = expand.grid(n = n, filt = c("orig","unif"), states = c(TRUE, FALSE), stringsAsFactors = FALSE)
+require(plyr)
+coverage <- maply(mydata, my_pf_coverage)
+alpha = quantiles[probs[2]]-quantiles[probs[1]]
+params = expression(beta, gamma, nu)
+states = expression(s, i, r)
+cols = rainbow(6)
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-systematic-priors-params.pdf",sep="")
+pf_coverage_plot(coverage[,,1,,], alpha, n.sims, params, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
+create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-systematic-priors-states.pdf",sep="")
+pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
+
+
 ## Create scatterplots of beta v gamma over time
 source("sir_functions.r")
 
