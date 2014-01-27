@@ -230,9 +230,9 @@ We now compare the performance of the BF, APF and KDPF using simulated data anal
 
 \subsection{Simulation}
 
-40 epidemics were simulated according to equation \eqref{eqn:state} for a population of size $P = 5000$. Each simulated epidemic was tracked for $T = 125$ days. True values of parameters $\theta$ that we estimate (termed `unknown parameters') were different for each simulated outbreak, determined by sampling from the log-normal prior distribution, $p(\theta)$, that we describe in Section \ref{sec:pf}. For all simulations, infection was introduced in 10 people in the population at day 0 (i.e. true $i_0 = 10/5000$ and $s_0 = 4990/5000$). The mean time at which the epidemic peaks among the 40 simulations is 57.25 days, and the average proportion of the population that has been infected by $t = 125$ is 73.74\%.
+40 epidemics were simulated according to equation \eqref{eqn:state} for a population of size $P = 5000$. Each simulated epidemic was tracked for $T = 125$ days. True values of parameters $\theta$ that we estimate (termed `unknown parameters') were different for each simulated outbreak, determined by sampling from the log-normal prior distribution, $p(\theta)$, that we describe in Section \ref{sec:pf}. For all simulations, infection was introduced in 10 people in the population at day 0 (i.e. true $i_0 = 10/5000$ and $s_0 = 4990/5000$). The mean time at which the epidemic peaks among the 40 simulations is 57.25 days, and the average proportion of the population that has been infected by $t = 125$ is 73.74\%. The left panel of Figure \ref{fig:data} shows the evolution of $s_t$, $i_t$, and $r_t$ for a single simulation.
 
-Data from randomly selected streams at each day were generated from equation \eqref{eqn:obs}. Values of known constants for $L = 4$ streams were kept the same for each simulation and are given in Table \ref{tab:constants} ($\eta_l$ was set to 0 for all $l$). Values for $\varsigma_l$ were chosen according to data from \citet{chew2010twitter} that suggests values close to 1. Because of lack of reporting on reasonable values for $b_l$ and $\sigma_l$, these were taken to be the same values as those used in the numerical study carried out by \citet{skvortsov2012monitoring}.
+Data from randomly selected streams at each day were generated from equation \eqref{eqn:obs}. The right panel of Figure \ref{fig:data} displays the observed data from the simulated epidemic shown in the left panel of the same figure. Values of known constants for $L = 4$ streams were kept the same for each simulation and are given in Table \ref{tab:constants} ($\eta_l$ was set to 0 for all $l$). Values for $\varsigma_l$ were chosen according to data from \citet{chew2010twitter} that suggests values close to 1. Because of lack of reporting on reasonable values for $b_l$ and $\sigma_l$, these were taken to be the same values as those used in the numerical study carried out by \citet{skvortsov2012monitoring}.
 
 \begin{table}[hb]
 \begin{center}
@@ -250,6 +250,17 @@ $l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
 \label{tab:constants}
 \end{center}
 \end{table}
+
+\begin{figure}
+\centering
+\begin{minipage}{0.48\linewidth}
+\includegraphics[width=1.0\textwidth]{sim-orig-epid-1}
+\end{minipage}
+\begin{minipage}{0.48\linewidth}
+\includegraphics[width=1.0\textwidth]{sim-orig-z-1}
+\end{minipage}
+\caption{Simulated epidemic curves (left) and syndromic observations (right) for a single simulated flu epidemic.} \label{fig:data}
+\end{figure}
 
 \subsection{Particle filter runs} \label{sec:pf}
 
