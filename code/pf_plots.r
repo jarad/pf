@@ -285,11 +285,13 @@ load(paste(dpath,"sim-orig.rdata",sep=""))
 
 # Panel 1 - uniform prior draws, logit transformation
 # Panel 2 - uniform prior draws, log transformation
-trans = c("logit", "log")
+# Panel 3 - log-normal prior draws, log transformation
+trans = c("logit", "log", "log")
+prior = c("unif", "unif", "orig")
 for(k in 1:length(trans))
 {
   # Load particle filtered data
-  load(paste(dpath,"PF-1-10000-KD-systematic-unif-",trans[k],"-0.99-61.rdata",sep=""))
+  load(paste(dpath,"PF-1-10000-KD-systematic-",prior[k],"-",trans[k],"-0.99-61.rdata",sep=""))
   
   # Resample particles at cutoff points to have equal weights
   cutoff = seq(16, 61, len=4)
@@ -301,7 +303,7 @@ for(k in 1:length(trans))
   myscat = pf.scat(myout,pf.out$out$weight,cutoff)
   
   # Scatterplots over time
-  file = paste("../graphs/PF-betaGammaScat-1-10000-KD-systematic-unif-",trans[k],"-0.99-61.pdf",sep="")
+  file = paste("../graphs/PF-betaGammaScat-1-10000-KD-systematic-",prior[k],"-",trans[k],"-0.99-61.pdf",sep="")
   pdf(file,width=20,height=5)
   par(mfrow=c(1,4),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
   for(i in 1:length(cutoff))
