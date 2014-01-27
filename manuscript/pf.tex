@@ -266,15 +266,15 @@ $l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
 
 For each simulated data set, the BF, APF, and KDPF were each run using $J = 100, 1000, 10000, \mbox{ and } 20000$ particles to obtain weighted sample approximations of $p(x_t,\theta|y_{1:t})$ for $t = 1,\ldots,T$. For each $J$, separate runs using multinomial, residual, stratified, and systematic resampling were implemented \citep{smcUtils}, and an effective sample size threshold was set at 80\% of the total number of particles to determine when to resample particles \citep{Liu:Chen:Wong:reje:1998}. For the KDPF, sensitivity to changes in the discount factor $\Delta$ was explored by running with $\Delta = 0.9, 0.95, 0.96, 0.97, 0.98, \mbox{ and } 0.99$.
 
-To start each particle filter run, the initial state, $x_0$, and fixed parameters, $\theta_0$, for $J$ particles were sampled from the prior density $p(x_0,\theta) = p(\theta)p(i_0,s_0)$, where $p(i_0,s_0)$ is the joint pdf of the random variables $i_0$ and $s_0$ and $p(\theta)$ is the joint prior density of $\beta$, $\gamma$, and $\nu$. Since a very small percentage of the population is infected during the initial stage of the epidemic, we let $p(i_0) = N_{[0,1]}(i_0;0.002,0.0005^2)$ and set $s_0 = 1 - i_0$, i.e. no infected individuals have recovered from illness yet.
+To start each particle filter run, the initial state, $x_0$, and fixed parameters, $\theta_0$, for $J$ particles were sampled from the prior density $p(x_0,\theta) = p(\theta)p(i_0,s_0)$, where $p(i_0,s_0)$ is the joint pdf of the random variables $s_0$ and $i_0$ and $p(\theta)$ is the joint prior density of $\beta$, $\gamma$, and $\nu$. Since a very small percentage of the population is infected during the initial stage of the epidemic, we let $p(i_0) = N_{[0,1]}(i_0;0.002,0.0005^2)$ and set $s_0 = 1 - i_0$, i.e. no infected individuals have recovered from illness yet.
 
-To investigate the impact of different prior distributions for $\theta$ on performance of the particle filters, the runs described above were performed once using uniform priors on $\theta$ and then again using log-normal priors. Uniform priors on $\theta$ were chosen to be the same as those used in \citet{skvortsov2012monitoring}, i.e.
+To investigate the impact of different prior distributions for $\theta$ on the performance of the particle filters, the runs described above were performed once using uniform priors on $\theta$ and then again using log-normal priors. Uniform priors on $\theta$ were chosen to be the same as those used in \citet{skvortsov2012monitoring}, i.e.
 \begin{align*}
 p(\beta) &= \mbox{Unif}(\beta; 0.14, 0.50) \\
 p(\gamma) &= \mbox{Unif}(\gamma; 0.09, 0.143) \\
 p(\nu) &= \mbox{Unif}(\nu; 0.95, 1.3)
 \end{align*}%\hbox{$p(\beta) = \mbox{Unif}(\beta; 0.14, 0.50)$}, \hbox{$p(\gamma) = \mbox{Unif}(\gamma; 0.09, 0.143)$}, and \hbox{$p(\nu) = \mbox{Unif}(\nu; 0.95, 1.3)$},
-where $\mbox{Unif}(.; a, b)$ represents the pdf of the continuous uniform distribution on the interval $(a,b)$. These priors allow for values of $R_0$ in a range of approximately 1 to 5.5 and an average infectious of period of anywhere between roughly 7 to 11 days. $R_0$ values for strains of influenza have been estimated between 1 and 4 \citep{heff2005repratio}, and so while these priors impose restrictive bounds on the parameters, they are not particularly informative for tracking a flu epidemic.
+where $\mbox{Unif}(.; a, b)$ represents the pdf of the continuous uniform distribution on the interval $(a,b)$. These priors allow for values of $R_0$ in a range of approximately 1 to 5.5 and an average infectious of period in a range of roughly 7 to 11 days. $R_0$ values for strains of influenza have been estimated to be around 2-3 \citep{mills2004influenza, heff2005repratio, zhang2011flu}, and so while these priors impose restrictive bounds on the parameters, they are not particularly informative for tracking a flu epidemic.
 
 We define log-normal priors on $\theta$ by
 \begin{align*}
@@ -283,7 +283,7 @@ p(\gamma) &= \mbox{LN}(\gamma; -2.1764, 0.1183^2) \\
 p(\nu) &= \mbox{LN}(\nu; 0.1055, 0.0800^2)
 \end{align*}
 %\hbox{$p(\beta / \gamma) = p(R_0) = \mbox{LN}(R_0; 0.7520, 0.1768^2)$}, \hbox{$p(\gamma) = \mbox{LN}(\gamma; -2.1764, 0.1183^2)$}, and \hbox{$p(\nu) = \mbox{LN}(\nu; 0.1055, 0.0800^2)$}.
-\noindent Here, we incorporate prior information on $R_0$ instead of $\beta$ directly, since prior knowledge of the basic reproductive number may be easier to obtain than the contact rate itself. When implementing the particle filter algorithms, the prior draws for $\beta$ were inferred from the sampled values of $R_0$ and $\gamma$ at time 0. These log-normal priors constrain $\beta$, $\gamma$ and $\nu$ to be positive. The mean and variance of the prior distributions on $\log \gamma$ and $\log \nu$ were chosen such that random draws of $\gamma$ and $\nu$ would fall within the bounds of their respective uniform priors with 95\% probability, and the mean and variance of $\log R_0$ were chosen such that $R_0$ would fall between 1.5 and 3 with 95\% probability. These priors are more informative than the uniform priors in the sense that more probability is concentrated toward $R_0$ values between 1.5 and 3. However, they are less restrictive in that there is non-zero probability of generating any non-negative value for all three parameters.
+\noindent Here, we incorporate prior information on $R_0$ instead of $\beta$ directly, since prior knowledge of the basic reproductive number may be easier to obtain than for the contact rate itself. When implementing the particle filter algorithms, the prior draws for $\beta$ were determined by multiplying the sampled values of $R_0$ and $\gamma$ at time 0. These log-normal priors constrain $\beta$, $\gamma$ and $\nu$ to be positive. The mean and variance of the prior distributions on $\log \gamma$ and $\log \nu$ were chosen such that random draws of $\gamma$ and $\nu$ would fall within the bounds of their respective uniform priors with 95\% probability, and the mean and variance of $\log R_0$ were chosen such that $R_0$ would fall between 1.5 and 3 with 95\% probability.
 
 Logit and log transformations were applied to the components of $\theta$ in the manner described at the end of Section \ref{sec:kd} so that the normal kernel could be used in the KDPF while constraining $\beta$, $\gamma$, and $\nu$ to be within their respective prior domains (i.e. logit was used with uniform priors and log with log-normal priors).
 
@@ -305,29 +305,39 @@ Also noteworthy is how the bounds for $\nu$ expand between $t = 70$ and $t = 80$
 
 As mentioned in \ref{sec:kd}, implementing the KDPF using a normal kernel density approximation of $p(\theta|y_{1:t})$ to regenerate the fixed parameters requires applying some transformation to the components of $\theta$ so that their support is on the real line. The logit function is a convenient choice for mapping fixed parameters with bounded support to the real line; the log function is convenient for fixed parameters with positive support. Thus, we investigate the sensitivity of the results with $J = 10000$ to these two types of transformations using the KDPF.
 
-Figure \ref{fig:priors} compares scatterplots of $\beta$ versus $\gamma$ sampled jointly from the filtered distribution $p(\beta,\gamma|y_{1:t})$ at $t = 15, 30, 45, 60$. In the top row, the same prior as in \citet{skvortsov2012monitoring} is used, i.e. \hbox{$p(\gamma,\beta) = \mbox{Unif}(\gamma;0.09, 0.143) \mbox{Unif}(\beta; 0.14, 0.50)$}. In order to ensure regeneration in the KDPF does not extend past these bounds, a logit transformation is applied in the manner described at the end of Section \ref{sec:kd} with $a = 0.09$ and $b = .143$ for $\gamma$ and $a = 0.14$ and $b = .50$ for $\beta$, and the kernel density is created on this transformed space. In the top row, the samples concentrate on boundaries of the uniform prior on $\gamma$, particularly for $t = 15$ and $t = 30$. This suggests that the prior bounds on $\gamma$ are too restrictive to account for the uncertainty in this recovery time.
+Figure \ref{fig:priors} compares scatterplots of $\beta$ versus $\gamma$ sampled jointly from the filtered distribution $p(\beta,\gamma|y_{1:t})$ at $t = 0, 20, 40, 60$. In the top row, the same prior as in \citet{skvortsov2012monitoring} is used, i.e. \hbox{$p(\gamma,\beta) = \mbox{Unif}(\gamma;0.09, 0.143) \mbox{Unif}(\beta; 0.14, 0.50)$}. In order to ensure regeneration in the KDPF does not extend past these bounds, a logit transformation is applied in the manner described at the end of Section \ref{sec:kd} with $a = 0.14$ and $b = .50$ for $\beta$ and $a = 0.09$ and $b = .143$ for $\gamma$, and the kernel density is created on this transformed space. In the top row, the samples concentrate on the boundaries of the uniform prior on $\gamma$, particularly for $t = 20$ and $t = 40$. This suggests that the prior bounds on $\gamma$ are too restrictive to account for the uncertainty in this recovery time.
 
-To test this theory, we reran the KDPF using a log transformation (to ensure $\beta,\gamma,\nu>0$) instead of the logit transformation and the results are shown in the bottom row of Figure \ref{fig:priors}. To ease comparison, the exact same samples are used at time $t=0$ in both rows. Despite starting within the uniform bounds at $t=0$ (not shown), the samples in the bottom row stray outside the uniform prior bounds for $\gamma$, suggesting that the data are informing us that reasonable parameter values can be found outside the bounds.
+To test this theory, we reran the KDPF using the same prior draws as those used in the first row of Figure \ref{fig:priors}, but we apply a log transformation to $\theta$ (to ensure $\beta,\gamma,\nu>0$) instead of the logit transformation. The results are shown in the second row of Figure \ref{fig:priors}. Despite starting within the uniform bounds at $t=0$, the samples stray outside the uniform prior bounds for $\gamma$, suggesting that the data are informing us that reasonable parameter values can be found outside the bounds.
 
-We suggest using log-normal priors on positive elements of $\theta$ as opposed to uniform priors on bounded parameters. This allows us to use prior knowledge of the epidemic to encourage points to lie in a reasonable range while retaining flexibility in the event of model mis-specification either in the likelihood or the prior and lets the data play a greater role in dictating the evolution of $p(x_t,\theta|y_{1:t})$.
+The bottom row of Figure \ref{fig:priors} displays results from running the KDPF using prior samples taken from the log-normal priors on the components of $\theta$. As in the second row, a log transformation was applied to $\theta$ so that the kernel density could be used for jittering particles. The log-normal priors on $\theta$ are more informative than the uniform priors in that a greater number of particles are concentrated near the true values of $\beta$ and $\gamma$ at $t = 0$. Yet, the distribution of particles at $t = 20$ and $t = 40$ appear more spread out in the bottom row than in the top row because the log-normal priors are less restrictive on the sample space of $\beta$ and $\gamma$ than the uniform priors.
+
+We suggest using log-normal priors on positive elements of $\theta$ as opposed to uniform priors on bounded parameters. This allows us to use prior knowledge of the epidemic to encourage points to lie in a reasonable range while retaining flexibility in the event of model mis-specification either in the likelihood or the prior.
 
 \begin{figure}
 
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{Hist-KD-nor-uniform-uniform-systematic-10000-betagamma}
+\includegraphics[width=1.0\textwidth]{PF-betaGammaScat-1-10000-KD-systematic-unif-logit-99-61}
 \vspace{-1.0cm}
-\caption*{logit transformation}
+\caption*{uniform priors, logit transformation}
 \end{minipage}
 
 \vspace{0.5cm}
 
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{Hist-KD-nor-uniform-lognormal-systematic-10000-betagamma}
+\includegraphics[width=1.0\textwidth]{PF-betaGammaScat-1-10000-KD-systematic-unif-log-99-61}
 \vspace{-1.0cm}
-\caption*{log transformation}
+\caption*{uniform priors, log transformation}
 \end{minipage}
 
-\caption{Scatterplots of $\beta$ (horizontal) versus $\gamma$ (vertical) with true values (red crosses) at $t = 15, 30, 45, 60$ days using the KDPF with $J = 10000$ particles and systematic resampling. The logit transformation (top row) on $\theta$ shifted and scaled to $(0,1)$ and log transformation (bottom row) were used prior to regenerating the fixed parameters. The same uniform prior draws of $\theta$ were sampled in each row at $t = 0$. For demonstration, each panel shows 500 particles sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$. Axes are the same in each panel. Dashed horizontal lines indicate the bounds of the uniform prior on $\gamma$. Uniform bounds on $\beta$ are not shown because they lie outside the range of the horizontal axis.} \label{fig:priors}
+\vspace{0.5cm}
+
+\begin{minipage}{1.0\linewidth}
+\includegraphics[width=1.0\textwidth]{PF-betaGammaScat-1-10000-KD-systematic-orig-log-99-61}
+\vspace{-1.0cm}
+\caption*{log-normal priors, log transformation}
+\end{minipage}
+
+\caption{Scatterplots of $\beta$ (horizontal) versus $\gamma$ (vertical) with true values (red crosses) at $t = 0, 20, 40, 60$ days using the KDPF with $J = 10000$ particles and systematic resampling. The logit transformation (top row) on $\theta$ shifted and scaled to $(0,1)$ and log transformation (second row and bottom row) were used prior to regenerating the fixed parameters. The same uniform prior draws of $\theta$ were sampled in each of the first two rows at $t = 0$, and log-normal prior draws were sampled in the bottom row. For demonstration, each panel shows 500 particles sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$. Axes are the same in each panel. Dashed horizontal and vertical lines indicate the bounds of the uniform priors on $\gamma$ and $\beta$, respectively. The upper bound on the uniform prior on $\beta$ is not shown because it lies outside the range of the horizontal axis.} \label{fig:priors}
 
 \end{figure}
 
