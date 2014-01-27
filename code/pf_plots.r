@@ -294,7 +294,7 @@ for(k in 1:length(trans))
   load(paste(dpath,"PF-1-10000-KD-systematic-",prior[k],"-",trans[k],"-0.99-61.rdata",sep=""))
   
   # Resample particles at cutoff points to have equal weights
-  cutoff = seq(16, 61, len=4)
+  cutoff = seq(1, 61, len=5)
   betas = pf.out$ftheta(pf.out$out$theta[1,,],1)
   gammas = pf.out$ftheta(pf.out$out$theta[2,,],2)
   myout = array(NA,dim=c(2,dim(betas)[1],dim(betas)[2]))
@@ -304,8 +304,8 @@ for(k in 1:length(trans))
   
   # Scatterplots over time
   file = paste("../graphs/PF-betaGammaScat-1-10000-KD-systematic-",prior[k],"-",trans[k],"-0.99-61.pdf",sep="")
-  pdf(file,width=20,height=5)
-  par(mfrow=c(1,4),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
+  pdf(file,width=length(cutoff)*5,height=5)
+  par(mfrow=c(1,length(cutoff)),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
   for(i in 1:length(cutoff))
   {
     if(k == 1)
