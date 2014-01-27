@@ -31,11 +31,11 @@ for(i in n.sim)
 }
 
 ## Compare resampling schemes over different # particles using KD pf and lognormal priors
-n = c(1000, 10000, 20000, 40000)
+n = c(100, 1000, 10000, 20000)
 filt = c("multinomial", "residual", "stratified", "systematic")
 cols = rainbow(length(filt))
 probs = c(4, 5)
-n.sim = 1
+n.sim = 1:20
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-",filt,"-orig-log-0.99-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -78,11 +78,11 @@ for(i in n.sim)
 }
 
 ## Compare delta parameter over different # particles using lognormal priors and stratified resampling
-n = c(1000, 10000, 20000, 40000)
+n = c(100, 1000, 10000, 20000)
 filt = c(0.9, 0.95, 0.96, 0.97, 0.98, 0.99)
 cols = rainbow(length(filt))
 probs = c(4, 5)
-n.sim = 1
+n.sim = 1:20
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-stratified-orig-log-",filt,"-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -158,7 +158,7 @@ for(i in n.sim)
 # Plot coverage probabilities for different particle filters with uniform priors, systematic resampling
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(2, 3)
-n.sims = 40
+n.sims = 20
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
@@ -184,7 +184,7 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 # Plot coverage probabilities for resampling schemes with KD pf, original priors
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(2, 3)
-n.sims = 40
+n.sims = 20
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
@@ -206,7 +206,7 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 # Plot coverage probabilities for delta values with lognormal priors, stratified resampling (KD filter only)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(2, 3)
-n.sims = 40
+n.sims = 20
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
@@ -228,7 +228,7 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 # Plot coverage probabilities for original versus disperse priors, stratified resampling, delta = .99 (KD pf)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(2, 3)
-n.sims = 40
+n.sims = 20
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
@@ -269,7 +269,6 @@ create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-systematic-prio
 pf_coverage_plot(coverage[,,1,,], alpha, n.sims, params, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
 create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-systematic-priors-states.pdf",sep="")
 pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
-
 
 ## Create scatterplots of beta v gamma over time
 source("sir_functions.r")

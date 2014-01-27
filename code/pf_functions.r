@@ -297,7 +297,7 @@ pf_coverage_plot <- function(coverage, alpha, n.sim, params, cols, create.label,
 
       if(k == 1 & i == 1) # add legend
       {
-        legend("topright",legend=c("Nominal level",filt),col=c("gray47",cols),lty=c(1,rep(1,length(filt))),lwd=c(6,rep(1,length(filt))),cex=cex.leg)
+        legend("topright",legend=c("Nominal level",filt),col=c("gray47",cols),lty=c(1,rep(1,length(filt))),lwd=c(6,rep(1,length(filt))),bg="white",cex=cex.leg)
       }
     }
   }
