@@ -300,7 +300,7 @@ for(k in 1:length(trans))
   myout = array(NA,dim=c(2,dim(betas)[1],dim(betas)[2]))
   myout[1,,] = betas
   myout[2,,] = gammas
-  myscat = pf.scat(myout,pf.out$out$weight,cutoff)
+  myscat = pf.scat(myout,pf.out$out$weight,cutoff, seed = 30)
   
   # Scatterplots over time
   file = paste("../graphs/PF-betaGammaScat-1-10000-KD-systematic-",prior[k],"-",trans[k],"-0.99-61.pdf",sep="")

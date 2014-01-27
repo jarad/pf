@@ -312,8 +312,9 @@ pf_coverage_plot <- function(coverage, alpha, n.sim, params, cols, create.label,
 # M - number of samples to use to resample particles to get equal weights for constructing histograms
 # xlim - length 2 vector giving xlim argument in plot(); if any elements NA, are calculated by default
 # ylim - length 2 vector giving ylim argument in plot(); if any elements NA, are calculated by default
+# seed - if not null, sets the random seed prior resampling particles
 # ... - additional arguments passed to resample()
-pf.scat = function(out, wts, cutoff, M=500, xlim=NA, ylim=NA, ...)
+pf.scat = function(out, wts, cutoff, M=500, xlim=NA, ylim=NA, seed = NULL, ...)
 {
   require(smcUtils)
 
@@ -325,6 +326,9 @@ pf.scat = function(out, wts, cutoff, M=500, xlim=NA, ylim=NA, ...)
   if(nd > tt) stop("Too many cutoff points")
   if(dim(out)[1] != 2) stop("Incorrect first dimension of out")
 
+  # Set seed
+  if(!is.null(seed)) set.seed(seed)
+  
   # Resample particles to get equal weights
   tmps = matrix(NA,nr=M,nc=length(cutoff))
   for(i in 1:length(cutoff))
