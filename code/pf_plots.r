@@ -183,7 +183,7 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 
 # Plot coverage probabilities for resampling schemes with KD pf, original priors
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
-probs <- c(4, 5)
+probs <- c(2, 3)
 n.sims = 40
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
@@ -205,7 +205,7 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 
 # Plot coverage probabilities for delta values with lognormal priors, stratified resampling (KD filter only)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
-probs <- c(4, 5)
+probs <- c(2, 3)
 n.sims = 40
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
@@ -249,7 +249,7 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 
 # Plot coverage probabilities for original versus uniform priors, systematic resampling, delta = .99 (KD pf)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
-probs <- c(2, 3)
+probs <- c(4, 5)
 n.sims = 20
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
@@ -402,16 +402,16 @@ for(n.sim in n.sims)
     {
        plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab=paste("J = ",n,sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
        lines(1:nt,out[-1,k,probs[2]],col=4)
-       points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
-       points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
-       points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
+#       points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
+#       points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
+#       points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
        legend("topright",legend=c("Truth","Original","Extended"),col=c("gray47",2,4),lty=c(1,1,1),cex=cex.leg)
     } else { # label title only
        plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
        lines(1:nt,out[-1,k,probs[2]],col=4)
-       points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
-       points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
-       points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
+#       points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
+#       points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
+#       points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
     }
     abline(h=theta[k],col="gray47")
     if(k %in% 1:3)
@@ -433,12 +433,12 @@ for(n.sim in n.sims)
     tt = dim(out)[1]; nt = tt - 1
     if(k == 2) # label x axis, title
     {
-       plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymin,1),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+       plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymin,1),col=4,xlab="",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
        lines(1:nt,out[-1,k,probs[2]],col=4)
        lines(1:nt,mysims[[n.sim]]$sim$x[k,-1],col="gray47")
-       points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
-       points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
-       points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
+#       points(spts.ext,rep(0,length(spts.ext)),pch="|",cex=2,col=4)
+#       points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
+#       points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
     } else { # label title only
        plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(0,ymax),col=4,xlab="Time (days)",ylab="",main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
        lines(1:nt,out[-1,k,probs[2]],col=4)
