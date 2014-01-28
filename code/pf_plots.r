@@ -35,7 +35,7 @@ n = c(100, 1000, 10000, 20000)
 filt = c("multinomial", "residual", "stratified", "systematic")
 cols = rainbow(length(filt))
 probs = c(4, 5)
-n.sim = 1:20
+n.sim = 1:40
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-",filt,"-orig-log-0.99-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -82,7 +82,7 @@ n = c(100, 1000, 10000, 20000)
 filt = c(0.9, 0.95, 0.96, 0.97, 0.98, 0.99)
 cols = rainbow(length(filt))
 probs = c(4, 5)
-n.sim = 1:20
+n.sim = 1:40
 load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-stratified-orig-log-",filt,"-61.rdata",sep="")
 states = c(TRUE, FALSE)
 states.label <- c("states", "params")
@@ -183,8 +183,8 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 
 # Plot coverage probabilities for resampling schemes with KD pf, original priors
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
-probs <- c(2, 3)
-n.sims = 20
+probs <- c(4, 5)
+n.sims = 40
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
@@ -205,8 +205,8 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 
 # Plot coverage probabilities for delta values with lognormal priors, stratified resampling (KD filter only)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
-probs <- c(2, 3)
-n.sims = 20
+probs <- c(4, 5)
+n.sims = 40
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
@@ -227,8 +227,8 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 
 # Plot coverage probabilities for original versus disperse priors, stratified resampling, delta = .99 (KD pf)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
-probs <- c(2, 3)
-n.sims = 20
+probs <- c(4, 5)
+n.sims = 40
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
@@ -336,7 +336,7 @@ for(k in 1:length(trans))
 
 # Set loading parameters
 n = 40000
-n.sims = 1:20
+n.sims = 3
 filt = "KD"
 resamp = "stratified"
 prior = "orig"
@@ -344,7 +344,7 @@ transform = "log"
 delta = 0.99
 seed = 61
 probs = c(4, 5)
-burn = 1
+burn = c(1,1,1,1,1,1,3,1,1)
 
 # Load simulated data sets
 load(paste(dpath,"sim-ext.rdata",sep=""))
@@ -380,13 +380,13 @@ for(n.sim in n.sims)
   for(k in 1:7)
   {
     load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
-    ymins[k] = min(pf.quant.out$theta.quant[-burn,k,probs[1]], theta[k])
-    ymaxs[k] = max(pf.quant.out$theta.quant[-burn,k,probs[2]], theta[k])
+    ymins[k] = min(pf.quant.out$theta.quant[-(1:burn[k]),k,probs[1]], theta[k])
+    ymaxs[k] = max(pf.quant.out$theta.quant[-(1:burn[k]),k,probs[2]], theta[k])
     if(k <= 3)
     {
       load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
-      ymins[k] = min(pf.quant.out$theta.quant[-burn,k,probs[1]],ymins[k])
-      ymaxs[k] = max(pf.quant.out$theta.quant[-burn,k,probs[2]], ymaxs[k])
+      ymins[k] = min(pf.quant.out$theta.quant[-(1:burn[k]),k,probs[1]],ymins[k])
+      ymaxs[k] = max(pf.quant.out$theta.quant[-(1:burn[k]),k,probs[2]], ymaxs[k])
     }
   }
 
