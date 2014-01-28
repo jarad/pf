@@ -17,15 +17,6 @@ robs = function(x,b,varsigma,sigma,eta)
   return(y)
 }
 
-# rinit - function to initialize values of initial state
-# Arguments:
-# i0 - scalar between 0 and 1, initial proportion of infected individuals in population
-rinit = function(i0=.002)
-{
-  if(i0 < 0 | i0 > 1) stop("i0 must be between 0 and 1")
-  return(c(1-i0,i0))
-}
-
 # revo - function that propagates state forward given previous state x and parameters theta
 # Arguments:
 # x - 2-element vector, current state (s,i)
@@ -88,24 +79,6 @@ rprior = function(rtheta)
   s0 = 1 - i0
   return(list(x=c(s0,i0),theta=theta0))
 }
-
-# dlx0 - function that evaluates the log density of the prior state (s,i)
-dlx0 <- function(x)
-{
-  if(all(x >= 0) & sum(x) <= 1)
-  {
-    dnorm(x[2], .002, .0005, log=TRUE)
-  } else { return(-Inf) }
-}
-
-# dlbeta0 - function that evaluates the log density of the prior on beta
-dlbeta0 <- function(beta) dlnorm(beta, -1.3296, .3248, log=TRUE)
-
-# dlgamma0 - function that evaluates the log density of the prior on gamma
-dlgamma0 <- function(gamma) dlnorm(gamma, -2.1764, .1183, log=TRUE)
-
-# dlnu0 - function that evaluates the log density of the prior on nu
-dlnu0 <- function(nu) dlnorm(nu, 0.1055, 0.0800, log=TRUE)
 
 # Functions to reparameterize theta to [a,b] from the real line and vice versa
 theta2u = function(theta,a,b)
