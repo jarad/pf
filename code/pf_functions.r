@@ -226,7 +226,7 @@ pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE)
 # cex.lab, cex.main, cex.axis, cex.leg - expansion factors for plot labels - same as those in functions plot() and legend()
 # pic.fac - factor by which to multiply the length of n and params to get the height and width, respectively, of output pdf file
 # burn - vector of length equal to params, how many beginning time points to ignore when finding ymins and ymaxs (only used if ymins and ymaxs are missing)
-pf_coverage_plot <- function(coverage, alpha, n.sim, params, cols, create.label, ymins, ymaxs, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, pic.fac = 10, burn = 0)
+pf_coverage_plot <- function(coverage, alpha, n.sim, params, cols, create.label, ymins, ymaxs, lwd = 4, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, pic.fac = 10, burn = 0)
 {
   n <- dimnames(coverage)[[1]]
   filt <- dimnames(coverage)[[2]]
@@ -272,20 +272,20 @@ pf_coverage_plot <- function(coverage, alpha, n.sim, params, cols, create.label,
         {
           if(k == 1 & i == 1) # label y axis and title
           {
-            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),lwd=lwd,col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
           } else if(k == 1 & i == length(n)) { # label x and y axes
-            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),lwd=lwd,col=cols[j],xlab="Time (days)",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
           } else if(k == 1) { # label y axis only
-            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),lwd=lwd,col=cols[j],xlab="",ylab=paste("J = ",n[i],sep=""),cex.lab=cex.lab,cex.axis=cex.axis)
           } else if(i == 1) { # label title only
-            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),lwd=lwd,col=cols[j],xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
           } else if(i == length(n)) { # label x axis only
-            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),lwd=lwd,col=cols[j],xlab="Time (days)",ylab="",cex.lab=cex.lab,cex.axis=cex.axis)
           } else { # label nothing
-            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
+            plot(x,cov,type="b",cex=2.5,ylim=c(ymins[k],ymaxs[k]),lwd=lwd,col=cols[j],xlab="",ylab="",cex.axis=cex.axis)
           }
         } else { # lines only
-          lines(x,cov,type="b",cex=2.5,col=cols[j])
+          lines(x,cov,type="b",cex=2.5,lwd=lwd,col=cols[j])
         }
       }
 

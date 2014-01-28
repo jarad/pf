@@ -157,7 +157,7 @@ for(i in n.sim)
 
 # Plot coverage probabilities for different particle filters with uniform priors, systematic resampling
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
-probs <- c(2, 3)
+probs <- c(4, 5)
 n.sims = 20
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
