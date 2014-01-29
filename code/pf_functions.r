@@ -226,7 +226,7 @@ pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE)
 # cex.lab, cex.main, cex.axis, cex.leg - expansion factors for plot labels - same as those in functions plot() and legend()
 # pic.fac - factor by which to multiply the length of n and params to get the height and width, respectively, of output pdf file
 # burn - vector of length equal to params, how many beginning time points to ignore when finding ymins and ymaxs (only used if ymins and ymaxs are missing)
-pf_coverage_plot <- function(coverage, alpha, n.sim, params, cols, create.label, ymins, ymaxs, lwd = 4, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, pic.fac = 10, burn = 0)
+pf_coverage_plot <- function(coverage, alpha, n.sim, params, cols, create.label, ymins, ymaxs, lwd = 4, cex.lab = 6, cex.main = 7, cex.axis = 4, cex.leg = 4, leg.location = "topright", pic.fac = 10, burn = 0)
 {
   n <- dimnames(coverage)[[1]]
   filt <- dimnames(coverage)[[2]]
@@ -297,7 +297,7 @@ pf_coverage_plot <- function(coverage, alpha, n.sim, params, cols, create.label,
 
       if(k == 1 & i == 1) # add legend
       {
-        legend("topright",legend=c("Nominal level",filt),col=c("gray47",cols),lty=c(1,rep(1,length(filt))),lwd=c(6,rep(1,length(filt))),bg="white",cex=cex.leg)
+        legend(leg.location,legend=c("Nominal level",filt),col=c("gray47",cols),lty=c(1,rep(1,length(filt))),lwd=c(6,rep(1,length(filt))),bg="white",cex=cex.leg)
       }
     }
   }

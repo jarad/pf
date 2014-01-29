@@ -183,9 +183,9 @@ pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymi
 
 # Plot coverage probabilities for resampling schemes with KD pf, original priors
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
-probs <- c(2, 3)
+probs <- c(4, 5)
 n.sims = 40
-n = c(100, 1000, 10000, 20000)
+n = c(1000, 10000)
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim) paste(dpath,"PF-quant-",n.sim,"-",n,"-KD-",filt,"-orig-log-0.99-61.rdata",sep="")
@@ -199,9 +199,9 @@ params = expression(beta, gamma, nu)
 states = expression(s, i, r)
 cols = rainbow(4)
 create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-orig-resamp-params.pdf",sep="")
-pf_coverage_plot(coverage[,,1,,], alpha, n.sims, params, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
+pf_coverage_plot(coverage[,,1,,], alpha, n.sims, params, cols, create.label, ymins = rep(.2,3), ymaxs = rep(1,3), leg.location = "bottomright")
 create.label <- paste(gpath,"PF-coverage-",alpha,"-",n.sims,"-KD-orig-resamp-states.pdf",sep="")
-pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3))
+pf_coverage_plot(coverage[,,2,,], alpha, n.sims, states, cols, create.label, ymins = rep(0,3), ymaxs = rep(1,3), leg.location = "bottomright")
 
 # Plot coverage probabilities for delta values with lognormal priors, stratified resampling (KD filter only)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
@@ -287,8 +287,12 @@ load(paste(dpath,"sim-orig.rdata",sep=""))
 # Panel 3 - log-normal prior draws, log transformation
 trans = c("logit", "log", "log")
 prior = c("unif", "unif", "orig")
+prior.names = c("uniform","uniform","log-normal")
+file = paste("../graphs/PF-betaGammaScat-1-10000-KD-systematic-0.99-61.pdf",sep="")
+pdf(file,width=length(cutoff)*5,height=length(trans)*5)
+par(mfrow=c(length(trans),length(cutoff)),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
 for(k in 1:length(trans))
-{
+{ 
   # Load particle filtered data
   load(paste(dpath,"PF-1-10000-KD-systematic-",prior[k],"-",trans[k],"-0.99-61.rdata",sep=""))
   
@@ -302,9 +306,6 @@ for(k in 1:length(trans))
   myscat = pf.scat(myout,pf.out$out$weight,cutoff, seed = 30)
   
   # Scatterplots over time
-  file = paste("../graphs/PF-betaGammaScat-1-10000-KD-systematic-",prior[k],"-",trans[k],"-0.99-61.pdf",sep="")
-  pdf(file,width=length(cutoff)*5,height=5)
-  par(mfrow=c(1,length(cutoff)),mar=c(7,10,5,1)+.1,mgp=c(6,1.55,0))
   for(i in 1:length(cutoff))
   {
     if(k == 1)
@@ -329,14 +330,16 @@ for(k in 1:length(trans))
       points(mysims[[1]]$true.params$theta[1],mysims[[1]]$true.params$theta[2],col=2,pch=3,lwd=5,cex=1.5*ptsize)
     }
   }
-  dev.off()
+  outer.label = paste(prior.names[k]," draws, ",trans[k]," transformation",sep="")
+  mtext(outer.label, side = 1, line = -(3-k)*38-2, cex = 3, outer = TRUE)
 }
+dev.off()
 
 ## Figure 4 - Extended model: KD PF for n particles with original priors and stratified resampling
 
 # Set loading parameters
 n = 40000
-n.sims = 3
+n.sims = 1
 filt = "KD"
 resamp = "stratified"
 prior = "orig"
