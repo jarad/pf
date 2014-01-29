@@ -474,3 +474,17 @@ for(n.sim in n.sims)
   #lines(1:nt,out[-1,k,3],col=2)
   dev.off()
 }
+
+# Plot coverage probabilities for original versus uniform priors, systematic resampling, delta = .99 (KD pf)
+quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
+probs <- c(4, 5)
+n.sims = 20
+n = c(10000, 20000, 40000)
+my_pf_coverage <- function(n, filt, states)
+{
+  load.label <- function(filt=NULL, n, n.sim) paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-KD-stratified-orig-log-0.99-61.rdata",sep="")
+  pf_coverage(n.sims, n, filt, probs, load.label, states, mod = "ext") 
+}
+mydata = expand.grid(n = n, states = c(FALSE), stringsAsFactors = FALSE)
+require(plyr)
+coverage <- maply(mydata, my_pf_coverage)

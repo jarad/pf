@@ -186,9 +186,10 @@ pf_plot <- function(n, params, filt, n.sim, probs, cols, create.label, load.labe
 # probs - length-2 vector giving indices corresponding to which quantiles to use as lower and upper bounds (third dimension of output from pf.quantile)
 # load.label - function that takes filt, n, and simulation number as arguments and returns file name from which to load particle filter data
 # states - TRUE or FALSE, indicating whether or not coverage probabilities for the states or unknown parameters should be calculated
-pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE)
+pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE, mod = "orig")
 {
-  load("../data/sim-orig.rdata")
+  if(mod == "orig") load("../data/sim-orig.rdata")
+  if(mod == "ext") load("../data/sim-ext.rdata")
   load(load.label(filt, n, 1))
   if(states) out = pf.quant.out$state.quant else out = pf.quant.out$theta.quant
   tt = dim(out)[1]
@@ -196,6 +197,9 @@ pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE)
   covered = array(NA, dim = c(n.sims, n.params, tt))
   for(i in 1:n.sims)
   {
+    if(mod == "orig") theta = mysims[[i]]$true.params$theta
+    if(mod == "ext") theta = c(mysims[[i]]$true.params$theta, mysims[[i]]$true.params$b, mysims[[i]]$true.params$varsigma, mysims[[i]]$true.params$sigma, mysims[[i]]$true.params$eta)
+    
     load(load.label(filt, n, i))
     if(states){
       out = pf.quant.out$state.quant
@@ -207,7 +211,7 @@ pf_coverage <- function(n.sims, n, filt, probs, load.label, states = FALSE)
       out = pf.quant.out$theta.quant
       for(k in 1:n.params)
       {
-        covered[i,k,] = out[,k,probs[1]] < mysims[[i]]$true.params$theta[k] & out[,k,probs[2]] > mysims[[i]]$true.params$theta[k]
+        covered[i,k,] = out[,k,probs[1]] < theta[k] & out[,k,probs[2]] > theta[k]
       }
     }
   }
