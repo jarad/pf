@@ -303,31 +303,11 @@ The bottom row of Figure \ref{fig:priors} displays results from running the KDPF
 We suggest using log-normal priors on positive elements of $\theta$ as opposed to uniform priors on bounded parameters. This allows us to use prior knowledge of the epidemic to encourage points to lie in a reasonable range while retaining flexibility in the event of model mis-specification either in the likelihood or the prior.
 
 \begin{figure}
-
+\centering
 \begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-betaGammaScat-1-10000-KD-systematic-unif-logit-99-61}
-\vspace{-1.0cm}
-\caption*{uniform priors, logit transformation}
-\end{minipage}
-
-\vspace{0.5cm}
-
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-betaGammaScat-1-10000-KD-systematic-unif-log-99-61}
-\vspace{-1.0cm}
-\caption*{uniform priors, log transformation}
-\end{minipage}
-
-\vspace{0.5cm}
-
-\begin{minipage}{1.0\linewidth}
-\includegraphics[width=1.0\textwidth]{PF-betaGammaScat-1-10000-KD-systematic-orig-log-99-61}
-\vspace{-1.0cm}
-\caption*{log-normal priors, log transformation}
-\end{minipage}
-
+\includegraphics[width=1.0\textwidth]{PF-betaGammaScat-1-10000-KD-systematic-99-61}
 \caption{Scatterplots of $\beta$ (horizontal) versus $\gamma$ (vertical) with true values (red crosses) at $t = 0, 20, 40, 60$ days using the KDPF with $J = 10000$ particles, systematic resampling, and $\Delta = 0.99$. The logit transformation (top row) on $\theta$ shifted and scaled to $(0,1)$ and log transformation (second row and bottom row) were used prior to regenerating the fixed parameters. The same uniform prior draws of $\theta$ were sampled in each of the first two rows at $t = 0$, and log-normal prior draws were sampled in the bottom row. For demonstration, each panel shows 500 particles sampled from the weighted sample approximation of $p(x_t,\theta|y_{1:t})$. Axes are the same in each panel. Dashed horizontal and vertical lines indicate the bounds of the uniform priors on $\gamma$ and $\beta$, respectively. The upper bound on the uniform prior on $\beta$ is not shown because it lies outside the range of the horizontal axis.} \label{fig:priors}
-
+\end{minipage}
 \end{figure}
 
 \subsection{Comparison of resampling schemes \label{sec:resample}}
@@ -354,7 +334,7 @@ To test the sensitivity of the KDPF to different values of $\Delta$, we ran the 
 
 \subsubsection{Comparison with MCMC}
 
-Analyzing our model using a sequential Monte Carlo approach is convenient because it allows for sequential updating of parameter estimates and real-time tracking of a disease epidemic. Furthermore, the KDPF algorithm is easy to implement, offering an alternative to traditional MCMC methods that often are more difficult to develop and require more computing effort. In this case, the KDPF provides similar results to a full MCMC analysis (see Table \ref{tab:mcmc}). 
+Analyzing our model using a sequential Monte Carlo approach is convenient because it allows for sequential updating of parameter estimates and real-time tracking of a disease epidemic. Furthermore, the KDPF algorithm is easy to implement, offering an alternative to traditional MCMC methods that often are more difficult to develop and require more computing effort. In this case, the KDPF provides similar results to a full MCMC analysis (see Table \ref{tab:mcmc}).
 
 The full MCMC was implemented by sampling each of the states and parameters conditional on the rest using a Gibbs sampler, where each new sample was generated from a Metropolis-Hastings step using a Gaussian, random-walk proposal distribution. MCMC samples were generated conditional on the first $T$ observations from one of the simulated data sets, where $T = 30, 60, 90, \mbox{ and } 125$. For each $T$, three MCMC chains with different starting values for the unknown parameters were run. For each chain, the standard deviations of the proposal distributions were tuned during a burn-in period of 100000 samples, after which 10 million iterations of the MCMC were generated. Because of the nonlinear nature of the state equation, mixing of the MCMC was poor and many iterations were required for the chains to explore the sample space of the parameters. Because of the poor mixing and slow convergence, starting values for the states were taken at their true simulated values.
 
