@@ -96,7 +96,7 @@ pf <- function(n.sim, n, filt, resamp, prior, transform, delta, seed, progress =
 }
 
 # Create data frame and use plyr to run particle filters in parallel
-mydata = expand.grid(n.sim = 1:20, n = c(10000, 20000, 40000), filt = c("KD"), resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, progress = FALSE, stringsAsFactors=FALSE)
+mydata = expand.grid(n.sim = 1, n = 60000, filt = c("KD"), resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, progress = TRUE, stringsAsFactors=FALSE)
 
 require(plyr)
 require(doMC)
