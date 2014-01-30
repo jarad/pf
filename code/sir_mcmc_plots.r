@@ -130,7 +130,7 @@ sir_mcmc_plots <- function(n.chains, x, beta, gamma, nu, ymax)
   }
 }
 
-mydata = data.frame(n.chains=3,x=1,beta=1,gamma=1,nu=1,ymax=c(30, 60))
+mydata = data.frame(n.chains=3,x=1,beta=1,gamma=1,nu=1,ymax=c(30, 60, 125))
 require(plyr)
 m_ply(.data = mydata, .fun = sir_mcmc_plots)
 
@@ -173,4 +173,4 @@ kd_quant <- function(ymax)
   dimnames(kd.quant$x)[[2]] = c("s", "i")
   return(kd.quant)
 }
-kd.quant = mlply(.data = data.frame(ymax = c(30, 60)), .fun = kd_quant)
+kd.quant = mlply(.data = data.frame(ymax = c(30, 60, 125)), .fun = kd_quant)
