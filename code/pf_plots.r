@@ -159,7 +159,7 @@ for(i in n.sim)
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(4, 5)
 n.sims = 40
-n = c(100, 1000, 10000, 20000)
+n = c(20000)
 my_pf_coverage <- function(n, filt, states)
 {
   load.label <- function(filt, n, n.sim)
