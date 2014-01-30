@@ -158,7 +158,7 @@ for(i in n.sim)
 # Plot coverage probabilities for different particle filters with uniform priors, systematic resampling
 quantiles <- c(0.5, 0.25, 0.75, 0.025, 0.975, 0.05, 0.95)
 probs <- c(4, 5)
-n.sims = 20
+n.sims = 40
 n = c(100, 1000, 10000, 20000)
 my_pf_coverage <- function(n, filt, states)
 {
@@ -338,7 +338,8 @@ dev.off()
 ## Figure 4 - Extended model: KD PF for n particles with original priors and stratified resampling
 
 # Set loading parameters
-n = 40000
+n.ext = 60000
+n.orig = 60000
 n.sims = 1
 filt = "KD"
 resamp = "stratified"
@@ -355,19 +356,19 @@ load(paste(dpath,"sim-ext.rdata",sep=""))
 for(n.sim in n.sims)
 { 
   # Get points where resampling done for extended model
-  load(paste(dpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+  load(paste(dpath,"PF-ext-",n.sim,"-",n.ext,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
   tt = dim(mysims[[n.sim]]$sim$x)[2]; nt = tt - 1
   dpts = which(!is.na(mysims[[n.sim]]$sim$y[1,]))
   resampled = rep(0,nt)
   parents = pf.out$out$parent
-  for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
+  for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n.ext)
   spts.ext = which(as.logical(resampled))
   resampled = rep(0,nt)
 
   # Get points where resampling done for original model
-  load(paste(dpath,"PF-ext.orig-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+  load(paste(dpath,"PF-ext.orig-",n.sim,"-",n.orig,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
   parents = pf.out$out$parent
-  for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n)
+  for(i in 1:nt) resampled[i] = !all(parents[,i+1] == 1:n.orig)
   spts.org = which(as.logical(resampled))
 
   # Set graphical parameters
@@ -382,23 +383,23 @@ for(n.sim in n.sims)
   ymins = ymaxs = rep(NA, 7)
   for(k in 1:7)
   {
-    load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+    load(paste(dpath,"PF-ext-quant-",n.sim,"-",n.ext,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
     ymins[k] = min(pf.quant.out$theta.quant[-(1:burn[k]),k,probs[1]], theta[k])
     ymaxs[k] = max(pf.quant.out$theta.quant[-(1:burn[k]),k,probs[2]], theta[k])
     if(k <= 3)
     {
-      load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+      load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n.orig,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
       ymins[k] = min(pf.quant.out$theta.quant[-(1:burn[k]),k,probs[1]],ymins[k])
       ymaxs[k] = max(pf.quant.out$theta.quant[-(1:burn[k]),k,probs[2]], ymaxs[k])
     }
   }
 
   # Construct plot
-  pdf(paste(gpath,"PF-ext-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".pdf",sep=""),width=30,height=30)
+  pdf(paste(gpath,"PF-ext-",n.sim,"-",n.ext,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".pdf",sep=""),width=30,height=30)
   par(mfrow=c(3,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
   for(k in 1:length(params))
   {
-    load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+    load(paste(dpath,"PF-ext-quant-",n.sim,"-",n.ext,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
     out = pf.quant.out$theta.quant
     tt = dim(out)[1]; nt = tt - 1
     if(k == 1) # label y axis, title, legend
@@ -419,7 +420,7 @@ for(n.sim in n.sims)
     abline(h=theta[k],col="gray47")
     if(k %in% 1:3)
     {
-      load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+      load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n.orig,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
       out = pf.quant.out$theta.quant
       tt = dim(out)[1]; nt = tt - 1
       lines(1:nt,out[-1,k,probs[1]],col=2)
@@ -431,7 +432,7 @@ for(n.sim in n.sims)
   ymin = 0; ymax = 1
   for(k in 1:2)
   {
-    load(paste(dpath,"PF-ext-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+    load(paste(dpath,"PF-ext-quant-",n.sim,"-",n.ext,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
     out = pf.quant.out$state.quant
     tt = dim(out)[1]; nt = tt - 1
     if(k == 2) # label x axis, title
@@ -450,7 +451,7 @@ for(n.sim in n.sims)
        points(spts.org,rep(.03,length(spts.org)),pch="|",cex=2,col=2)
        points(dpts,rep(.06,length(dpts)),pch="|",cex=2,col="gray47")
     }
-    load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
+    load(paste(dpath,"PF-ext.orig-quant-",n.sim,"-",n.orig,"-",filt,"-",resamp,"-",prior,"-",transform,"-",delta,"-",seed,".rdata",sep=""))
     out = pf.quant.out$state.quant
     tt = dim(out)[1]; nt = tt - 1
     lines(1:nt,out[-1,k,probs[1]],col=2)
