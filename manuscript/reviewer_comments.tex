@@ -1,5 +1,9 @@
 \documentclass{article}
 
+\usepackage{color}
+
+\newcommand{\danny}[1]{{\color{blue} DANNY: #1}}
+
 \begin{document}
 
 \noindent {\bf Reviewers' comments:} \\
@@ -14,35 +18,46 @@ We have expanded on the biological interpretation of model parameters in Section
 
 \noindent \emph{(1) All comparisons (of filters, resampling methods and priors) are solely based on a single simulated epidemic data set. For any reliable conclusions on the methodology used (and favored) by the authors, a thorough simulation study - or at least more extended simulations - should be carried out.} \\
 
-We've expanded from analyzing a single simulated data set to 40 simulated data sets, each with different true values of the model parameters. We compare the performance of the particle filter algorithms, resampling methods, and sensitivity to the tuning parameter $\Delta$ in the kernel density particle filter by analyzing the proportion of times that 95\% credible intervals for the states and parameters cover the true values used for simulation. Because our analysis has been expanded from 1 simulated data set to 40, much of the prose in Section 5 has been edited to accommodate conclusions drawn from multiple simulated epidemics. All figures now look different from before and subsequent interpretation of results has been altered to reflect particle filter runs on the new data. Figure 4, which compares resampling schemes, has been changed to display a comparison of the proportion of 95\% credible intervals that cover the true value used for simulation. \\
+We've expanded from analyzing a single simulated data set to 40 simulated data sets, each simulation having with different true parameter values. We compare the performance of the particle filter algorithms, resampling methods, and sensitivity to the tuning parameter $\Delta$ in the kernel density particle filter by analyzing the proportion of times that 95\% credible intervals for the states and parameters cover the true values used for simulation. Because our analysis has been expanded from 1 simulated data set to 40, much of the prose in Section 5 has been edited to accommodate conclusions drawn from multiple simulated epidemics. All figures now look different from before and subsequent interpretation of results has been altered to reflect particle filter runs on the new data. \danny{Be more specific} Figure 4, which compares resampling schemes, has been changed to display a comparison of the proportion of 95\% credible intervals that cover the true value used for simulation. \danny{Why didn't we do this for comparing the different particle filters?} \\
 
 \noindent \emph{(2) The analysis and estimation is based on very informative priors on the model parameters, expressed as narrow uniform distributions or matched low-variance log-normal distributions. These are taken to be the same as in an earlier publication to facilitate comparisons, but raise several issues regarding the general applicability of the methods presented here: would the methods provide good inference if the priors were non-informative? For example, and very importantly, would they be applicable with real data where prior information could be limited?} \\
 
-If vague priors are used within an SMC algorithm, more particles will be needed to avoid degeneracy. If prior information about unknown quantities is limited to the point that priors are too vague to run an SMC algorithm with reasonable number of particles, common practice is to run an MCMC-type algorithm for a few iterations to inform a workable prior. While this extra step may be needed in specific cases, we argue that general applicability of SMC methods is not limited by this. In Section 5.2, we altered our log-normal priors to incorporate prior knowledge that may be available about the basic reproductive number. While these priors are informative, they are flexible in the event of model mis-specification and/or limited prior knowledge, allowing the data to overwhelm the prior and inform the posterior. \\
+Any proper prior can be used in SMC algorithms, but priors that are more vague will require more particles to avoid degeneracy. 
+%If prior information about unknown quantities is limited to the point that priors are too vague to run an SMC algorithm with reasonable number of particles, common practice is to run an MCMC-type algorithm for a few time-points to inform a workable prior. While this extra step may be needed in specific cases, we argue that general applicability of SMC methods is not limited by this. 
+In response to this reviewer suggestion, we have altered our prior structure to put a prior on the basic reproductive number rather than the $S\to I$ transition rate where there is typically more prior information. \\
 
-%Non-informative priors cannot be used with SMC methods, since we initialize an SMC algorithm by sampling from a proper prior distribution. However, we argue that general applicability is not limited by this. In Section 5.2, we use slightly different log-normal priors that are actually not that informative, and we show in Section 5.4 that these priors allow the data to overwhelm the prior and dictate the posterior distribution. \\
+%In Section 5.2, we altered our log-normal priors to incorporate prior knowledge that may be available about the basic reproductive number. While these priors are informative, they are flexible in the event of model mis-specification and/or limited prior knowledge, allowing the data to overwhelm the prior and inform the posterior. \\
+
+%Non-informative priors cannot be used with SMC methods, since we initialize an SMC algorithm by sampling from a proper prior distribution. However, we argue that general applicability is not limited by this. In Section 5.2, we use slightly different log-normal priors that are actually not that informative, and we show in Section 5.4 that these priors allow the data to overwhelm the prior and dictate the posterior distribution. 
+
 
 \noindent \emph{Also related to this point, one of the main conclusions of the presented work is that bounded priors influence estimation. This is a trivial point that should be expected when such restricted priors are used. The primary (and more general) issue here is that these priors are strongly informative.} \\
+
+\danny{I think this needs to be reworded}
 
 In Figure 3 within Section 5.4, we show the prior samples at $t = 0$ and also have added a row of plots for the KDPF run using log-normal priors. Looking at the plots at $t = 0$, we explain in this section that the log-normal priors are actually more informative than the uniform priors. Our point is that unbounded priors should be used so that - in the event that the prior and likelihood are vastly different - reasonable values of the particles can be found away from where the prior is concentrated. \\
 
 \noindent \emph{(3) The approach to epidemic modeling taken here only holds for Markovian models, where the state of the epidemic does not depend on the history of the outbreak (e.g. Eq. 3). This is quite restrictive and not realistic for many real-life epidemics. This issue has been addressed in the literature with the use of more general Bayesian modelling that extends to non-Markovian epidemic cases and includes non-exponential transitions between compartments. Can the approximations used in this paper allow for a more general framework?} \\
 
-The general state-space model framework described in Section 2 does in fact allow for non-Markovian structures, and any type of transition density can be specified in the state equation. We've added a paragraph in Section 2 to make this more clear. \\
+The general state-space model framework, described in Section 2, allows for non-Markovian structures, and any type of transition density can be specified in the state equation. We've added a paragraph in Section 2 to make this more clear. \\
 
 \noindent \emph{(4) Although SMC methodology seems to offer a natural platform for real-time estimation in epidemics, other methods (related to sequential Bayesian analysis coupled with MCMC) have been considered in the literature. I feel that some comparison with such methodologies should be provided in this work. For example, most of the results suggest that the presented algorithms converge to the posterior distribution of the estimated parameters after around day 60 - which is after the epidemic has peaked. This provides a nice opportunity for comparing how MCMC would perform with data only from the first 60 days and then every, say, 5th day.} \\
 
-We have added a Section 5.6.2 in which we compare 95\% credible intervals of MCMC samples conditional the first 30, 60, 90, and 125 data points with corresponding intervals from filtered distribution at those time points using the KDPF with 20000 particles and stratified resampling. The results are comparable, and we explain that the KDPF also has the advantage of being much easier to implement and runs faster. \\
+We added Section 5.6.2  which compares MCMC vs KDPF (20000 particles, stratified resampling) using 95\% filtered credible intervals at time points 30, 60, 90, and 125. These results are comparable, and we explain that the KDPF also has the advantage of being much easier to implement and runs much faster. We apologize for not implementing the suggested every 5th day, but the MCMC just took too long to run. \\
 
 \noindent \emph{Other comments:} \\
 
 \noindent \emph{(5) The title of the paper  (``Estimation of a disease outbreak'') may be taken to suggest that the methodology presented here only applies to a very specific case. This is also related to my earlier comment (1). I think the title  it should imply more general applicability.} \\
 
-We've changed the title to ``Comparison of the performance of particle filter algorithms applied to tracking of a disease epidemic.'' \\
+We've changed the title to ``Comparison of the performance of particle filter algorithms applied to tracking of a disease epidemic.'' We've also updated the abstract accordingly. \\
 
 \noindent \emph{(6) Page 1, line 28 (and elsewhere): the terminology "fixed parameters" contradicts the Bayesian approach and posterior (and prior) distributions.} \\
 
+Most Bayesian statisticians, us included, believe in fixed parameters, but use a probability distribution to quantify our uncertainty about those fixed parameters. 
+
 \noindent \emph{(7) P1, l 31: the priors are referred to as "seemingly uninformative". However, these are quite informative priors.} \\
+
+We agree which is why we qualified uninformative with seemingly. 
 
 \noindent \emph{(8) The choice of the numerical value of the $\Delta$ parameter for the kernel smoother in the applications seems arbitrary. At the very least the sensitivity to changes of this value should be explored or discussed.} \\
 
@@ -50,11 +65,11 @@ We've run the KDPF with different values of $\Delta$ and discuss the sensitivity
 
 \noindent \emph{(9) The various resampling techniques (e.g. p7, l14) should be briefly described in the paper for completeness.} \\
 
-Included in the first paragraph of Section 3.4 are brief descriptions of stratified, residual, and systematic resampling, and we refer the reader to a paper that describes these methods and their asymptotic properties in more detail. If desired, we could include a more formal write-up of these resampling algorithms in an appendix, but we decided against including too much detail in the main body of the paper because we did not think it essential to the main points of the paper. \\
+Included in the first paragraph of Section 3.4 are brief descriptions of stratified, residual, and systematic resampling, and we refer the reader to a paper that describes these methods and their asymptotic properties in more detail. If desired, we would be happy to include a more formal write-up of these resampling algorithms in an appendix. \\
 
 \noindent \emph{(10) Section 3.5 could perhaps go to an appendix as I do not think that it contains information that is essential to the understanding of the paper.} \\
 
-We think it is important for completeness of the paper to make the point that all of the particle filter algorithms are justified as the number of particles goes to infinity. This is related to comment (15) and explains why the difference between resampling algorithms becomes negligible for large $J$ and suggests that the filtered distributions are approaching the true posterior distributions. \\
+We think it is important for completeness of the paper to make the point that all of the particle filter algorithms are justified as the number of particles goes to infinity. This is related to comment (15) and explains why the difference between resampling algorithms becomes negligible for large $J$ and suggests that the filtered distributions are approaching the true posterior distributions. But we'd still be happy to put it in an appendix. \\
 
 \noindent \emph{(11) P8, l47: The role of parameter $\nu$ must be explained and discussed. How does it control the mixing of the population?} \\
 
@@ -72,12 +87,16 @@ In Section 4.1.2, we've elaborated more on where the power-law relationship betw
 
 Fixed. \\
 
-\noindent \emph{(15) Fig 6: The results here suggest that the difference between the 3 methods is almost negligible (for large J) except perhaps for parameter $\nu$. In any case, estimation of this parameter seems to be the most challenging - as perhaps expected given the lack of information on the mixing dynamics in the data. These issues should be discussed in the paper.} \\
+\noindent \emph{(15) Fig 6 \danny{there is no figure 6}: The results here suggest that the difference between the 3 methods is almost negligible (for large J) except perhaps for parameter $\nu$. In any case, estimation of this parameter seems to be the most challenging - as perhaps expected given the lack of information on the mixing dynamics in the data. These issues should be discussed in the paper.} \\
 
 We've changed this figure to show plots of the probability of coverage of the true values of parameters over all simulations. The conclusions drawn from this figure are essentially the same and are supported by evidence from multiple simulations and particle filter runs. We've discussed the challenges of estimating the parameter $\nu$ in more detail in Section 6. \\
 
 \noindent \emph{(16) P15, l22 (and Fig 6): How was the true posterior approximated here?} \\
 
+\danny{We don't have anything like this anymore?}
+
 \noindent \emph{(17) Fig 7: The 95\% intervals suggest that estimation may not be converging for some parameters (e.g. $\varsigma$), and is marginally biased for some others (e.g. $\eta$). Again, this should be discussed.} \\
+
+\danny{With dropping these figures, it seems like we are hiding things to me.}
 
 \end{document}
