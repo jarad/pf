@@ -55,18 +55,27 @@ for(i in 1:n.sims)
 # Epidemic curves
 pdf(paste(gpath,"sim-orig-epid.pdf",sep=""))
 par(mar=c(5,7,4,1)+.1)
-plot(0:nt,1 - mysims[[1]]$sim$x[1,] - mysims[[1]]$sim$x[2,],type="l",ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
-lines(0:nt,mysims[[1]]$sim$x[1,])
-lines(0:nt,mysims[[1]]$sim$x[2,],col=2)
 if(n.sims > 1)
 {
   for(i in 2:n.sims)
   {
-    lines(0:nt,1 - mysims[[i]]$sim$x[1,] - mysims[[i]]$sim$x[2,],col=4)
-    lines(0:nt,mysims[[i]]$sim$x[1,])
-    lines(0:nt,mysims[[i]]$sim$x[2,],col=2)
+    if(i == 2)
+    {
+      plot(0:nt,mysims[[i]]$sim$x[2,],type="l",ylim=c(0,1),col="gray80",ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
+#    lines(0:nt,1 - mysims[[i]]$sim$x[1,] - mysims[[i]]$sim$x[2,],col=4)
+#    lines(0:nt,mysims[[i]]$sim$x[1,])
+    } else {
+      lines(0:nt,mysims[[i]]$sim$x[2,],col="gray80")
+    }
   }
-} 
+  lines(0:nt,1 - mysims[[1]]$sim$x[1,] - mysims[[1]]$sim$x[2,],col=4)
+  lines(0:nt,mysims[[1]]$sim$x[1,])
+  lines(0:nt,mysims[[1]]$sim$x[2,],col=2)
+} else {
+  plot(0:nt,1 - mysims[[1]]$sim$x[1,] - mysims[[1]]$sim$x[2,],type="l",ylim=c(0,1),col=4,ylab="% Population",xlab="Time (days)",main="True Epidemic Curves",cex.lab=2,cex.main=2,cex.axis=1.6)
+  lines(0:nt,mysims[[1]]$sim$x[1,])
+  lines(0:nt,mysims[[1]]$sim$x[2,],col=2)
+}
 legend("topright",legend=c("Susceptible","Infected","Recovered"),lty=rep(1,3),col=c(1,2,4),cex=1.5)
 dev.off()
 

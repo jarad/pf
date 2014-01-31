@@ -212,7 +212,7 @@ where $\epsilon_\beta$ and $\epsilon_\gamma$ are random components with $\epsilo
 
 The \emph{basic reproductive number}, $R_0 = \beta / \gamma$, is the average number of people infected by one sick person in a population where everyone is susceptible \citep{heff2005repratio}. If $R_0 > 1$, then an epidemic can occur. In many cases, prior information about $R_0$ for a specific type of infection is more readily available than prior knowledge about $\beta$ or $\gamma$ individually.
 
-The mixing parameter $\nu$ describes the heterogeneity of social interactions within the population, where $\nu = 1$ corresponds to a population with homogenous mixing, i.e. an infectious person is equally likely to infect any susceptible, and $\nu = 0$ corresponds to a population with no social interaction. Other values \danny{above or below zero?} of $\nu$ represent populations with heterogenous mixing, i.e. an individual is more likely to interact with some people more than others, leading to less severe epidemics than those that would occur in homogenous populations for a fixed $R_0$ \citep{stroud2006powerlaw, novozhilov2008hetero}.
+The mixing parameter $\nu$ describes the heterogeneity of social interactions within the population, where $\nu = 1$ corresponds to a population with homogenous mixing, i.e. an infectious person is equally likely to infect any susceptible, and $\nu = 0$ corresponds to a population with no social interaction. Values of $\nu > 1$ represent populations with heterogenous mixing, i.e. an individual is more likely to interact with some people more than others, leading to less severe epidemics than those that would occur in homogenous populations for a fixed $R_0$ \citep{stroud2006powerlaw, novozhilov2008hetero}.
 
 \subsubsection{Observation equation \label{sec:obs}}
 
@@ -234,9 +234,9 @@ We now compare the performance of the BF, APF and KDPF using simulated data anal
 
 \subsection{Simulation}
 
-Forty epidemics were simulated according to equation \eqref{eqn:state} for a population of size $P = 5000$ and $T = 125$ days. True values of parameters $\theta$ that we estimate (termed `unknown parameters') were different for each simulated outbreak, determined by sampling from the log-normal prior distribution, $p(\theta)$, described in Section \ref{sec:pf}. For all simulations, infection was introduced in 10 people in the population at day 0 (i.e. true $i_0 = 10/5000$ and $s_0 = 4990/5000$). Among the 40 simulations, the average time at which the epidemics peak is 57 days and the average proportion of the population that has been infected by $t = 125$ is 74\%. The left panel of Figure \ref{fig:data} shows the evolution of $s_t$, $i_t$, and $r_t$ for a single simulation. \danny{perhaps show the other simulations in a light gray?}
+Forty epidemics were simulated according to equation \eqref{eqn:state} for a population of size $P = 5000$ and $T = 125$ days. True values of parameters $\theta$ that we estimate (termed `unknown parameters') were different for each simulated outbreak, determined by sampling from the log-normal prior distribution, $p(\theta)$, described in Section \ref{sec:pf}. For all simulations, infection was introduced in 10 people in the population at day 0 (i.e. true $i_0 = 10/5000$ and $s_0 = 4990/5000$). Among the 40 simulations, the average time at which the epidemics peak is 57 days and the average proportion of the population that has been infected by $t = 125$ is 74\%. The left panel of Figure \ref{fig:data} shows the evolution of $s_t$, $i_t$, and $r_t$ for a single simulation.
 
-Data from randomly selected streams at each day were generated from equation \eqref{eqn:obs}. The right panel of Figure \ref{fig:data} displays the observed data from the simulated epidemic shown on the left. Values of known constants for $L = 4$ streams were kept the same for each simulation and are given in Table \ref{tab:constants} ($\eta_l$ was set to 0 for all $l$). Values for $b_l$, $\varsigma_l$, and $\sigma_l$ were chosen to be the same as those used in the numerical study carried out by \citet{skvortsov2012monitoring}. The values chosen for $\varsigma$ were motivated by evidence based on real syndromic data that suggests values close to 1 \citep{chew2010twitter}.
+Data from randomly selected streams at each day were generated from equation \eqref{eqn:obs}. The right panel of Figure \ref{fig:data} displays the observed data from the simulated epidemic shown on the left. Values of known constants for $L = 4$ streams were kept the same for each simulation and are given in Table \ref{tab:constants} ($\eta_l$ was set to 0 for all $l$). Values for $b_l$, $\varsigma_l$, and $\sigma_l$ were chosen to be the same as those used in the numerical study carried out by \citet{skvortsov2012monitoring}. The values chosen for $\varsigma_l$ were motivated by evidence based on real syndromic data that suggests values close to 1 \citep{chew2010twitter}.
 %\danny{no need to say this} Because of a lack of reporting on reasonable values for $b_l$ and $\sigma_l$, these parameters were set to values convenient for simulation.
 
 \begin{table}
@@ -259,12 +259,12 @@ $l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
 \begin{figure}
 \centering
 \begin{minipage}{0.48\linewidth}
-\includegraphics[width=1.0\textwidth]{sim-orig-epid-1}
+\includegraphics[width=1.0\textwidth]{sim-orig-epid}
 \end{minipage}
 \begin{minipage}{0.48\linewidth}
 \includegraphics[width=1.0\textwidth]{sim-orig-z-1}
 \end{minipage}
-\caption{Simulated epidemic curves (left) and syndromic observations (right) for a single simulated epidemic. True values of unknown parameters used for simulation were $\beta = 0.2543748$, $\gamma = 0.1113561$, and $\nu = 1.2460013$.} \label{fig:data}
+\caption{Simulated epidemic curves (left) and syndromic observations (right) for a single simulated epidemic (colored lines) and curves for $i_t$ from other simulations (light gray). True values of unknown parameters used for simulation were $\beta = 0.254$, $\gamma = 0.111$, and $\nu = 1.246$.} \label{fig:data}
 \end{figure}
 
 \subsection{Particle filter runs} \label{sec:pf}
