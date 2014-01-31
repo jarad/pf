@@ -173,4 +173,4 @@ kd_quant <- function(ymax)
   dimnames(kd.quant$x)[[2]] = c("s", "i")
   return(kd.quant)
 }
-kd.quant = mlply(.data = data.frame(ymax = c(30, 60, 125)), .fun = kd_quant)
+kd.quant = mlply(.data = data.frame(ymax = c(30, 60, 90, 125)), .fun = kd_quant)
