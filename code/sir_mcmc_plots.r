@@ -130,7 +130,7 @@ sir_mcmc_plots <- function(n.chains, x, beta, gamma, nu, ymax)
   }
 }
 
-mydata = data.frame(n.chains=3,x=1,beta=1,gamma=1,nu=1,ymax=c(30, 60, 125))
+mydata = data.frame(n.chains=3,x=1,beta=1,gamma=1,nu=1,ymax=c(30, 60, 90, 125))
 require(plyr)
 m_ply(.data = mydata, .fun = sir_mcmc_plots)
 
