@@ -2,6 +2,7 @@
 
 \usepackage{amsmath}
 \usepackage{natbib}
+\usepackage{color}
 
 \graphicspath{{/Users/niemi/Dropbox/SIR_Particle_Filtering/Graphs/}
                        {/Users/niemi/Dropbox/SIR_Particle_Filtering/doesnotexist/}
@@ -11,6 +12,8 @@
 }
 
 \journal{Mathematical Biosciences}
+
+\newcommand{\danny}[1]{{\color{blue} DANNY: #1}}
 
 \begin{document}
 
@@ -160,15 +163,15 @@ where $\eta_t(f_t)$ is the expectation of $f_t$ under the true filtered distribu
 
 \section{Particle filtering in epidemiological models \label{sec:apply}}
 
-The methodology described in Section \ref{sec:ss} and Section \ref{sec:filtering} provides a general framework applicable to a wide array of scientific questions. Tracking a disease outbreak using syndromic surveillance systems is one situation to which this methodology can be applied. In this section, we describe a state-space model of an influenza-like outbreak similar to one used in \citet{skvortsov2012monitoring}, and we explain how it fits into the general framework outlined in Sections \ref{sec:ss} and \ref{sec:filtering}. In Section \ref{sec:results}, we analyze the performance of the particle filter algorithms in this specific modeling situation.
+The methodology described in Section \ref{sec:ss} and Section \ref{sec:filtering} provides a general framework applicable to a wide array of scientific questions \danny{put references here}. As an example, we describe a state-space model of an influenza-like outbreak similar to one used in \citet{skvortsov2012monitoring}, and we explain how it fits into the general framework outlined in Sections \ref{sec:ss} and \ref{sec:filtering}. In Section \ref{sec:results}, we analyze the performance of the particle filter algorithms in this specific modeling situation.
 
 \subsection{Model \label{sec:model}}
 
-We incorporate a compartmental model (or SIR model) of an epidemic in which we track the proportion of the population that is susceptible ($s_t$), infectious ($i_t$), and recovered ($r_t$), i.e. no longer able to be infected, at time $t$. Mathematically, $s_t$, $i_t$, and $r_t$ are all nonnegative and $s_t + i_t + r_t = 1$ for all $t$. When monitoring an epidemic, the true $s_t$, $i_t$ and $r_t$ are unknown and regarded as hidden states of the model. The observed data are gathered via syndromic surveillance. In our state-space model of an epidemic, the observation equation specifies how the observed data depend on the state of the epidemic and the state equation describes how the epidemic evolves over time.
+We incorporate a compartmental model of an epidemic in which we track the proportion of the population that is susceptible ($s_t$), infectious ($i_t$), and recovered ($r_t$), i.e. no longer able to be infected, at time $t$. Mathematically, $s_t$, $i_t$, and $r_t$ are all nonnegative and $s_t + i_t + r_t = 1$ for all $t$. When monitoring an epidemic, the true $s_t$, $i_t$ and $r_t$ are unknown and regarded as hidden states of the model and the observed data are gathered via syndromic surveillance. In our state-space model of an epidemic, the observation equation specifies how the observed data depend on the state of the epidemic and the state equation describes how the epidemic evolves over time.
 
 \subsubsection{State equation \label{sec:state}}
 
-First, we describe the state equation. Let $x_t = (s_t,i_t)'$ denote the state of the epidemic at time $t$. Note that, by definition, $r_t$ is completely specified once $s_t$ and $i_t$ are known, and hence is not needed in the state vector. We consider a compartmental model of disease transmission that is governed by three parameters:
+First, we describe the state equation. Let $x_t = (s_t,i_t)'$ denote the state of the epidemic at time $t$ (by definition $r_t=1-s_t-i_t$ and hence $r_t$ is not needed in the state vector). Initially, we consider a compartmental model of disease transmission that is governed by three parameters:
 
 \begin{itemize}
 \item $\beta$, the contact rate for the spread of illness,
@@ -198,7 +201,7 @@ Q(\theta) = \frac{\beta}{P^2} \left(
 \right)
 \]
 
-\noindent and $\Omega = \{(s_t,i_t): s_t \ge 0, i_t \ge 0, s_t + i_t \le 1\}$. $N_{\Omega}(.; \mu,\Sigma)$ represents the pdf of the truncated normal distribution onto the set $\Omega$ with mean and covariance matrix of its corresponding untruncated normal distribution given by $\mu$ and $\Sigma$, respectively.
+\noindent and $\Omega = \{(s_t,i_t): s_t \ge 0, i_t \ge 0, s_t + i_t \le 1\}$ and $N_{\Omega}(.; \mu,\Sigma)$ represents the pdf of the truncated normal distribution onto the set $\Omega$ with mean and covariance matrix of its corresponding untruncated normal distribution given by $\mu$ and $\Sigma$, respectively.
 
 In equation \eqref{eqn:state}, $Q(\theta)$ is determined by calculating the variances and covariance of $s_{t+1}$ and $i_{t+1}$ in the discrete time approximation of a modified SIR model with stochastic fluctuations \citep{herwaarden1995stochepid, dangerfield2009stochepid, anderson2004sars}, given by
 \begin{align*}
@@ -207,9 +210,9 @@ i_{t+1} &= i_t + \beta i_ts^\nu_t - \gamma i_t - \epsilon_\beta + \epsilon_\gamm
 \end{align*}
 where $\epsilon_\beta$ and $\epsilon_\gamma$ are random components with $\epsilon_\beta \sim N(0, \sqrt{\beta} / P)$ and $\epsilon_\gamma \sim N(0, \sqrt{\gamma} / P)$. The variances of these terms come from a scaling law for stochastic fluctuations in a dynamical system generated by random contacts among the population \citep{ovaskainen2010extinction, herwaarden1995stochepid, dangerfield2009stochepid, skvortsov2012monitoring}.
 
-$R_0 = \beta / \gamma$ is called the \emph{basic reproductive number} \citep{heff2005repratio}, or the average number of people infected by one sick person in a population where everyone is susceptible. $R_0 > 1$ is required for an infection to spread into an epidemic. In many cases, prior information about this quantity for a specific type of infection is more readily available than prior knowledge about $\beta$ or $\gamma$ individually.
+The \emph{basic reproductive number}, $R_0 = \beta / \gamma$, is the average number of people infected by one sick person in a population where everyone is susceptible \citep{heff2005repratio}. If $R_0 > 1$, then an epidemic can occur. In many cases, prior information about $R_0$ for a specific type of infection is more readily available than prior knowledge about $\beta$ or $\gamma$ individually.
 
-The mixing parameter $\nu$ describes the heterogeneity of social interactions within the population, where $\nu = 1$ corresponds to a population with homogenous mixing, i.e. an infectious person is equally likely to infect any susceptible, and $\nu = 0$ corresponds to a population with no social interaction. Other values of $\nu$ represent populations with heterogenous mixing, i.e. an individual is more likely to interact with some people more than others, leading to less severe epidemics than those that would occur in homogenous populations for a fixed $R_0$ \citep{stroud2006powerlaw, novozhilov2008hetero}.
+The mixing parameter $\nu$ describes the heterogeneity of social interactions within the population, where $\nu = 1$ corresponds to a population with homogenous mixing, i.e. an infectious person is equally likely to infect any susceptible, and $\nu = 0$ corresponds to a population with no social interaction. Other values \dannhy{above or below zero?} of $\nu$ represent populations with heterogenous mixing, i.e. an individual is more likely to interact with some people more than others, leading to less severe epidemics than those that would occur in homogenous populations for a fixed $R_0$ \citep{stroud2006powerlaw, novozhilov2008hetero}.
 
 \subsubsection{Observation equation \label{sec:obs}}
 
