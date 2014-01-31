@@ -404,12 +404,12 @@ for(n.sim in n.sims)
     tt = dim(out)[1]; nt = tt - 1
     if(k == 1) # label y axis, title, legend
     {
-       plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab=paste("J = ",n,sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
+       plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab=paste("J = ",n.ext,sep=""),main=params[k],cex.lab=cex.lab,cex.main=cex.main,cex.axis=cex.axis)
        lines(1:nt,out[-1,k,probs[2]],col=4)
 #       points(spts.ext,rep(ymins[k],length(spts.ext)),pch="|",cex=2,col=4)
 #       points(spts.org,rep(ymins[k]+.03*(ymaxs[k]-ymins[k]),length(spts.org)),pch="|",cex=2,col=2)
 #       points(dpts,rep(ymins[k]+.06*(ymaxs[k]-ymins[k]),length(dpts)),pch="|",cex=2,col="gray47")
-       legend("topright",legend=c("Truth","Original","Extended"),col=c("gray47",2,4),lty=c(1,1,1),cex=cex.leg)
+       legend("topright",legend=c("Truth","Initial","Extended"),col=c("gray47",2,4),lty=c(1,1,1),cex=cex.leg)
     } else { # label title only
        plot(1:nt,out[-1,k,probs[1]],type="l",ylim=c(ymins[k],ymaxs[k]),col=4,xlab="",ylab="",main=params[k],cex.main=cex.main,cex.axis=cex.axis)
        lines(1:nt,out[-1,k,probs[2]],col=4)
