@@ -10,9 +10,9 @@
 
 \noindent \emph{{\bf Handling Editor:}  I have read through the paper.  The epidemic model used in this paper seems to be essentially that of Skvortsov and Ristic (2012), which was published in Mathematical Biosciences.  However, the model is not described very clearly in the present paper, nor is it given any biological justification.  There is no justification for the choice of parameter values used in the simulated examples, except that many of them are the same as those used by Skvortsov and Ristic (2012).  Given that the epidemic model is essentially that of Skvortsov and Ristic (2012), the novelty of the paper seems to me to lie more in its statistical algorithms than in the application, so perhaps the paper is better suited to a statistics journal.  The reviewer has concerns about the scope of the present paper.  Taking all of this into account, I suggest that the authors are given an opportunity to revise their paper to address the above concerns and those of the reviewer but that no promises are made at this stage concerning the likely acceptance of such a revision.} \\
 
-Thank you and the reviewer for your helpful suggestions. We have expanded on the biological interpretation of model parameters in Section 4 as well as the choice of values for known parameters and priors for unknown parameters in Section 5. Although the novelty of our paper lies in the statistical algorithms, we hope to show that more recent particle filtering techniques, such as the kernel density particle filter, are extremely valuable in the analysis of biological data by applying these methods to the specific model used by Skvortsov and Ristic (2012). \\
+Thank you and the reviewer for your helpful suggestions. We have expanded on the biological interpretation of model parameters in Section 4 as well as the choice of values for known parameters and priors for unknown parameters in Section 5. Although the novelty of our paper lies in the statistical algorithms, we hope to show that more recent particle filtering techniques, such as the kernel density particle filter, are extremely valuable in the analysis of biological data by applying these methods to the specific model used by Skvortsov and Ristic (2012).
 
-Our decision to submit specifically to Mathematical Biosciences was guided by the fact that many readers of this journal have already read Skvortsov and Ristic (2012) and may wish to apply similar algorithms in their own biological research. Our paper demonstrates several advantages and the increased flexibility of using KDPF over the BF in certain biologically-relevant circumstances, such as when there are unknown fixed parameters in the state equation. We also provide additional guidance to inform choices that need to be made, such as prior distribution specifications, We make specific recommendations based on our simulations, that we believe are of value to practitioners in the biological sciences. We believe our paper provides additional guidance that builds on the guidance already provided by Skvortsov and Ristic (2012) in the same journal. For these reasons we believe Mathematical Biosciences readers will find this guidance valuable. We hope you will find our revised paper meets the journal goals. \\
+Our decision to submit specifically to Mathematical Biosciences was guided by the fact that many readers of this journal have already read Skvortsov and Ristic (2012) and may wish to apply similar algorithms to their own biological research. Our paper demonstrates several advantages and the increased flexibility of using the KDPF over the BF in certain biologically-relevant circumstances, such as when there are unknown fixed parameters in the state equation. We also provide additional guidance to inform choices that need to be made, such as prior distribution specifications. We make specific recommendations based on our simulations that we believe are of value to practitioners in the biological sciences. We believe our paper provides additional guidance that builds on the guidance already provided by Skvortsov and Ristic (2012) in the same journal. For these reasons we believe Mathematical Biosciences readers will find this guidance valuable. We hope you will find our revised paper meets the journal goals. \\
 
 \noindent \emph{{\bf Reviewer \#1:} The work in this paper concerns the application of Sequential Monte Carlo methods to the estimation of basic characteristics of an infectious epidemic outbreak in a Bayesian framework, and comparisons under different particle filters, resampling methods and prior distributions. The paper is very well written and its major contribution is the use of a kernel density particle filter in the context of epidemic modelling and estimation - which, to my knowledge, is novel.} \\
 
@@ -55,11 +55,11 @@ We added Section 5.6.2  which compares MCMC vs KDPF (20000 particles, stratified
 
 We've changed the title to ``Comparison of the performance of particle filter algorithms applied to tracking of a disease epidemic.'' We've also updated the abstract accordingly. \\
 
-\noindent \emph{(6) Page 1, line 28 (and elsewhere): the terminology "fixed parameters" contradicts the Bayesian approach and posterior (and prior) distributions.} \\
+\noindent \emph{(6) Page 1, line 28 (and elsewhere): the terminology ``fixed parameters'' contradicts the Bayesian approach and posterior (and prior) distributions.} \\
 
 Most Bayesian statisticians, us included, believe in fixed parameters, but use a probability distribution to quantify our uncertainty about those fixed parameters. \\
 
-\noindent \emph{(7) P1, l 31: the priors are referred to as "seemingly uninformative". However, these are quite informative priors.} \\
+\noindent \emph{(7) P1, l 31: the priors are referred to as ``seemingly uninformative''. However, these are quite informative priors.} \\
 
 We agree. However, these priors are used in the literature, which is why we qualified uninformative with ``seemingly.'' We have added the quotes to seemingly in the text as well. \\
 
@@ -85,7 +85,7 @@ We've explained how this was calculated in Section 4.1.1. \\
 
 \noindent \emph{(13) P9, l25: the physical interpretation of parameters $b$ and $\varsigma$ is not clear (to me). It should be discussed.} \\
 
-In Section 4.1.2, we've elaborated more  the power-law relationship between $\log y_{l,t}$ and $i$, and the role these parameters play in the observation equation. \\
+In Section 4.1.2, we've elaborated more on the power-law relationship between $\log y_{l,t}$ and $i$, and the role these parameters play in the observation equation. \\
 
 \noindent \emph{(14) Figure numbering (Fig 3, 4, 5).} \\
 
