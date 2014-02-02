@@ -60,7 +60,7 @@ x_t \sim p(x_t|x_{t-1},\theta).
 \]
 A fully specified Bayesian model is obtained by also specifying the prior $p(x_0,\theta)$.
 
-The dimension of $x_t$ need not remain constant with respect to $t$. For instance, we could describe a process where $x_t$ depends on the entire history of states up to $t$ by letting $x_{t-1} = (x^*_1, x^*_2, \ldots, x^*_{t-1})'$ and defining $x_t = (x^*_t, x_{t-1})'$, where the $x^*_t$ is the new state generated at time $t$.
+The dimension of $x_t$ need not remain constant with respect to $t$. For instance, we could describe a process where $x_t$ depends on the entire history of states up to $t$ by letting $x_{t-1} = (x^*_1, x^*_2, \ldots, x^*_{t-1})'$ and defining $x_t = (x^*_t, x_{t-1})'$, where $x^*_t$ is the new state generated at time $t$.
 
 Special cases of these state-space models include hidden Markov models \citep{cappe2005inference,petris2009dynamic}, where the state $x_t$ has discrete support, and dynamic linear models (DLMs) \citep{West:Harr:baye:1997}, where each distribution is Gaussian whose mean is a linear function of the states and whose variance does not depend on the mean. The disease outbreak models discussed in Section \ref{sec:apply} are specific cases of state-space models, but we introduce these models in generality here because the particle filtering methods discussed in Section \ref{sec:filtering} apply to any model with this form.
 
@@ -70,11 +70,11 @@ When data are collected sequentially, it is often of interest to determine the \
 \begin{equation}
 p(x_t,\theta| y_{1:t}) \propto p(y_t|x_t,\theta)p(x_t,\theta|y_{1:t-1}) \label{eqn:filtered}
 \end{equation}
-where $y_{1:t} = (y_1,\ldots,y_t)$. Only in special cases can $p(x_t,\theta| y_{1:t})$ be evaluated analytically, e.g. in DLMs when $\theta$ is the observation variance \cite[Sec 4.3,][]{petris2009dynamic}. When analytical tractability is not present, we turn to numerical methods including deterministic versions, e.g. extended Kalman filter and the Gaussian sum filter \citep{Alsp:Sore:nonl:1972}, or Monte Carlo versions such as particle filters.
+where $y_{1:t} = (y_1,\ldots,y_t)$. Only in special cases can $p(x_t,\theta| y_{1:t})$ be evaluated analytically, e.g. in DLMs when $\theta$ is the observation variance \cite[Sec 4.3,][]{petris2009dynamic}. When analytical tractability is not present, we turn to numerical methods including deterministic versions, e.g. the extended Kalman filter and the Gaussian sum filter \citep{Alsp:Sore:nonl:1972}, or Monte Carlo versions such as particle filters.
 
 \section{Particle filtering \label{sec:filtering}}
 
-Particle filtering is a sequential Monte Carlo (SMC) inferential technique based on repeated use of importance sampling. It aims to approximate the filtered distribution at time $t$ through a weighted Monte Carlo realization from this distribution in terms of $J$ particles, i.e.
+Particle filtering is an SMC inferential technique based on repeated use of importance sampling. It aims to approximate the filtered distribution at time $t$ through a weighted Monte Carlo realization from this distribution in terms of $J$ particles, i.e.
 \begin{equation}
 p(x_t,\theta| y_{1:t}) \approx \sum_{j=1}^J w_t^{(j)} \delta_{\left(x_t^{(j)},\theta^{(j)}\right)} \label{eqn:approx}
 \end{equation}
@@ -119,12 +119,12 @@ The BF and the APF were constructed with the idea that all fixed parameters are 
 
 The particle filter introduced by \citet{Liu:West:comb:2001} is a general way of fighting this degeneracy problem by approximating the set of fixed parameter values by a kernel density estimate and then regenerating values from this approximation. We refer to this filter as the kernel density particle filter (KDPF). This filter approximates $p(x_t,\theta| y_{1:t})$ via equation \eqref{eqn:approx}. To make the notation transparent, we introduce subscripts for our fixed parameters, e.g. $\theta_t^{(j)}$ represents the value for $\theta$ at time $t$ for particle $j$. This does not imply that the true $\theta$ is dynamic, but rather that particle $j$ can have different values for $\theta$ throughout time.
 
-Let $\bar{\theta}_t$ and $V_t$ be the weighted sample mean and weighted sample covariance matrix of $\theta_t^{(1)},\ldots,\theta_t^{(J)}$.  The KDPF uses a tuning parameter $\Delta$, the discount factor that takes values in $(0,1)$, and two derived quantities $h^2 = 1 - ((3\Delta - 1)/2\Delta)^2$ and $a^2 = 1 - h^2$ that determine how smooth the kernel density approximation is. Lower values of $\Delta$ result in a smoother approximation. However, the goal here is simply to jitter particles around to refresh values of the fixed parameters to reduce the chance of degeneracy, and so $\Delta$ is typically taken to be between 0.95 and 0.99 \citep{Liu:West:comb:2001}.
+Let $\bar{\theta}_t$ and $V_t$ be the weighted sample mean and weighted sample covariance matrix of $\theta_t^{(1)},\ldots,\theta_t^{(J)}$.  The KDPF uses a tuning parameter $\Delta$, the discount factor that takes values in $(0,1)$, and two derived quantities $h^2 = 1 - ((3\Delta - 1)/2\Delta)^2$ and $a^2 = 1 - h^2$ that determine how smooth the kernel density approximation is. Lower values of $\Delta$ result in a smoother approximation. However, the goal here is simply to jitter particles around to refresh values of the fixed parameters and reduce the chance of degeneracy, and so $\Delta$ is typically taken to be between 0.95 and 0.99 \citep{Liu:West:comb:2001}.
 
-Given an approximation to the filtered distribution at time $t$ as in equation \eqref{eqn:approx}, the KDPF provides an approximation of $p(x_{t+1},\theta|y_{1:t+1})$ by the following steps:
+Given an approximation to the filtered distribution at time $t$ as in equation \eqref{eqn:approx}, the KDPF provides an approximation to $p(x_{t+1},\theta|y_{1:t+1})$ by the following steps:
 
 \begin{enumerate}
-\item For each particle $j$, set $m_t^{(j)} = a\theta_t^{(j)} + (1-a)\bar{\theta}_t.$ and calculate a point estimate of $x_{t+1}^{(j)}$ called $\mu_{t+1}^{(j)}$, e.g. $\mu_{t+1}^{(j)} = E\left(x_{t+1}\left|x_t^{(j)},\theta_t^{(j)} \right.\right)$.
+\item For each particle $j$, set $m_t^{(j)} = a\theta_t^{(j)} + (1-a)\bar{\theta}_t$ and calculate a point estimate of $x_{t+1}^{(j)}$ called $\mu_{t+1}^{(j)}$, e.g. $\mu_{t+1}^{(j)} = E\left(x_{t+1}\left|x_t^{(j)},\theta_t^{(j)} \right.\right)$.
 \item Calculate auxiliary weights and renormalize:
 \[ \tilde{g}_{t+1}^{(j)} = w_t^{(j)} p\left(y_{t+1}\left|\mu_{t+1}^{(j)},m_t^{(j)}\right.\right) \qquad g_{t+1}^{(j)} = \tilde{g}_{t+1}^{(j)}\left/ \sum_{l=1}^J \tilde{g}_{t+1}^{(l)}. \right. \]
 \item For each particle $j=1,\ldots,J$,
@@ -145,7 +145,7 @@ To use the KDPF with normal kernels, it is necessary to parameterize the fixed p
 
 \subsection{Resampling \label{sec:advice}}
 
-In addition to choosing which particle filter algorithm to use, successful implementation also depends on which resampling scheme to use and when to resample. Resampling is sampling (with replacement) random indices between 1 and $J$, where index $j$ has probability $w^{(j)}$ of being selected. Throughout our discussion, we have explicitly used multinomial resampling, but alternative resampling schemes exist including residual, stratified, and systematic resampling \citep{Douc:Capp:Moul:comp:2005}. Residual resampling deterministically samples $\lfloor w^{(j)} J \rfloor$ copies of particle $j$, for each $j$, and distributes the remaining $J - \sum^J_{j=1} \lfloor w^{(j)} J \rfloor$  particles according to a multinomial distribution with associated probabilities $(w^{(j)} J - \lfloor w^{(j)} J \rfloor) / (J - \sum^J_{j=1} \lfloor w^{(j)} J \rfloor)$, where $\lfloor . \rfloor$ is the largest integer less than or equal '.'. Stratified resampling samples uniformly over the interval $[(j-1) / J, j / J]$ for $j = 1, 2, \ldots, J$ and calculates the number of copies of particle $j$ according to the empirical cumulative distribution function of the particle indices (i.e. the ``inversion method''). Finally, systematic resampling is similar to stratified resampling, except that only one uniform draw is initially sampled from $[0, 1/J]$ and the remaining $J-1$ are calculated by adding $(j-1) / J$ to the sampled value prior to applying the inversion method.
+In addition to choosing which particle filter algorithm to use, successful implementation also depends on which resampling scheme to use and when to resample. Resampling is sampling (with replacement) random indices between 1 and $J$, where index $j$ has probability $w^{(j)}$ of being selected. Throughout our discussion, we have explicitly used multinomial resampling, but alternative resampling schemes exist including residual, stratified, and systematic resampling \citep{Douc:Capp:Moul:comp:2005}. Residual resampling deterministically samples $\lfloor w^{(j)} J \rfloor$ copies of particle $j$, for each $j$, and distributes the remaining $J - \sum^J_{j=1} \lfloor w^{(j)} J \rfloor$  particles according to a multinomial distribution with associated probabilities $(w^{(j)} J - \lfloor w^{(j)} J \rfloor) / (J - \sum^J_{j=1} \lfloor w^{(j)} J \rfloor)$, where $\lfloor . \rfloor$ is the largest integer less than or equal ``.''. Stratified resampling samples uniformly over the interval $[(j-1) / J, j / J]$, for $j = 1, 2, \ldots, J$, and calculates the number of copies of particle $j$ according to the empirical cumulative distribution function of the particle indices (i.e. the ``inversion method''). Finally, systematic resampling is similar to stratified resampling, except that only one uniform draw is initially sampled from $[0, 1/J]$ and the remaining $J-1$ are calculated by adding $(j-1) / J$ to the sampled value prior to applying the inversion method.
 
 Resampling is meant to rebalance the weights of the particles in order to avoid degeneracy, but this introduces additional Monte Carlo variability to the particle sample. Despite systematic resampling only requiring a single uniform draw, \citet{Douc:Capp:Moul:comp:2005} show via example that it can introduce more Monte Carlo variability than the other three resampling schemes. In Section \ref{sec:resample}, we discuss some advantages and disadvantages of the different resampling methods when applied to our specific model of a disease outbreak and suggest the use of stratified or residual resampling. %For a more complete description of these resampling techniques, please refer to \citet{Douc:Capp:Moul:comp:2005}.
 
@@ -165,7 +165,7 @@ The methodology described in Section \ref{sec:ss} and Section \ref{sec:filtering
 
 \subsection{Model \label{sec:model}}
 
-We incorporate a compartmental model of an epidemic in which we track the proportion of the population that is susceptible ($s_t$), infectious ($i_t$), and recovered ($r_t$), i.e. no longer able to be infected, at time $t$. Mathematically, $s_t$, $i_t$, and $r_t$ are all nonnegative and $s_t + i_t + r_t = 1$ for all $t$. When monitoring an epidemic, the true $s_t$, $i_t$ and $r_t$ are unknown and regarded as hidden states of the model and the observed data are gathered via syndromic surveillance. In our state-space model of an epidemic, the observation equation specifies how the observed data depend on the state of the epidemic and the state equation describes how the epidemic evolves over time.
+We incorporate a compartmental model of an epidemic in which we track the proportion of the population that is susceptible ($s_t$), infectious ($i_t$), and recovered ($r_t$), i.e. no longer able to be infected, at time $t$. Mathematically, $s_t$, $i_t$, and $r_t$ are all nonnegative and $s_t + i_t + r_t = 1$ for all $t$. When monitoring an epidemic, the true $s_t$, $i_t$ and $r_t$ are unknown and regarded as hidden states of the model, and the observed data are gathered via syndromic surveillance. In our state-space model of an epidemic, the observation equation specifies how the observed data depend on the state of the epidemic and the state equation describes how the epidemic evolves over time.
 
 \subsubsection{State equation \label{sec:state}}
 
@@ -199,7 +199,7 @@ Q(\theta) = \frac{\beta}{P^2} \left(
 \right)
 \]
 
-\noindent and $\Omega = \{(s_t,i_t): s_t \ge 0, i_t \ge 0, s_t + i_t \le 1\}$ and $N_{\Omega}(.; \mu,\Sigma)$ represents the pdf of the truncated normal distribution onto the set $\Omega$ with mean and covariance matrix of its corresponding untruncated normal distribution given by $\mu$ and $\Sigma$, respectively.
+\noindent and $\Omega = \{(s_t,i_t): s_t \ge 0, i_t \ge 0, s_t + i_t \le 1\}$, with $N_{\Omega}(.; \mu,\Sigma)$ representing the pdf of the truncated normal distribution onto the set $\Omega$ with mean and covariance matrix of its corresponding untruncated normal distribution given by $\mu$ and $\Sigma$, respectively.
 
 In equation \eqref{eqn:state}, $Q(\theta)$ is determined by calculating the variances and covariance of $s_{t+1}$ and $i_{t+1}$ in the discrete time approximation of a modified SIR model with stochastic fluctuations \citep{herwaarden1995stochepid, dangerfield2009stochepid, anderson2004sars}, given by
 \begin{align*}
@@ -228,7 +228,7 @@ Since $p(x_{t+1}|x_t,\theta)$ and $p(y_t|x_t,\theta)$ are nonlinear functions of
 
 \section{Comparing particle filters} \label{sec:results}
 
-We now compare the performance of the BF, APF and KDPF using simulated data analogous to that analyzed by \citet{skvortsov2012monitoring} using the BF. In addition, using the KDPF, we compare the performance of bounded versus unbounded priors on the fixed parameters, as well as different resampling schemes. Lastly, we discuss the role of the discount factor $\Delta$ when implementing the KDPF and compare results from the KDPF with an MCMC approach.
+We now compare the performance of the BF, APF and KDPF using simulated data analogous to that analyzed by \citet{skvortsov2012monitoring} using the BF. In addition, using the KDPF, we compare the performance of bounded versus unbounded priors on the fixed parameters as well as different resampling schemes. Lastly, we discuss the role of the discount factor $\Delta$ when implementing the KDPF and compare results from the KDPF with an MCMC approach.
 
 \subsection{Simulation}
 
