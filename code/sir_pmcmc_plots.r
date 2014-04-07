@@ -13,10 +13,10 @@ eta = mysims[[1]]$true.params$eta
 
 # Load PMCMC objects
 n.chains = 3
-load(paste(dpath,"sir_pmcmc_test-1-100-100.rdata",sep=""))
+load(paste(dpath,"sir_pmcmc_test-1-1100-100.rdata",sep=""))
 niter = dim(conv.rec(out))[1] - 1
-nthin = 10
-nburn = 10
+nthin = 1
+nburn = 100
 out.beta = matrix(NA, nr = (niter - nburn) %/% nthin, nc=n.chains)
 out.gamma = matrix(NA, nr = (niter - nburn) %/% nthin, nc=n.chains)
 out.nu = matrix(NA, nr = (niter - nburn) %/% nthin, nc=n.chains)
@@ -24,7 +24,7 @@ out.theta = list(); length(out.theta) = n.chains
 iter = seq(nburn+nthin+1,niter+1,nthin)
 for(i in 1:n.chains)
 {
-  load(paste(dpath,"sir_pmcmc_test-",i,"-100-100.rdata",sep=""))
+  load(paste(dpath,"sir_pmcmc_test-",i,"-1100-100.rdata",sep=""))
   out.theta[[i]] = conv.rec(out)[,4:6]
   theta.temp = conv.rec(out)[iter,4:6]
   out.beta[,i] = theta.temp[,1]
