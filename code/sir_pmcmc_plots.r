@@ -67,5 +67,5 @@ sir_pmcmc_plots <- function(n.chains, niter, np, nburn = 0, nthin = 1, hsd = FAL
 
 # Process pmcmc objects
 require(plyr)
-mydata = expand.grid(n.chains = 3, niter = 1100, np = 100, nburn = 100, nthin = 1, hsd = FALSE, stringsAsFactors = FALSE)
+mydata = expand.grid(n.chains = 3, niter = c(1100,11000), np = 100, nburn = 100, nthin = 1, hsd = c(TRUE,FALSE), stringsAsFactors = FALSE)
 m_ply(mydata, sir_pmcmc_plots)
