@@ -27,7 +27,7 @@ sir_pmcmc <- function(n.chain, niter, np, ymax)
   pars.init = mysims[[1]]$true.params$theta
   names(pars.init) = c('beta','gamma','nu')
   time = system.time(out <- pmcmc(sir.pomp, Nmcmc = niter, start = pars.init, pars = c('beta','gamma','nu'), rw.sd = rw.sd, Np = np, max.fail = Inf))
-  file = paste(dpath,"sir_pmcmc_test-hsd-",paste(n.chain,niter,np,sep="-"),".rdata",sep="")
+  file = paste(dpath,"sir_pmcmc_test-hsd-",paste(n.chain,niter,np,ymax,sep="-"),".rdata",sep="")
   save(out, file = file)
   print(time)
 }

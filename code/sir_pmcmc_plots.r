@@ -14,14 +14,13 @@ sigma = mysims[[1]]$true.params$sigma
 eta = mysims[[1]]$true.params$eta
 
 # Function to create traceplots and tables with 95% credible intervals
-sir_pmcmc_plots <- function(n.chains, niter, np, nburn = 0, nthin = 1, hsd = FALSE)
+sir_pmcmc_plots <- function(n.chains, niter, np, y.max, nburn = 0, nthin = 1)
 {
   # Load pmcmc objects
   this.out = list(); length(this.out) = n.chains
-  if(hsd) hsd = "-hsd" else hsd = ""
   for(i in 1:n.chains)
   {
-    load(paste(dpath,"sir_pmcmc_test",hsd,"-",paste(i,niter,np,sep="-"),".rdata",sep=""))
+    load(paste(dpath,"sir_pmcmc_test-",paste(i,niter,np,y.max,sep="-"),".rdata",sep=""))
     this.out[[i]] = out
     rm(out)
   }
@@ -32,7 +31,7 @@ sir_pmcmc_plots <- function(n.chains, niter, np, nburn = 0, nthin = 1, hsd = FAL
   iter = seq(nburn+nthin+1,niter+1,nthin)
   xlabs = c("","","Iteration")
   ylabs = expression(beta,gamma,nu)
-  pdf(paste(gpath,"sir_pmcmc_test",hsd,"-",paste(i,niter,np,sep="-"),"-traceplots.pdf",sep=""))
+  pdf(paste(gpath,"sir_pmcmc_test-",paste(i,niter,np,y.max,sep="-"),"-traceplots.pdf",sep=""))
   par(mfrow=c(3,1),mar=c(5,7,4,2)+0.1)
   for(i in 1:3)
   {
@@ -47,7 +46,7 @@ sir_pmcmc_plots <- function(n.chains, niter, np, nburn = 0, nthin = 1, hsd = FAL
   dev.off()
   
   # Plot filtered means of states
-  pdf(paste(gpath,"sir_pmcmc_test",hsd,"-",paste(i,niter,np,sep="-"),"-meanFilteredStates.pdf",sep=""))
+  pdf(paste(gpath,"sir_pmcmc_test-",paste(i,niter,np,y.max,sep="-"),"-meanFilteredStates.pdf",sep=""))
   par(mar=c(5,7,4,2)+0.1)
   for(i in 1:3)
   {
@@ -67,5 +66,5 @@ sir_pmcmc_plots <- function(n.chains, niter, np, nburn = 0, nthin = 1, hsd = FAL
 
 # Process pmcmc objects
 require(plyr)
-mydata = expand.grid(n.chains = 3, niter = c(1100,11000), np = 100, nburn = 100, nthin = 1, hsd = c(TRUE,FALSE), stringsAsFactors = FALSE)
+mydata = expand.grid(n.chains = 3, niter = 10000, np = 100, nburn = 0, nthin = 1, y.max = c(30,60,90,125), stringsAsFactors = FALSE)
 m_ply(mydata, sir_pmcmc_plots)
