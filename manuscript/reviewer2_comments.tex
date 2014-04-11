@@ -1,0 +1,35 @@
+\documentclass{article}
+
+\begin{document}
+
+\noindent {\bf Reviewers' comments:} \\
+
+\noindent \emph{{\bf Handling Editor:} The comments of Reviewer \#1 have largely been met.  The new reviewer has written a helpful review in which s/he points out that the methodologies considered by the authors omit the main advance in the last decade, namely particle MCMC.  Thus it would seem appropriate to include particle MCMC in the paper and particularly in the comparisons in Section 5.  Thus I suggest that the authors are asked to make a further revision which includes particle MCMC or explains why particle MCMC is not appropriate for the models considered.  The revision should address also the other comments raised by the reviewers.  I envisage sending any revision back to both reviewers.} \\
+
+\noindent \emph{{\bf Reviewer \#1:} Thank you for addressing the points raised in my first review. I appreciate that a considerable amount of new work has now been added in the paper.} \\
+
+\noindent \emph{I have the following suggestions (referring to my earlier comments):} \\
+
+\noindent \emph{(1) Findings on the consistency of the results across simulations (as for example discussed in last para of 5.3) could be presented in a table to clearly demonstrate the performance of the methodology.} \\
+
+\noindent \emph{(2) The choice of the range of priors is now discussed in more detail and justified when a particular disease is concerned. I still find these prior choices relatively narrow, but I accept the justification. However I think that the authors should discuss in some more detail the effect that choosing truly non-informative priors could have on their methods. This is a well known issue for MCMC-based methods in epidemics, so some discussion here would be fair and helpful.} \\
+
+\noindent \emph{(3) I find the MCMC v KDPF comparisons very useful - and I appreciate the amount of effort that has gone into this. I am not sure about the clarity of the last sentence in section 5.6.2: the number of MCMC iterations also depends on successfully tuning the algorithms for better mixing - so comment may not be entirely fair here.} \\
+
+\noindent \emph{{\bf Reviewer \#2:} This is a carefully written but outdated manuscript. Its main contribution is demonstration of statistical methodology, but the methodologies considered omit the main advances of the last decade. The authors are led to advocate techniques which are known to work poorly in many situations.} \\
+
+\noindent \emph{The authors propose to use the method of Liu \& West (2001). Ten years ago this was one of the few ways to handle the sort of model they consider, and so it was used despite the fact that it does not handle outliers well, or long datasets, and (to my knowledge) has never been given a theoretical justification. The arguments of Liu \& West (2001) are only heuristic motivation.} \\
+
+\noindent \emph{The authors compare the Liu \& West approach to even older methods, which I believe it does out-perform. It was not clear to me why the use of an auxilliary particle filter should be an alternative to this approach - can't they both be used together?} \\
+
+\noindent \emph{Particle MCMC (Andrieu et al, JRSSB, 2010) and related pseudo-marginal MCMC algorithms have revolutionized what can be done within the Bayesian paradigm for fixed parameters in state space models. I agree with the authors that the kind of MCMC they demonstrate in their manuscript is often not successful for dynamic systems because of fundamental convergence problems. However, PMCMC does seem to work well on many models, particularly relatively small models with simulated data such as the authors use to demonstrate their methods. For example, in the R package pomp (http://cran.r-project.org/web/packages/pomp) the Liu \& West algorithm is implemented by the function bsmc. It has been largely unused after the development of the PMCMC implementation in the function pmcmc. PMCMC is not an online algorithm, but the timescale of epidemics probably allows running code for a few hours. Also, the state estimates can readily be updated based on the current posterior distribution on parameters if one wants online epidemic predictions in minutes after a new observation becomes available. Unlike the Liu \& West approach, PMCMC targets the true posterior with no approximation involved.} \\
+
+\noindent \emph{The authors give a careful discussion of resampling methods. Users of sequential Monte Carlo should be aware that multinomial resampling is not a sensible practical choice, long known by the SMC research community but perhaps not so widely known as it should be among practitioners. The authors' results showing that systematic resampling is as good as anything for their data is consistent with the use of systematic resampling for the implementation of sequential Monte Carlo in the pfilter function of the pomp package. However, the theoretical arguments they cite in favor of stratified or residual resampling were new to me.} \\
+
+\noindent \emph{A recent advance is the use of data assimilation techniques for epidemic models (Shaman and Karspeck, PNAS, 2012).} \\
+
+\noindent \emph{Once real data and model uncertainty enter the picture, I suspect that assessing model fit and comparing alternative model structures is as important component of making reliable predictions. Bhadra et al (JASA, 2013) demonstrate how sequential Monte Carlo techniques can be used in this context.} \\
+
+\noindent \emph{These comments all focus on the statistical methodology. From the perspective of model development, this manuscript draws on a previous literature. This is fine from the point of view of methodology development. However, it remains an open question how much model complexity is required for useful forecasts, since such forecasts are not yet operational. My suspicion is that somewhat more complicated models will be required in practice, and therefore the methods may be required to successfully extend to considerably larger parameter spaces. Unknown seasonal factors, for example, would require several additional parameters in the model. Many methods, including that of Liu \& West, can have performance that degrades rapidly as the number of parameters increases, so even fairly modest up-scaling cannot be taken for granted.} \\
+
+\end{document}
