@@ -40,14 +40,14 @@ pf.quant = function(data = "", n.sim, n, filt, resamp, prior, transform, delta, 
 }
 
 # Create data frame and use plyr to run particle filters
-data1 = expand.grid(data = "", n.sim = 21:40, n = 20000, filt = c("BF","APF","KD"), resamp = "systematic", prior = "unif", transform = "logit", delta = 0.99, seed = 61, stringsAsFactors=FALSE)
+data1 = expand.grid(data = "", n.sim = 21:40, n = c(100, 1000, 10000), filt = c("BF","APF","KD"), resamp = "systematic", prior = "unif", transform = "logit", delta = 0.99, seed = 61, stringsAsFactors=FALSE)
 data2 = expand.grid(data = "", n.sim = 21:40, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = c("multinomial","residual","stratified","systematic"), prior="orig", transform="log", delta = .99, seed = 61, stringsAsFactors = FALSE)
 data3 = expand.grid(data = "", n.sim = 21:40, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior="orig", transform="log", delta = c(0.9,0.95,0.96,0.97,0.98), seed = 61, stringsAsFactors = FALSE)
 data4 = expand.grid(data = "", n.sim = 21:40, n = c(100, 1000, 10000, 20000), filt = "KD", resamp = "stratified", prior = "disp", transform = "log", delta = 0.99, seed = 61, stringsAsFactors=FALSE)
 data5 = expand.grid(data = "ext-", n.sim = 1:20, n = c(10000, 20000, 40000), filt = "KD", resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
 data6 = expand.grid(data = "ext.orig-", n.sim = 1:20, n = c(10000, 20000, 40000), filt = "KD", resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
 data7 = expand.grid(data = "ext.orig-", n.sim = 1, n = 60000, filt = "KD", resamp = "stratified", prior = "orig", transform = "log", delta = 0.99, seed = 61, stringsAsFactors = FALSE)
-mydata = rbind(data1, data7)
+mydata = data1
 
 require(plyr)
 require(doMC)
