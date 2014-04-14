@@ -60,11 +60,24 @@ sir_pmcmc_plots <- function(n.chains, niter, np, y.max, nburn = 0, nthin = 1)
   # Calculate 95% credible intervals
   cred.int = matrix(NA, nr=2, nc = 3)
   colnames(cred.int) = c("beta","gamma","nu")
+  rownames(cred.int) = c("2.5%","97.5%")
   for(i in 1:3) cred.int[,i] = quantile(sapply(out, function(x) conv.rec(x)[iter,3+i]),c(0.025,0.975))
-  print(cred.int)
+  return(cred.int)
 }
 
 # Process pmcmc objects
 require(plyr)
-mydata = expand.grid(n.chains = 3, niter = 20000, np = 100, nburn = 0, nthin = 1, y.max = c(30,60,90,125), stringsAsFactors = FALSE)
-m_ply(mydata, sir_pmcmc_plots)
+y.max = c(30,seq(60,100,5),125)
+mydata = expand.grid(n.chains = 3, niter = 20000, np = 100, nburn = 0, nthin = 1, y.max = y.max, stringsAsFactors = FALSE)
+cred.int.pmcmc = maply(mydata, sir_pmcmc_plots)
+
+# Load KDPF credible intervals
+load(paste(dpath,"PF-quant-1-20000-KD-stratified-orig-log-0.99-61.rdata",sep=""))
+kd_quant <- function(y.max)
+{
+  cred.int = t(pf.quant.out$theta.quant[y.max+1,,4:5])
+  rownames(cred.int) = c("2.5%","97.5%")
+  colnames(cred.int) = c("beta","gamma","nu")
+  return(cred.int)
+}
+cred.int.kdpf = maply(.data = data.frame(y.max = y.max), .fun = kd_quant)
