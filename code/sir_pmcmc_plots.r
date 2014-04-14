@@ -81,3 +81,23 @@ kd_quant <- function(y.max)
   return(cred.int)
 }
 cred.int.kdpf = maply(.data = data.frame(y.max = y.max), .fun = kd_quant)
+
+# Plot 95% CI for pmcmc versus kdpf
+params=expression(beta,gamma,nu)
+xlabs = c("Time","","")
+ylabs = c("Parameter Value","","")
+nt = dim(mysims[[1]]$sim$y)[2]
+pdf(file=paste(gpath,"sir-pmcmc-kdpf.pdf",sep=""),width=30,height=10)
+par(mfrow=c(1,3),mar=c(9,11,7,1)+.1,mgp=c(7,2,0))
+for(i in 1:3)
+{
+  ymin = min(cred.int.pmcmc[,1,i],cred.int.kdpf[,1,i],mysims[[1]]$true.params$theta[i])
+  ymax = max(cred.int.pmcmc[,2,i],cred.int.kdpf[,2,i],mysims[[1]]$true.params$theta[i])
+  plot(y.max,cred.int.pmcmc[,1,i],ylim=c(ymin,ymax),type="b",lwd=4,col=6,xlab=xlabs[i],ylab=ylabs[i],main=params[i],cex.lab=6,cex.main=7,cex.axis=4,cex=4)
+  lines(y.max,cred.int.pmcmc[,2,i],type="b",col=6,lwd=4,cex=4)
+  lines(y.max,cred.int.kdpf[,1,i],type="b",col=3,lwd=4,cex=4)
+  lines(y.max,cred.int.kdpf[,2,i],type="b",col=3,lwd=4,cex=4)
+  abline(h=mysims[[1]]$true.params$theta[i],lwd=6,col="gray47")
+  if(i == 1) legend("bottomright",legend=c("KDPF","PMCMC"),lty=c(1,1),pch=c(1,1),col=c(3,6),cex=4,pt.cex=c(4,4),lwd=c(4,4),bg="white",pt.bg="white")
+}
+dev.off()
