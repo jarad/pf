@@ -12,11 +12,15 @@
 
 \noindent \emph{(1) Findings on the consistency of the results across simulations (as for example discussed in last para of 5.3) could be presented in a table to clearly demonstrate the performance of the methodology.} \\
 
-Thank you for this suggestion. A table showing the proportion of simulated data sets for which 95\% credible intervals cover the truth has been added in Section 5.3. \\
+Thank you for this valuable suggestion. A table showing the proportion of simulated data sets for which 95\% credible intervals cover the truth has been added in Section 5.3. \\
 
 \noindent \emph{(2) The choice of the range of priors is now discussed in more detail and justified when a particular disease is concerned. I still find these prior choices relatively narrow, but I accept the justification. However I think that the authors should discuss in some more detail the effect that choosing truly non-informative priors could have on their methods. This is a well known issue for MCMC-based methods in epidemics, so some discussion here would be fair and helpful.} \\
 
+Thank you for this suggestion. We have added a paragraph in Section 5.2 mentioning the problem that diffuse priors cause for SMC methods, namely degeneracy. We also point to one possible remedy which we discuss briefly in Section 7. \\
+
 \noindent \emph{(3) I find the MCMC v KDPF comparisons very useful - and I appreciate the amount of effort that has gone into this. I am not sure about the clarity of the last sentence in section 5.6.2: the number of MCMC iterations also depends on successfully tuning the algorithms for better mixing - so comment may not be entirely fair here.} \\
+
+In our own MCMC implementation, we tuned the algorithm during burn-in by adjusting the standard deviations of the Gaussian random-walk proposal distributions for each fixed parameter based on the Metropolis-Hastings acceptance rate. The mixing of the MCMC could suffer if these standard deviations are too high or too low. In our revised manuscript, we have changed Section 5.6.2 by deleting our description of this analysis and instead describe our PMCMC analysis implemented using the pomp package in R at the suggestion of Reviewer \#2. \\
 
 \noindent \emph{{\bf Reviewer \#2:} This is a carefully written but outdated manuscript. Its main contribution is demonstration of statistical methodology, but the methodologies considered omit the main advances of the last decade. The authors are led to advocate techniques which are known to work poorly in many situations.} \\
 
