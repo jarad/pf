@@ -97,7 +97,7 @@ require(plyr)
 kdpf.ess <- maply(data.frame(y.max=y.max,n.sims=1,np=20000), ess_kdpf)
 
 ## Create plot comparing KDPF credible intervals with PMCMC
-n.sims = 1
+n.sims = 20
 np = 20000
 y.max = seq(5,125,5)
 kd_quant <- function(y.max)
