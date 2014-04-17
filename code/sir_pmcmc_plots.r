@@ -77,32 +77,32 @@ sir_pmcmc_plots <- function(chains, niter, np, y.max, nburn = 0, nthin = 1)
 
 # Process pmcmc objects
 require(plyr)
-y.max.pmcmc = c(30,60,65,70,75,80,85,90,125)
+y.max.pmcmc = c(30,60,65,70,75,80,85,90,95,125)
 n.iter = 30000
-mydata = expand.grid(chains = 1:3, niter = n.iter, np = 100, y.max = y.max.pmcmc, nburn = 0, nthin = 1, stringsAsFactors = FALSE)
-cred.int.pmcmc = maply(mydata, sir_pmcmc_plots)
-n.pmcmc = dim(cred.int.pmcmc)[1]
-# mydata = expand.grid(niter = n.iter, np = 100, y.max = y.max.pmcmc, nburn = 0, nthin = 1, stringsAsFactors = FALSE)
-# cred.int.pmcmc = maply(mydata, function(niter, np, y.max, nburn, nthin) sir_pmcmc_plots(1:3, niter, np, y.max, nburn, nthin))
-# cred.int.pmcmc = array(cred.int.pmcmc, c(1,dim(cred.int.pmcmc)))
-# n.pmcmc = 1
+# mydata = expand.grid(chains = 1:3, niter = n.iter, np = 100, y.max = y.max.pmcmc, nburn = 0, nthin = 1, stringsAsFactors = FALSE)
+# cred.int.pmcmc = maply(mydata, sir_pmcmc_plots)
+# n.pmcmc = dim(cred.int.pmcmc)[1]
+mydata = expand.grid(niter = n.iter, np = 100, y.max = y.max.pmcmc, nburn = 0, nthin = 1, stringsAsFactors = FALSE)
+cred.int.pmcmc = maply(mydata, function(niter, np, y.max, nburn, nthin) sir_pmcmc_plots(1:3, niter, np, y.max, nburn, nthin))
+cred.int.pmcmc = array(cred.int.pmcmc, c(1,dim(cred.int.pmcmc)))
+n.pmcmc = 1
 
-# Calculate ESS for KDPF runs
-ess_kdpf <- function(y.max,n.sims,np)
-{
-  ess.kdpf = matrix(NA,nr=3,nc=n.sims)
-  for(i in 1:n.sims)
-  {
-    load(paste(dpath,"PF-1-",np,"-KD-stratified-orig-log-0.99-",60+i,".rdata",sep=""))
-    ind = resample(pf.out$out$weight[,y.max+1], method = "stratified", nonuniformity = "ess")$indices
-    for(j in 1:3) ess.kdpf[j,i] = ess(pf.out$out$theta[j,ind,y.max+1])
-  }
-  return(ess.kdpf)
-}
-require(plyr)
-kdpf.ess <- maply(data.frame(y.max=y.max,n.sims=1,np=20000), ess_kdpf)
-colnames(kdpf.ess) = c("beta","gamma","nu")
-write.csv(kdpf.ess, file = paste(dpath,"kdpf-ess.csv",sep=""))
+# # Calculate ESS for KDPF runs
+# ess_kdpf <- function(y.max,n.sims,np)
+# {
+#   ess.kdpf = matrix(NA,nr=3,nc=n.sims)
+#   for(i in 1:n.sims)
+#   {
+#     load(paste(dpath,"PF-1-",np,"-KD-stratified-orig-log-0.99-",60+i,".rdata",sep=""))
+#     ind = resample(pf.out$out$weight[,y.max+1], method = "stratified", nonuniformity = "ess")$indices
+#     for(j in 1:3) ess.kdpf[j,i] = ess(pf.out$out$theta[j,ind,y.max+1])
+#   }
+#   return(ess.kdpf)
+# }
+# require(plyr)
+# kdpf.ess <- maply(data.frame(y.max=y.max,n.sims=1,np=20000), ess_kdpf)
+# colnames(kdpf.ess) = c("beta","gamma","nu")
+# write.csv(kdpf.ess, file = paste(dpath,"kdpf-ess.csv",sep=""))
 
 ## Create plot comparing KDPF credible intervals with PMCMC
 n.sims = 20
