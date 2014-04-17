@@ -1,6 +1,7 @@
 require(pomp)
 require(mcmcse)
 require(smcUtils)
+#require(coda)
 
 # Set data and graphics path
 dpath = "../data/"
@@ -51,7 +52,8 @@ sir_pmcmc_plots <- function(chains, niter, np, y.max, nburn = 0, nthin = 1)
         lines(iter, param, col = 2*(j-1))
       }
     }
-    title(paste("ESS: ",round(ess(param.all),2),sep=""),cex=1.25)
+    ess.mcmcse = ess(param.all)
+    title(paste("ESS: ",round(ess,2),sep=""),cex=1.25)
   }
   dev.off()
   
@@ -77,7 +79,7 @@ sir_pmcmc_plots <- function(chains, niter, np, y.max, nburn = 0, nthin = 1)
 
 # Process pmcmc objects
 require(plyr)
-y.max.pmcmc = c(5,10,15,20,25,30,35,60,65,70,75,80,85,90,95,100,105,115,120,125)
+y.max.pmcmc = seq(5,125,5)
 n.iter = 30000
 mydata = expand.grid(chains = 1:3, niter = n.iter, np = 100, y.max = y.max.pmcmc, nburn = 0, nthin = 1, stringsAsFactors = FALSE)
 cred.int.pmcmc = maply(mydata, sir_pmcmc_plots)
@@ -107,7 +109,7 @@ n.pmcmc = dim(cred.int.pmcmc)[1]
 ## Create plot comparing KDPF credible intervals with PMCMC
 n.sims = 20
 np = 20000
-y.max = seq(5,125,5)
+y.max = 0:125
 kd_quant <- function(y.max)
 {
   cred.int = t(pf.quant.out$theta.quant[y.max+1,,4:5])
@@ -143,8 +145,8 @@ for(i in 1:3)
   ymax = max(cred.int.pmcmc[,,2,i],ymax.kdpf[i],mysims[[1]]$true.params$theta[i])
   load(paste(dpath,"PF-quant-1-",np,"-KD-stratified-orig-log-0.99-",61,".rdata",sep=""))
   cred.int.kdpf = maply(.data = data.frame(y.max = y.max), .fun = kd_quant)
-  plot(y.max,cred.int.kdpf[,1,i],type="b",ylim=c(ymin,ymax),lwd=2,col=3,xlab=xlabs[i],ylab=ylabs[i],main=params[i],cex.lab=6,cex.main=7,cex.axis=4,cex=2)
-  lines(y.max,cred.int.kdpf[,2,i],type="b",lwd=2,col=3,cex=2)
+  plot(y.max,cred.int.kdpf[,1,i],type="l",ylim=c(ymin,ymax),lwd=2,col=3,xlab=xlabs[i],ylab=ylabs[i],main=params[i],cex.lab=6,cex.main=7,cex.axis=4,cex=2)
+  lines(y.max,cred.int.kdpf[,2,i],lwd=2,col=3,cex=2)
   abline(h=mysims[[1]]$true.params$theta[i],lwd=6,col="gray47")
   if(n.sims > 1)
   {
@@ -152,14 +154,14 @@ for(i in 1:3)
     {
       load(paste(dpath,"PF-quant-1-",np,"-KD-stratified-orig-log-0.99-",60+j,".rdata",sep=""))
       cred.int.kdpf = maply(.data = data.frame(y.max = y.max), .fun = kd_quant)
-      lines(y.max,cred.int.kdpf[,1,i],type="b",col=3,lwd=2,cex=2)
-      lines(y.max,cred.int.kdpf[,2,i],type="b",col=3,lwd=2,cex=2)
+      lines(y.max,cred.int.kdpf[,1,i],col=3,lwd=2,cex=2)
+      lines(y.max,cred.int.kdpf[,2,i],col=3,lwd=2,cex=2)
     }
   }
   for(k in 1:n.pmcmc)
   {
-    points(y.max.pmcmc,cred.int.pmcmc[k,,1,i],lwd=4,col=2*(k-1)+1*(k==1),cex=4)
-    points(y.max.pmcmc,cred.int.pmcmc[k,,2,i],lwd=4,col=2*(k-1)+1*(k==1),cex=4)
+    points(y.max.pmcmc,cred.int.pmcmc[k,,1,i],lwd=4,cex=4)
+    points(y.max.pmcmc,cred.int.pmcmc[k,,2,i],lwd=4,cex=4)
     if(i == 1) legend("bottomright",legend=c("KDPF","PMCMC"),lty=c(1,NA),pch=c(1,1),col=c(3,1),cex=4,pt.cex=c(2,4),lwd=c(2,4),bg="white",pt.bg="white")
   }
 }
