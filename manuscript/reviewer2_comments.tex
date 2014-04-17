@@ -12,11 +12,11 @@
 
 \noindent \emph{(1) Findings on the consistency of the results across simulations (as for example discussed in last para of 5.3) could be presented in a table to clearly demonstrate the performance of the methodology.} \\
 
-Thank you for this valuable suggestion. A table showing the proportion of simulated data sets for which 95\% credible intervals cover the truth has been added in Section 5.3. \\
+Thank you for this suggestion. A table showing the proportion of simulated data sets for which 95\% credible intervals cover the truth has been added in Section 5.3. \\
 
 \noindent \emph{(2) The choice of the range of priors is now discussed in more detail and justified when a particular disease is concerned. I still find these prior choices relatively narrow, but I accept the justification. However I think that the authors should discuss in some more detail the effect that choosing truly non-informative priors could have on their methods. This is a well known issue for MCMC-based methods in epidemics, so some discussion here would be fair and helpful.} \\
 
-Thank you for this suggestion. We have added a paragraph in Section 5.2 mentioning the problem that diffuse priors cause for SMC methods, namely degeneracy. We also point to one possible remedy which we discuss briefly in Section 7. \\
+We have added a paragraph in Section 5.2 mentioning the problem that diffuse priors cause for SMC methods, namely degeneracy. We also point to one possible remedy which we discuss briefly in Section 7. \\
 
 \noindent \emph{(3) I find the MCMC v KDPF comparisons very useful - and I appreciate the amount of effort that has gone into this. I am not sure about the clarity of the last sentence in section 5.6.2: the number of MCMC iterations also depends on successfully tuning the algorithms for better mixing - so comment may not be entirely fair here.} \\
 
@@ -41,5 +41,7 @@ Thank you for this valuable suggestion as well as information regarding the pomp
 \noindent \emph{Once real data and model uncertainty enter the picture, I suspect that assessing model fit and comparing alternative model structures is as important component of making reliable predictions. Bhadra et al (JASA, 2013) demonstrate how sequential Monte Carlo techniques can be used in this context.} \\
 
 \noindent \emph{These comments all focus on the statistical methodology. From the perspective of model development, this manuscript draws on a previous literature. This is fine from the point of view of methodology development. However, it remains an open question how much model complexity is required for useful forecasts, since such forecasts are not yet operational. My suspicion is that somewhat more complicated models will be required in practice, and therefore the methods may be required to successfully extend to considerably larger parameter spaces. Unknown seasonal factors, for example, would require several additional parameters in the model. Many methods, including that of Liu \& West, can have performance that degrades rapidly as the number of parameters increases, so even fairly modest up-scaling cannot be taken for granted.} \\
+
+We recognize the limitations of the models presented in our paper and, as you point out, focus instead on methodological development. We have added to Section 7 a discussion of the shortcomings of SMC, the advantages of PMCMC, and we propose a strategy that takes advantage of both approaches in order to explore the potential for online tracking in complex modeling situations. \\
 
 \end{document}
