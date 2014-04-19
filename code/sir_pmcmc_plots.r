@@ -1,7 +1,7 @@
 require(pomp)
 require(mcmcse)
 require(smcUtils)
-#require(coda)
+require(coda)
 
 # Set data and graphics path
 dpath = "../data/"
@@ -20,7 +20,8 @@ eta = mysims[[1]]$true.params$eta
 sir_pmcmc_plots <- function(chains, niter, np, y.max, nburn = 0, nthin = 1)
 {
   # Load pmcmc objects
-  this.out = list(); length(this.out) = length(chains)
+  this.out = list(); 
+  length(this.out) = length(chains)
   for(i in 1:length(chains))
   {
     load(paste(dpath,"sir_pmcmc_test-",paste(chains[i],niter,np,y.max,sep="-"),".rdata",sep=""))
@@ -34,6 +35,8 @@ sir_pmcmc_plots <- function(chains, niter, np, y.max, nburn = 0, nthin = 1)
   iter = seq(nburn+nthin+1,niter+1,nthin)
   xlabs = c("","","Iteration")
   ylabs = expression(beta,gamma,nu)
+  ess.mcmcse = rep(NA,3)
+  ess.coda = rep(NA,3)
   pdf(paste(gpath,"sir_pmcmc_test-",paste(chains,collapse="-"),"-",paste(length(chains),niter,np,y.max,sep="-"),"-traceplots.pdf",sep=""))
   par(mfrow=c(3,1),mar=c(5,7,4,2)+0.1)
   for(i in 1:3)
@@ -52,10 +55,14 @@ sir_pmcmc_plots <- function(chains, niter, np, y.max, nburn = 0, nthin = 1)
         lines(iter, param, col = 2*(j-1))
       }
     }
-    ess.mcmcse = ess(param.all)
-    title(paste("ESS: ",round(ess,2),sep=""),cex=1.25)
+    ess.mcmcse[i] = ess(param.all)
+    ess.coda[i] = effectiveSize(param.all)
+    title(paste("ESS (mcmcse): ",round(ess.mcmcse[i],2),", ESS (coda): ",round(ess.coda[i],2),sep=""),cex=1.25)
   }
   dev.off()
+  ess.all = rbind(ess.mcmcse,ess.coda)
+  rownames(ess.all) = c("mcmcse","coda")
+  colnames(ess.all) = c("beta","gamma","nu")
   
   # Plot filtered means of states
   pdf(paste(gpath,"sir_pmcmc_test-",paste(chains,collapse="-"),"-",paste(length(chains),niter,np,y.max,sep="-"),"-meanFilteredStates.pdf",sep=""))
@@ -74,7 +81,7 @@ sir_pmcmc_plots <- function(chains, niter, np, y.max, nburn = 0, nthin = 1)
   colnames(cred.int) = c("beta","gamma","nu")
   rownames(cred.int) = c("2.5%","97.5%")
   for(i in 1:3) cred.int[,i] = quantile(sapply(out, function(x) conv.rec(x)[iter,3+i]),c(0.025,0.975))
-  return(cred.int)
+  return(rbind(cred.int,ess.all))
 }
 
 # Process pmcmc objects
@@ -89,27 +96,46 @@ n.pmcmc = dim(cred.int.pmcmc)[1]
 # cred.int.pmcmc = array(cred.int.pmcmc, c(1,dim(cred.int.pmcmc)))
 # n.pmcmc = 1
 
-# # Calculate ESS for KDPF runs
-# ess_kdpf <- function(y.max,n.sims,np)
-# {
-#   ess.kdpf = matrix(NA,nr=3,nc=n.sims)
-#   for(i in 1:n.sims)
-#   {
-#     load(paste(dpath,"PF-1-",np,"-KD-stratified-orig-log-0.99-",60+i,".rdata",sep=""))
-#     ind = resample(pf.out$out$weight[,y.max+1], method = "stratified", nonuniformity = "ess")$indices
-#     for(j in 1:3) ess.kdpf[j,i] = ess(pf.out$out$theta[j,ind,y.max+1])
-#   }
-#   return(ess.kdpf)
-# }
-# require(plyr)
-# kdpf.ess <- maply(data.frame(y.max=y.max,n.sims=1,np=20000), ess_kdpf)
-# colnames(kdpf.ess) = c("beta","gamma","nu")
-# write.csv(kdpf.ess, file = paste(dpath,"kdpf-ess.csv",sep=""))
-
-## Create plot comparing KDPF credible intervals with PMCMC
+# Calculate ESS for KDPF runs
+y.max = 0:125
 n.sims = 20
 np = 20000
-y.max = 0:125
+ess_kdpf <- function(y.max,n.sim,np)
+{
+  load(paste(dpath,"PF-1-",np,"-KD-stratified-orig-log-0.99-",60+n.sim,".rdata",sep=""))
+  ess.kdpf = rep(NA,length(y.max))
+  for(j in 1:length(y.max)) ess.kdpf[j] = ess.weights(pf.out$out$weight[,y.max[j]+1])
+  return(ess.kdpf)
+}
+require(plyr)
+kdpf.ess <- maply(data.frame(n.sim=1:n.sims,np=np), function(n.sim,np) ess_kdpf(y.max,n.sim,np))
+
+# Plot ESS for KDPF over time
+pdf(file=paste(gpath,"sir-kdpf-ess-",n.sims,"-",np,".pdf",sep=""),width=10,height=10)
+par(mar = c(5,7,4,2)+0.1)
+ymax = max(kdpf.ess); ymin = min(kdpf.ess)
+plot(y.max,kdpf.ess[1,],ylim=c(ymin,ymax),xlim=c(0,max(y.max,y.max.pmcmc)),type="l",main="KDPF ESS for all parameters",xlab="Time",ylab="ESS",cex.lab=1.5,cex.main=2,cex.axis=1.25)
+if(n.sims > 1) for(i in 2:n.sims) lines(y.max,kdpf.ess[i,],col=i)
+dev.off()
+
+# Plot ESS for PMCMC over time
+pdf(file=paste(gpath,"sir-pmcmc-ess-",n.pmcmc,"-",n.iter,".pdf",sep=""),width=9,height=3)
+par(mfrow=c(1,3),mar=c(5,7,4,2)+0.1)
+ymax = apply(cred.int.pmcmc,4,max)
+ymin = apply(cred.int.pmcmc,4,min)
+params = expression(beta,gamma,nu)
+xlabs = c("Time","","")
+ylabs = c("ESS","","")
+for(i in 1:3)
+{
+  plot(y.max.pmcmc,cred.int.pmcmc[1,,3,i],ylim=c(ymin[i],ymax[i]),col=4,xlab=xlabs[i],ylab=ylabs[i],main=params[i],cex.lab=1.75,cex.main=2,cex.axis=1.25)
+  if(n.pmcmc > 1) for(j in 2:n.pmcmc) points(y.max.pmcmc,cred.int.pmcmc[j,,3,i],col=4)
+  for(j in 1:dim(cred.int.pmcmc)[1]) points(y.max.pmcmc,cred.int.pmcmc[j,,4,i],col=2)
+  if(i == 1) legend("topleft",c("mcmcse","coda"),pch=c(1,1),col=c(4,2))
+}
+dev.off()
+
+## Create plot comparing KDPF credible intervals with PMCMC
 kd_quant <- function(y.max)
 {
   cred.int = t(pf.quant.out$theta.quant[y.max+1,,4:5])
@@ -162,7 +188,7 @@ for(i in 1:3)
   {
     points(y.max.pmcmc,cred.int.pmcmc[k,,1,i],lwd=4,cex=4)
     points(y.max.pmcmc,cred.int.pmcmc[k,,2,i],lwd=4,cex=4)
-    if(i == 1) legend("bottomright",legend=c("KDPF","PMCMC"),lty=c(1,NA),pch=c(1,1),col=c(3,1),cex=4,pt.cex=c(2,4),lwd=c(2,4),bg="white",pt.bg="white")
+    if(i == 1) legend("bottomright",legend=c("KDPF","PMCMC"),lty=c(1,NA),pch=c(NA,1),col=c(3,1),cex=4,pt.cex=c(NA,4),lwd=c(2,4),bg="white",pt.bg="white")
   }
 }
 dev.off()
