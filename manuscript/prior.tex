@@ -1,0 +1,34 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+
+\begin{document}
+
+\noindent {\bf Prior distribution for $\theta$:} \\
+
+\[p(\theta) = p(\beta,\gamma)p(\nu)\]
+
+\begin{align*}
+R_0 &= \beta / \gamma \\
+f(R_0,\gamma) &= p(R_0)p(\gamma) = \mbox{LN}(R_0;\mu_{R_0},\sigma^2_{R_0})\times\mbox{LN}(\gamma;\mu_{\gamma},\sigma^2_{\gamma})
+\end{align*}
+
+\begin{align*}
+p(\beta,\gamma) &= f(\beta / \gamma, \gamma)\times|J| \\
+|J| &= \left|\begin{array}{cc}
+\frac{\mbox{d}R_0}{\mbox{d}\beta} & \frac{\mbox{d}R_0}{\mbox{d}\gamma} \\
+\frac{\mbox{d}\gamma}{\mbox{d}\beta} & \frac{\mbox{d}\gamma}{\mbox{d}\gamma}
+\end{array}
+\right| = \left|\begin{array}{cc}
+\frac{1}{\gamma} & -\frac{1}{\gamma^2} \\
+0 & 1
+\end{array}
+\right| = 1 / \gamma
+\end{align*}
+
+\begin{align*}
+p(\beta,\gamma) &= \frac{1}{\gamma}\times\mbox{LN}(\beta/\gamma;\mu_{R_0},\sigma^2_{R_0})\times\mbox{LN}(\gamma;\mu_{\gamma},\sigma^2_{\gamma}) \\
+ &\propto \frac{1}{\gamma}\exp[-\frac{1}{2}(\log\frac{\beta}{\gamma} - \mu_{R_0})^2]\exp[-\frac{1}{2}(\log\gamma - \mu_{\gamma})^2]
+\end{align*}
+
+\end{document}
