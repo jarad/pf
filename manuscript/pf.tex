@@ -136,7 +136,7 @@ Given an approximation to the filtered distribution at time $t$ as in equation \
 	\end{enumerate}
 \end{enumerate}
 
-\noindent The KDPF adds the kernel density regeneration to the auxiliary particle filter. Here, we use a normal kernel, where $\mbox{N}(\mu,\Sigma)$ represents the pdf of normal distribution with mean $\mu$ and covariance matrix $\Sigma$.
+\noindent The KDPF adds the kernel density regeneration to the auxiliary particle filter. Here, we use a normal kernel, where $\mbox{N}(\mu,\Sigma)$ represents the normal distribution with mean $\mu$ and covariance matrix $\Sigma$.
 
 To use the KDPF with normal kernels, it is necessary to parameterize the fixed parameters so that their support is on the real line. This is not a constraint, but rather a practical implementation detail. We typically use logarithms for parameters that have positive support and the logit function for parameters in the interval (0,1). A parameter $\psi$ bounded on the interval (a,b) can first be rebounded to (0,1) through $(\psi-a)/(b-a)$, and then the logit transformation can be applied. We investigate the sensitivity of the performance of the particle filters to the choice of transformation in Section \ref{sec:results}.
 
@@ -263,7 +263,7 @@ $l$ & $b_l$ & $\varsigma_l$ & $\sigma_l$ \\
 
 \subsection{Particle filter runs} \label{sec:pf}
 
-For each simulated data set, the BF, APF, and KDPF were run using $J = 100, 1000, 10000, \mbox{ and } 20000$ particles to obtain weighted sample approximations to $p(x_t,\theta|y_{1:t})$ for $t = 1,\ldots,T$. For each $J$, separate runs using multinomial, residual, stratified, and systematic resampling were implemented \citep{smcUtils}, and an effective sample size threshold was set at 80\% of the total number of particles to determine when to resample particles \citep{Liu:Chen:Wong:reje:1998}. For the KDPF, sensitivity to changes in the discount factor $\Delta$ was explored by running with $\Delta = 0.9, 0.95, 0.96, 0.97, 0.98, \mbox{ and } 0.99$.
+For each simulated data set, the BF, APF, and KDPF were run using $J = 100, 1000, 10000, \mbox{ and } 20000$ particles to obtain weighted sample approximations to $p(x_t,\theta|y_{1:t})$ for $t = 1,\ldots,T$. For each $J$, separate runs using multinomial, residual, stratified, and systematic resampling were implemented \citep{smcUtils} and an effective sample size threshold was set at 80\% of the total number of particles to determine when to resample particles \citep{Liu:Chen:Wong:reje:1998}. For the KDPF, sensitivity to changes in the discount factor $\Delta$ was explored by running with $\Delta = 0.9, 0.95, 0.96, 0.97, 0.98, \mbox{ and } 0.99$.
 
 To start each particle filter run, the initial state, $x_0$, and fixed parameters, $\theta_0$, for $J$ particles were sampled from the prior density $p(x_0,\theta) = p(\theta)p(i_0,s_0)$, where $p(i_0,s_0)$ is the joint pdf of the random variables $s_0$ and $i_0$ and $p(\theta)$ is the joint prior density of $\beta$, $\gamma$, and $\nu$. Since a very small percentage of the population is infected during the initial stage of an epidemic, we let $i_0 \sim \mbox{N}_{[0,1]}(0.002,0.0005^2)$ and set $s_0 = 1 - i_0$, i.e. no infected individuals have recovered from illness yet.
 
@@ -305,7 +305,7 @@ Table \ref{tab:pfs} shows that the behavior of the BF, APF, and KDPF illustrated
   \hline
   10000 & 0.150 & 0.150 & 0.975 & 0.150 & 0.200 & 0.950 & 0.175 & 0.250 & 0.925 \\
   \hline
-  20000 & 0.325 & 0.275 & 0.975 & 0.325 & 0.175 & 0.175 & 0.300 & 0.175 & 0.975 \\
+  20000 & 0.325 & 0.275 & 0.975 & 0.325 & 0.175 & 0.975 & 0.300 & 0.175 & 0.975 \\
 \hline
 \end{tabular}
 \caption{Proportion of simulated data sets (out of 40 total) for which 95\% credible intervals obtained from the marginal filtered distributions of the fixed parameters (columns) at the end of the epidemic (i.e. $t = 125$) cover the true value used for simulation for increasing number of particles (rows) using the BF, APF, and KDPF.} \label{tab:pfs}
@@ -316,7 +316,7 @@ Table \ref{tab:pfs} shows that the behavior of the BF, APF, and KDPF illustrated
 
 As mentioned in Section \ref{sec:kd}, implementing the KDPF using a normal kernel density approximation to $p(\theta|y_{1:t})$ to regenerate the fixed parameters requires applying some transformation to the components of $\theta$ so that their support is on the real line. The logit function is a convenient choice for mapping fixed parameters with bounded support to the real line; the log function is convenient for fixed parameters with positive support. Thus, we investigate the sensitivity of the results with $J = 10000$ to these two types of transformations using the KDPF.
 
-Figure \ref{fig:priors} compares scatterplots of $\beta$ versus $\gamma$ sampled jointly from the filtered distribution $p(\beta,\gamma|y_{1:t})$ at $t = 0, 20, 40, 60$. In the top row, the same prior as in \citet{skvortsov2012monitoring} is used, i.e. $\beta\sim \mbox{Unif}( 0.14, 0.50)$ and $\gamma\sim \mbox{Unif}(0.09, 0.143)$ independently. In order to ensure regeneration in the KDPF does not extend past these bounds, a logit transformation was applied in the manner described at the end of Section \ref{sec:kd} with $a = 0.14$ and $b = 0.50$ for $\beta$ and $a = 0.09$ and $b = 0.143$ for $\gamma$, and the kernel density is created on this transformed space. In the top row, the samples concentrate on the boundaries of the uniform prior on $\gamma$, particularly for $t = 20$ and $t = 40$. This suggests that the prior bounds on $\gamma$ are too restrictive to account for the uncertainty in this recovery time.
+Figure \ref{fig:priors} compares scatterplots of $\beta$ versus $\gamma$ sampled jointly from the filtered distribution $p(\beta,\gamma|y_{1:t})$ at $t = 0, 20, 40, 60$. In the top row, the same prior as in \citet{skvortsov2012monitoring} is used, i.e. $\beta\sim \mbox{Unif}( 0.14, 0.50)$ and $\gamma\sim \mbox{Unif}(0.09, 0.143)$ independently. In order to ensure regeneration in the KDPF does not extend past these bounds, a logit transformation was applied in the manner described at the end of Section \ref{sec:kd} with $a = 0.14$ and $b = 0.50$ for $\beta$ and $a = 0.09$ and $b = 0.143$ for $\gamma$. The kernel density is then created on this transformed space. In the top row, the samples concentrate on the boundaries of the uniform prior on $\gamma$, particularly for $t = 20$ and $t = 40$. This suggests that the prior bounds on $\gamma$ are too restrictive to account for the uncertainty in this recovery time.
 
 To test this theory, we reran the KDPF using exactly the same prior draws as those used in the first row of Figure \ref{fig:priors}, but we apply a log transformation to $\theta$ (to ensure $\beta,\gamma,\nu>0$) instead of the logit transformation. The results are shown in the second row of Figure \ref{fig:priors}. Despite the particles starting within the uniform bounds at $t=0$, the samples stray outside the uniform bounds for $\gamma$, suggesting that the data are informing us that reasonable parameter values can be found outside the bounds.
 
