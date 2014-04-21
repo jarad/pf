@@ -28,7 +28,7 @@ p(\beta,\gamma) &= f(\beta / \gamma, \gamma)\times|J| \\
 
 \begin{align*}
 p(\beta,\gamma) &= \frac{1}{\gamma}\times\mbox{LN}(\beta/\gamma;\mu_{R_0},\sigma^2_{R_0})\times\mbox{LN}(\gamma;\mu_{\gamma},\sigma^2_{\gamma}) \\
- &\propto \frac{1}{\gamma}\exp[-\frac{1}{2}(\log\frac{\beta}{\gamma} - \mu_{R_0})^2]\exp[-\frac{1}{2}(\log\gamma - \mu_{\gamma})^2]
+ &\propto \frac{1}{\gamma}\exp[-\frac{1}{2\sigma^2_{R_0}}(\log\frac{\beta}{\gamma} - \mu_{R_0})^2]\exp[-\frac{1}{2\sigma^2_{\gamma}}(\log\gamma - \mu_{\gamma})^2]
 \end{align*}
 
 \end{document}
