@@ -150,12 +150,6 @@ The frequency of resampling should be reduced to balance the loss of information
 
 The BF, APF, and KDPF algorithms described in the previous sections were constructed under the assumption that resampling is performed at every iteration of the filter. However, in practice, we omit the resampling step in each algorithm at each time point where the effective sample size exceeds $0.8J$. If resampling is not performed, we modify the algorithm at that timepoint by 1) omitting the `Resample' step, 2) replacing all instances of the sampled index $k$ with the particle index $j$, and 3) adjusting the calculation of $\tilde{w}_{t+1}^{(j)}$ by multiplying by $w_t^{(j)}$, i.e. the particle weights get carried over. For the KDPF, regeneration is not performed when resampling is not performed since, in this case, there is no reduction in the number of unique fixed parameter values. When resampling is not performed, the `Regenerate the fixed parameters' step should read $\theta_{t+1}^{(j)} = \theta_t^{(j)}$.
 
-%\subsection{Theoretical justification of particle filters} \label{sec:just}
-%
-%The methods described above are all theoretically justified as the number of particles becomes large. Specifically, the following result from Section 3.5.1 of \cite{del2004feynman} holds for bounded functions $f_t$ and any $p>1$:
-%\[ E_{\eta_t}^J \left[ \left| \eta_t^J(f_t)-\eta_t(f_t)\right|^p\right]^{1/p} \le \frac{a(p) b(t) ||f||}{\sqrt{J}} \]
-%where $\eta_t(f_t)$ is the expectation of $f_t$ under the true filtered distribution shown in equation \eqref{eqn:filtered} at time $t$, $\eta_t^J(f_t)$ is the expectation of $f_t$ under the particle approximation given by equation \eqref{eqn:approx} at time $t$ using $J$ particles, $a(p)$ is a function of $p$, $b(t)$ is an increasing function of $t$ that depends on which algorithm is used, and $||\cdot||$ is the supremum norm. The key here is that for a fixed $t$, we can increase the number of particles $J$ to reduce our Monte Carlo error, and this is true for all of the algorithms above, including the BF and APF. The question then becomes what does $b(t)$ look like for each algorithm, but this is a difficult question to answer. Instead, in Section \ref{sec:results}, we compare the performance of these algorithms at various values for $J$ within a specific model.
-
 \section{Particle filtering in epidemiological models \label{sec:apply}}
 
 The methodology described in Section \ref{sec:ss} and Section \ref{sec:filtering} provides a general framework applicable to a wide array of scientific questions \citep{Carp:Clif:Fear:impr:1999, Carv:Lope:baye:2007, dukic2012tracking}. As an example, we describe a state-space model of an influenza-like outbreak similar to one used in \citet{skvortsov2012monitoring}, and we explain how it fits into the general framework outlined in Sections \ref{sec:ss} and \ref{sec:filtering}. In Section \ref{sec:results}, we analyze the performance of the particle filter algorithms in this specific modeling situation.
@@ -358,8 +352,6 @@ To test the sensitivity of the KDPF to different values of $\Delta$, we ran the 
 
 \subsubsection{Comparison with MCMC}
 
-%Analyzing our model using an SMC (particle filtering) approach allows for sequential updating of parameter estimates and real-time tracking of a disease outbreak. This is an alternative to analyzing the data in batch using traditional MCMC methods. Both SMC and MCMC methods provide sample-based estimates of the posterior distribution of unknown states and fixed parameters that become more precise as the number of samples grows infinitely large. While MCMC has become the standard for Bayesian analysis of complex models and generally outperforms SMC in higher-dimensional systems, SMC algorithms such as the KDPF offer solutions that are easier to implement and require less computational effort.
-
 For a comparison with our KDPF results, an MCMC analysis was run using the particle MCMC (PMCMC) approach of \citet{Andr:Douc:Hol:pmcmc:2010}. Using the {\tt pmcmc} function within the R package {\tt pomp} \citep{pomp}, samples from the posterior distribution of the fixed parameters were generated conditional on the first $T$ observations from the simulated data set pictured in Figure \ref{fig:data} for $T = 5, 10, 15, \ldots, 125$. For each $T$, three chains consisting of 30000 PMCMC iterations were generated and 95\% credible intervals were calculated for each chain. PMCMC chains were initialized at the true values of the fixed parameters used for simulating the data. Tuning parameters representing the standard deviations of the random-walk proposal distributions of $\beta$, $\gamma$, and $\nu$ were set to 0.005, 0.001, and 0.01, respectively. These values were chosen because they allowed the chains to mix well within reasonable computing time, but it is possible that different values could provide better mixing and hence improved estimates of the fixed parameters within the same computing time. For more information on PMCMC and using functions within the {\tt pomp} package, we refer the reader to \citet{Andr:Douc:Hol:pmcmc:2010} and \citet{pomp}.
 
 Figure \ref{fig:mcmc} compares the performance of the KDPF with PMCMC in terms of marginal 95\% credible intervals for the fixed parameters. The intervals obtained from PMCMC samples for each chain at each $T$ are compared with those produced by 20 separate runs of the KDPF on the same data set. The KDPF was run using 20000 particles, log-normal priors on the components of $\theta$, stratified resampling, and $\Delta = 0.99$. Multiple runs of the KDPF and PMCMC on the same data allows us to assess the uncertainty in the 95\% credible intervals for the filtered distributions at each $T$. For instance, the high variance of the interval estimates for $\nu$ in the rightmost panel of the figure demonstrates the challenge in estimating this parameter. The performance of the KDPF compares well with PMCMC in this study, as the bounds of the 95\% credible intervals obtained from the PMCMC chains over the course of the epidemic appear to be more variable than the bounds obtained from the separate KDPF runs. Furthermore, a single PMCMC chain run on the full data set (i.e. for $T = 125$) took 8-9 hours to complete while the KDPF with $J = 20000$ particles provided results for all time points in about 15 minutes in our study. Section \ref{sec:discussion} provides further discussion of different scenarios where either PMCMC or the KDPF might be preferred.
@@ -369,36 +361,6 @@ Figure \ref{fig:mcmc} compares the performance of the KDPF with PMCMC in terms o
 \includegraphics[width=1.0\textwidth]{sir-pmcmc-kdpf-3-30000-20-20000}
 \caption{Sequential 95\% credible intervals for $\beta$ (left), $\gamma$ (middle), and $\nu$ (right) obtained from 20 different runs of the KDPF (green lines) using $J = 20000$ particles, log-normal priors, stratified resampling, and $\Delta = 0.99$ compared with 95\% credible intervals obtained from 3 different PMCMC chains (black circles) run for 30000 iterations on data collected up until day $T$ for $T = 5,10,\ldots,125$. All KDPF and PMCMC runs used observations taken from the same simulated data set pictured in Figure \ref{fig:pfs}.} \label{fig:mcmc}
 \end{figure}
-
-%Table \ref{tab:mcmc} shows that 95\% credible intervals calculated from the marginal filtered distributions of the model parameters using the KDPF with $J = 20000$ particles compare well with those calculated from the samples generated by PMCMC. However, while the PMCMC on the full data set took 8-9 hours to run, the KDPF with $J = 20000$ particles provided results in about 15 minutes. Using our specific model of a disease outbreak, the KDPF provides an efficient solution yielding comparable results to a full MCMC analysis.
-%
-%\begin{table}
-%\begin{center}
-%\begin{tabular}{|c|c|cc|cc|cc|}
-%\hline
-% & & \multicolumn{2}{|c|}{$\beta$} & \multicolumn{2}{|c|}{$\gamma$} & \multicolumn{2}{|c|}{$\nu$} \\
-%\hline
-%$T$ & Method & Lower & Upper & Lower & Upper & Lower & Upper \\
-%\hline
-%30 & PMCMC & 0.1930 & 0.2550 & 0.0911 & 0.1455 & 0.9413 & 1.2898 \\
-%   & KDPF & 0.1897 & 0.2511 & 0.0893 & 0.1400 & 0.9475 & 1.2916 \\
-%\hline
-%60 & PMCMC & 0.2254 & 0.2465 & 0.1142 & 0.1343 & 0.9926 & 1.2949 \\
-%   & KDPF & 0.2262 & 0.2480 & 0.1157 & 0.1354 & 0.9818 & 1.2516 \\
-%\hline
-%90 & PMCMC & 0.2346 & 0.2415 & 0.1218 & 0.1310 & 1.0046 & 1.2108 \\
-%   & PKDPF & 0.2336 & 0.2427 & 0.1217 & 0.1319 & 0.9955 & 1.2046 \\
-%\hline
-%125 & PMCMC & 0.2347 & 0.2406 & 0.1218 & 0.1289 & 1.0390 & 1.2128 \\
-%   & KDPF & 0.2336 & 0.2419 & 0.1217 & 0.1310 & 1.0049 & 1.2083 \\
-%\hline
-% & Truth & \multicolumn{2}{|c|}{0.2367} & \multicolumn{2}{|c|}{0.1235} & \multicolumn{2}{|c|}{1.1567} \\
-%\hline
-%\end{tabular}
-%\caption{95\% credible intervals for model parameters calculated from PMCMC samples conditional on the first $T$ data points compared with those calculated from the marginal filtered distributions at time $T$ using the KDPF with $J = 20000$ particles, log-normal priors, stratified resampling, and $\Delta = 0.99$.}
-%\label{tab:mcmc}
-%\end{center}
-%\end{table}
 
 \section{Additional Unknown Parameters \label{sec:extend}}
 
@@ -428,8 +390,6 @@ The KDPF provides a sequential inferential strategy that is easy to implement, a
 
 In high-dimensional settings, PMCMC methods provide better estimates of unknown states and fixed parameters by using SMC methods to construct efficient proposal distributions for a joint sample of all dynamic states \citep{Andr:Douc:Hol:pmcmc:2010}. Since it is likely that more complicated models than what we presented in this paper may be required for monitoring disease outbreaks in real-life situations \citep{Sham:Kars:pnas:2012, Bhad:Ioni:mala:2011}, PMCMC may offer a better solution in certain situations such as when $x_t$ and $\theta$ are high-dimensional. However, PMCMC is a non-sequential method and only valuable for on-line analysis provided the computation time required is not too burdensome. A sequential analysis could be more valuable for processing data collected at shorter time intervals when an immediate decision regarding an intervention policy is needed \citep{Merl:John:Gram:Mang:stat:2008, ludkovski2010optimal, dukic2012tracking}. In addition, efficient comparison of competing models for an epidemic outbreak \citep{Bhad:Ioni:mala:2011} could be made more feasible by running an SMC algorithm that could assess the fit of the data to multiple models more quickly. SMC methods can also provide an approximation to the marginal likelihood of the data if formal model comparison or model averaging is desired \citep{douc:joh:tut:2009, zhou:joh:smcmodcomp:2013}. We believe both the KDPF and PMCMC are valuable tools available to the practitioner.
 
-%A possible strategy that takes advantage of the strengths of both SMC and PMCMC approaches could involve running SMC and PMCMC algorithms concurrently by re-initializing the SMC using posterior samples from PMCMC once it has finished running \citep{petris2009dynamic}. This helps avoid degeneracy of particle samples by putting a fixed time limit on the length of particle filter runs while also ensuring that reasonable starting values are used as prior samples for the next particle filter run.
-
 In this paper, we outline a strategy for real time tracking of a disease epidemic using data from syndromic surveillance, but this strategy can be applied to many other fields requiring on-line data analysis. We present improved particle filtering methods in general within the framework of sequential estimation of states and unknown fixed parameters in state-space models to inspire future work in epidemiological modeling and other scientific areas as well.
 
 \clearpage
@@ -437,4 +397,4 @@ In this paper, we outline a strategy for real time tracking of a disease epidemi
 \bibliographystyle{model1-num-names}
 \bibliography{jarad}
 
-\end{document} 
+\end{document}
