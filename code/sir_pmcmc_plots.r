@@ -57,7 +57,8 @@ sir_pmcmc_plots <- function(chains, niter, np, y.max, nburn = 0, nthin = 1)
     }
     ess.mcmcse[i] = ess(param.all)
     ess.coda[i] = effectiveSize(param.all)
-    title(paste("ESS (mcmcse): ",round(ess.mcmcse[i],2),", ESS (coda): ",round(ess.coda[i],2),sep=""),cex=1.25)
+    mtext(paste("ESS:",round(ess.coda[i],2)),side=3,cex=0.85)
+    if(i == 1) title("PMCMC",cex.main=1.75)
   }
   dev.off()
   ess.all = rbind(ess.mcmcse,ess.coda)
