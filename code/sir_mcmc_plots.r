@@ -1,6 +1,7 @@
 # Set data and graphics path
 dpath = "../data/"
 gpath = "../graphs/"
+require(coda)
 
 # Load simulated data
 load(paste(dpath,"sim-orig.rdata",sep=""))
@@ -43,16 +44,21 @@ sir_mcmc_plots <- function(n.chains, x, beta, gamma, nu, ymax)
     maxs = apply(as.matrix(sapply(out, function(x) apply(x$theta, 2, max))), 1, max)
     for(i in 1:length(params))
     {
-      plot(iter,out[[1]]$theta[,i],type="l",ylim=c(mins[i],maxs[i]),xlab="Iteration",ylab=ylabs[i],cex.lab=1.5)
+      param.all = out[[1]]$theta[,i]
+      plot(iter,out[[1]]$theta[,i],type="l",ylim=c(mins[i],maxs[i]),xlab=ifelse(i==length(params),"Iteration",""),ylab=ylabs[i],cex.lab=1.75)
       if(n.chains > 1)
       {
         for(j in 2:n.chains) lines(iter,out[[j]]$theta[,i],col=2*(j-1))
+        param.all = c(param.all,out[[j]]$theta[,i])
       }
       abline(h=mysims[[1]]$true.params$theta[params[i]])
+      ess = effectiveSize(param.all)
+      mtext(paste("ESS:",round(ess,2)),side=3,cex=0.85)
+      if(i == 1) title("MCMC",cex.main=1.75)
     }
     dev.off()
 
-    # Plot acceptance rates for parameters
+    # Print acceptance rates for parameters
     sink(file = paste(gpath,"sir_mcmc_test-",paste(x,beta,gamma,nu,ymax,sep="-"),"-acceptance-params.txt",sep=""))
     print("Acceptance rates of unknown parameters for each chain")
     theta.chain = sapply(out, function(x) x$accept.theta / n.sims)
